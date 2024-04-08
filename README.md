@@ -25,6 +25,12 @@
   </div>
 </p>
 
+# 内测
+由于诸多功能尚未实现，将暂时不在Github上发布任何版本
+若您想提前体验ReadCat，请加入内测交流群，您有任何问题、建议等等，可在该群交流
+欢迎您加入内测交流群
+QQ群号：<strong>903473975</strong>
+
 ## 上手指南
 ReadCat不携带插件，若您首次使用ReadCat且未导入书源插件，将无法获取任何在线书本内容
 <a href="https://docs.qq.com/doc/DRmlncEFkbElZYmFJ">点击查看插件导入方法</a>
@@ -57,20 +63,16 @@ ReadCat不携带插件，若您首次使用ReadCat且未导入书源插件，将
 
 #### 书签
 <div>
-  <div style="display: flex; margin-bottom: 5px;">
-    <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/read-bookmark.png" alt="Bookmark" />
-    <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/bookmark-content.png" alt="BookmarkContent" />
-  </div>
-  <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/bookmark-list.png" alt="BookmarkList" />
+  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/read-bookmark.png" alt="Bookmark" />
+  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/bookmark-content.png" alt="BookmarkContent" />
+  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/bookmark-list.png" alt="BookmarkList" />
 </div>
 
 #### 深色模式
 <div>
-  <div style="display: flex; margin-bottom: 5px;">
-    <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/settings-dark.png" alt="SettingsDark" />
-    <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/bookshelf-dark.png" alt="BookmarkDark" />
-  </div>
-  <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/read-dark.png" alt="ReadDark" />
+  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/settings-dark.png" alt="SettingsDark" />
+  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/bookshelf-dark.png" alt="BookmarkDark" />
+  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/read-dark.png" alt="ReadDark" />
 </div>
 
 
