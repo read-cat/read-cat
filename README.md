@@ -72,6 +72,8 @@ ReadCat不携带插件，若您首次使用ReadCat且未导入书源插件，将
   </div>
   <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/read-dark.png" alt="ReadDark" />
 </div>
+
+
 ## 版权说明
 
 该项目签署了GPL-3.0 授权许可，详情请参阅 [LICENSE](https://github.com/read-cat/read-cat/blob/main/LICENSE)
