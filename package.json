@@ -1,0 +1,52 @@
+{
+  "name": "read-cat",
+  "description": "一款简洁、纯净、无广告的小说阅读器",
+  "author": "Panda <ljy1345514736@163.com>",
+  "version": "1.0.0",
+  "versionCode": 1,
+  "private": true,
+  "license": "GPL-3.0",
+  "scripts": {
+    "cdev": "chcp 65001 && npm run dev",
+    "dev": "npm run make && vite",
+    "build": "npm run make && vue-tsc && vite build && electron-builder",
+    "make": "node make.cjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vueuse/core": "^10.9.0",
+    "animate.css": "^4.1.1",
+    "cheerio": "1.0.0-rc.12",
+    "element-plus": "^2.6.3",
+    "express": "^4.19.2",
+    "https-proxy-agent": "^7.0.4",
+    "iconv-lite": "^0.6.3",
+    "nanoid": "^5.0.6",
+    "pinia": "^2.1.7",
+    "socks-proxy-agent": "^8.0.3",
+    "uglify-js": "^3.17.4",
+    "urlencode": "^2.0.0",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.35",
+    "@types/dom-view-transitions": "^1.0.4",
+    "@types/express": "^4.17.21",
+    "@types/uglify-js": "^3.17.5",
+    "@types/ws": "^8.5.10",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "electron": "^29.2.0",
+    "electron-builder": "^24.13.3",
+    "sass": "^1.74.1",
+    "typescript": "^5.4.4",
+    "unplugin-element-plus": "^0.8.0",
+    "vite": "^5.2.8",
+    "vite-plugin-electron": "^0.28.4",
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "vite-svg-loader": "^5.1.0",
+    "vue-tsc": "^2.0.10"
+  },
+  "main": "dist-electron/main.js"
+}

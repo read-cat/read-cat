@@ -1,0 +1,225 @@
+<script setup lang="ts">
+import {
+  ElContainer,
+  ElHeader,
+  ElText,
+  ElRadioGroup,
+  ElRadioButton,
+  ElMain,
+  ElIcon,
+  ElPagination
+} from 'element-plus';
+import { nextTick, ref } from 'vue';
+import { colorIsLight } from '../../../../core/utils';
+import { usePagination } from './hooks/pagination';
+import { Chapter } from '../../../../core/book/book';
+import { useTextContentStore } from '../../../../store/text-content';
+import { useMessage } from '../../../../hooks/message';
+import { isNull, isUndefined } from '../../../../core/is';
+import { useDetailStore } from '../../../../store/detail';
+import { storeToRefs } from 'pinia';
+import { WindowEvent } from '../../../window/index.vue';
+import { useBookshelfStore } from '../../../../store/bookshelf';
+import { useCacheChapter } from './hooks/cache-chapter';
+import IconCache from '../../../../assets/svg/icon-cache.svg';
+import Bookmark from '../../../bookmark/index.vue';
+import { useSettingsStore } from '../../../../store/settings';
+
+const props = defineProps<{
+  windowEvent?: WindowEvent
+}>();
+
+const textColor = ref('#2D2D2D');
+nextTick(() => {
+  const bgcolor = getComputedStyle(<HTMLElement>document.querySelector('.chapter-box-container')?.parentElement).backgroundColor;
+  const reg = /rgba\((\d+),\s?(\d+),\s?(\d+),.*?\)/i.exec(bgcolor);
+  const r = reg ? Number(reg[1]) : 0;
+  const g = reg ? Number(reg[2]) : 0;
+  const b = reg ? Number(reg[3]) : 0;
+  textColor.value = colorIsLight(r, g, b) ? '#2D2D2D' : '#CFD3DC';
+});
+const radioValue = ref('directory');
+const { options } = useSettingsStore();
+const message = useMessage();
+const { setCurrentReadIndex } = useDetailStore();
+const { currentDetailUrl, cacheIndexs } = storeToRefs(useDetailStore());
+const { getTextContent } = useTextContentStore();
+const { exist, getBookshelfEntity, put } = useBookshelfStore();
+const { cache } = useCacheChapter();
+const {
+  pid,
+  totalPage,
+  currentPage,
+  showValue,
+  currentPageChange,
+  currentChapterTitle,
+  currentChapterPage
+} = usePagination(13);
+// const { bookmarkTree, currentChapterBookmarkId, nodeClick } = useBookmark();
+
+const directoryItemClick = (chapter: Chapter) => {
+  if (currentChapterTitle.value === chapter.title) {
+    return;
+  }
+  props.windowEvent?.hide();
+  getTextContent(pid.value, chapter).then(() => {
+    if (isUndefined(chapter.index)) {
+      setCurrentReadIndex(-1);
+      GLOBAL_LOG.warn(`chapter index is undefined, pid:${pid}`, chapter);
+      message.warning('无法获取章节索引');
+    } else {
+      setCurrentReadIndex(chapter.index);
+      if (isNull(currentDetailUrl.value) || !exist(pid.value, currentDetailUrl.value)) {
+        return;
+      }
+      cache(chapter.index);
+      getBookshelfEntity(pid.value, currentDetailUrl.value).then(entity => {
+        if (!entity) {
+          return;
+        }
+        put({
+          ...entity,
+          readIndex: chapter.index
+        });
+      });
+    }
+  }).catch(e => {
+    message.error(e.message);
+  });
+}
+</script>
+<script lang="ts">
+export default {
+  name: 'ChapterBox'
+}
+</script>
+
+<template>
+  <ElContainer class="chapter-box-container">
+    <ElHeader class="chapter-box-header">
+      <ElText size="small" truncated v-memo="[currentChapterPage, currentChapterTitle]">当前章节(第{{ currentChapterPage }}页)
+        {{ currentChapterTitle }}</ElText>
+      <ElRadioGroup v-memo="[radioValue]" v-model="radioValue" size="small" text-color="var(--rc-text-color)">
+        <ElRadioButton label="目录" value="directory" />
+        <ElRadioButton label="书签" value="bookmark" />
+      </ElRadioGroup>
+    </ElHeader>
+    <ElMain class="chapter-box-main">
+      <div v-show="radioValue === 'directory'" class="directory">
+        <ul>
+          <li v-memo="[item.title === currentChapterTitle, cacheIndexs.includes(item.index)]" v-for="item in showValue" :key="item.url" class="rc-button" @click="directoryItemClick(item)">
+            <ElIcon v-if="cacheIndexs.includes(item.index)">
+              <IconCache />
+            </ElIcon>
+            <span :style="{
+              color: `${item.title === currentChapterTitle ? 'var(--rc-theme-color)' : ''}`,
+              fontWeight: `${item.title === currentChapterTitle ? 'bold' : ''}`
+            }">{{ item.title }}</span>
+          </li>
+        </ul>
+        <ElPagination layout="prev, pager, next" :current-page="currentPage" :page-count="totalPage"
+          @current-change="currentPageChange" hide-on-single-page />
+      </div>
+      <div v-show="radioValue === 'bookmark'"
+        :class="['bookmark', 'rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
+        <Bookmark :window-event="windowEvent" />
+      </div>
+    </ElMain>
+  </ElContainer>
+</template>
+
+<style scoped lang="scss">
+.chapter-box-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 5px;
+  color: v-bind(textColor);
+  height: 60px;
+
+  :deep(.el-radio-group) {
+    margin-top: 10px;
+
+    .el-radio-button__inner {
+      padding: 7px 50px;
+      background-color: rgba(127, 127, 127, 0.1);
+      border: none;
+      box-shadow: none;
+
+      &:hover {
+        color: var(--rc-theme-color);
+      }
+    }
+
+    .el-radio-button__original-radio:checked+.el-radio-button__inner {
+      background-color: var(--rc-search-border-color);
+    }
+
+    /* .el-radio-button {
+      --el-radio-button-checked-bg-color: var(--rc-theme-color);
+      --el-radio-button-checked-border-color: var(--rc-theme-color);
+    } */
+  }
+}
+
+.chapter-box-main {
+  padding: 5px 0;
+
+  .directory {
+    position: relative;
+
+    ul {
+      height: 390px;
+
+      li {
+        margin: 0 20px 5px;
+        padding: 0 10px;
+        line-height: 25px;
+        height: 25px;
+        font-size: 14px;
+        justify-content: flex-start;
+        color: currentColor;
+        border-radius: 5px;
+
+        &:active {
+          transform: scale(0.95);
+        }
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        span {
+          display: inline-block;
+          max-width: 350px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          text-wrap: nowrap;
+        }
+
+        :deep(.el-icon) {
+          margin-right: 5px;
+        }
+      }
+    }
+
+    :deep(.el-pagination) {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+      --el-pagination-hover-color: var(--rc-theme-color);
+
+      button,
+      .el-pager li {
+        background-color: transparent;
+      }
+    }
+
+  }
+
+  .bookmark {
+    padding: 0 20px;
+    height: 425px;
+  }
+}
+</style>

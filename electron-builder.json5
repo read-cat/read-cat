@@ -1,0 +1,51 @@
+/**
+ * @see https://www.electron.build/configuration/configuration
+ */
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "com.github.pandaer13",
+  "asar": false,
+  "productName": "ReadCat",
+  "directories": {
+    "output": "release/${version}"
+  },
+  "files": [
+    "dist",
+    "dist-electron",
+    "!node_modules/**/*.map",
+    "!dist/favicon.icns"
+  ],
+  "mac": {
+    "icon": "public/favicon.icns",
+    "target": [
+      "dmg"
+    ],
+    "artifactName": "${productName}-${platform}-${arch}-${version}-Installer.${ext}"
+  },
+  "win": {
+    "icon": "public/favicon.ico",
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "artifactName": "${productName}-${platform}-${arch}-${version}-Setup.${ext}"
+  },
+  "nsis": {
+    "installerIcon": "public/favicon.ico",
+    "installerHeaderIcon": "public/favicon.ico",
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "deleteAppDataOnUninstall": true
+  },
+  "linux": {
+    "target": [
+      "AppImage"
+    ],
+    "artifactName": "${productName}-${platform}-${arch}-${version}.${ext}"
+  }
+}

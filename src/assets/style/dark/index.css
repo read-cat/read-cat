@@ -1,0 +1,39 @@
+:root {
+  --rc-window-box-bgcolor-dark: #1A1C1D;
+}
+:root.dark {
+  --rc-text-color: #AAAAB5;
+
+  --rc-main-color: var(--rc-window-box-bgcolor-dark);
+
+  --rc-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.25);
+
+  --rc-header-color: #1D1E1F;
+  --rc-header-box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.4);
+
+  --rc-search-box-shadow: var(--rc-shadow);
+  --rc-search-pagination-blur-bgcolor: rgba(29, 30, 31, 0.6);
+  --rc-search-box-bgcolor: var(--rc-window-box-bgcolor-dark);
+
+  --rc-window-box-bgcolor: var(--rc-window-box-bgcolor-dark);
+  --rc-window-box-shadow: var(--rc-shadow);
+  --rc-window-box-blur-bgcolor: rgba(34, 34, 34, 0.6);
+
+
+  --rc-scrollbar-hove-bgcolor: rgba(255, 255, 255, 0.1);
+  --rc-scrollbar-thumb-bgcolor: rgba(255, 255, 255, 0.15);
+  --rc-scrollbar-thumb-hover-bgcolor: rgba(255, 255, 255, 0.2);
+
+  --rc-button-hover-bgcolor: rgba(255, 255, 255, 0.17);
+
+  --rc-loading-mask-bgcolor: rgba(26, 26, 26, 0.9);
+
+  --rc-bookmark-odd-color: #7B800A;
+  --rc-bookmark-even-color: currentColor;
+  --rc-bookmark-odd-font-color: #7B800A;
+  --rc-bookmark-even-font-color: currentColor;
+
+  --rc-card-bgcolor: #222526;
+
+  --rc-settings-window-bgcolor: #1F2022;
+}

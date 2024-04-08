@@ -1,0 +1,203 @@
+:root {
+  --rc-theme-color: #1e78eb;
+  --rc-text-color: #2D2D2D;
+
+  --rc-window-box-bgcolor-light: #FFFFFF;
+  --rc-main-color: #F6F6F6;
+
+  --rc-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.1);
+
+  --rc-header-color: #F2F6FC;
+  --rc-header-box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+
+  --rc-search-border-color: rgba(30, 120, 235, 0.3);
+  --rc-search-bgcolor: rgba(30, 120, 235, 0.15);
+  --rc-search-box-shadow: var(--rc-shadow);
+  --rc-search-box-bgcolor: #FFFFFF;
+  --rc-search-pagination-blur-bgcolor: rgba(235, 235, 235, 0.6);
+
+  --rc-window-box-shadow: var(--rc-shadow);
+  --rc-window-box-bgcolor: var(--rc-window-box-bgcolor-light);
+  --rc-window-box-blur-bgcolor: rgba(255, 255, 255, 0.6);
+  --rc-window-close-btn-color: #F56C6C;
+
+  --rc-scrollbar-hove-bgcolor: rgba(0, 0, 0, 0.1);
+  --rc-scrollbar-thumb-bgcolor: rgba(0, 0, 0, 0.15);
+  --rc-scrollbar-thumb-hover-bgcolor: rgba(0, 0, 0, 0.2);
+
+  --rc-button-hover-bgcolor: rgba(0, 0, 0, 0.08);
+
+  --rc-latest-chapter-color: #54CB39;
+
+  --rc-loading-mask-bgcolor: rgba(255, 255, 255, 0.9);
+
+  --rc-error-color: #EF3C3C;
+
+  --el-text-color-regular: var(--rc-text-color) !important;
+
+  --rc-card-bgcolor: #FFFFFF;
+
+  --rc-settings-window-bgcolor: #F5F5F5;
+}
+
+html,
+body,
+#app {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  color: var(--rc-text-color);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+  /* -webkit-app-region: none; */
+  outline: none;
+  font-family: 'HarmonyOS Sans', serif;
+
+  &::selection {
+    background-color: rgba(127, 127, 127, 0.2);
+  }
+}
+
+ul {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+button {
+  border: none;
+  background: transparent;
+}
+
+.app-drag {
+  -webkit-app-region: drag;
+}
+
+.app-no-drag {
+  -webkit-app-region: none;
+
+  * {
+    -webkit-app-region: none;
+  }
+}
+
+.app-blur {
+  backdrop-filter: blur(30px);
+}
+
+.li-selected {
+  color: var(--rc-theme-color) !important;
+}
+
+.rc-scrollbar {
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.rc-scrollbar-behavior {
+  scroll-behavior: smooth;
+}
+
+.rc-scrollbar::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.rc-scrollbar::-webkit-scrollbar:hover {
+  cursor: default;
+  background-color: var(--rc-scrollbar-hove-bgcolor);
+}
+
+.rc-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color: var(--rc-scrollbar-thumb-bgcolor);
+}
+
+.rc-scrollbar::-webkit-scrollbar-thumb:hover {
+  cursor: default;
+  background-color: var(--rc-scrollbar-thumb-hover-bgcolor);
+}
+
+.rc-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rc-text-color);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--rc-button-hover-bgcolor);
+  }
+  &:active {
+    transform: scale(0.85);
+  }
+}
+
+.rc-close-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  width: 20px;
+  height: 20px;
+  transition: all 0.3s ease;
+  border-radius: 5px;
+  cursor: pointer;
+
+  &:hover {
+    color: #FFFFFF;
+    background-color: var(--rc-window-close-btn-color);
+  }
+  &:active {
+    transform: scale(0.85);
+  }
+}
+
+.rc-error-color {
+  color: var(--rc-error-color);
+}
+
+.loading .el-loading-mask {
+  background-color: var(--rc-header-color);
+  z-index: 999;
+}
+
+.container {
+  .no-result {
+    position: absolute;
+    left: calc(50% - 2.5px);
+    top: calc(50% - 5px);
+    transform: translate(-50%, -50%);
+
+    .el-result {
+      padding: 0 !important;
+
+      .el-result__title p {
+        font-size: 15px !important;
+      }
+    }
+  }
+}
+
+.el-pagination {
+  --el-pagination-button-color: var(--rc-text-color);
+  --el-pagination-hover-color: var(--rc-theme-color);
+}
+
+.el-table {
+  tr {
+    background-color: transparent !important;
+  }
+  th.el-table__cell {
+    background-color: transparent !important;
+  }
+}
