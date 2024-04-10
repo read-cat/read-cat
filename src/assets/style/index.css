@@ -54,7 +54,6 @@ body,
   padding: 0;
   user-select: none;
   -webkit-user-drag: none;
-  /* -webkit-app-region: none; */
   outline: none;
   font-family: 'HarmonyOS Sans', serif;
 
