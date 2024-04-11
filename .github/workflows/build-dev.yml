@@ -35,11 +35,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4.3.1
-        with:
-          name: ${{ matrix.os }}
-          path: release
+      # - name: Upload artifacts
+      #   uses: actions/upload-artifact@v4.3.1
+      #   with:
+      #     name: ${{ matrix.os }}
+      #     path: release
           
       - name: Release
         uses: softprops/action-gh-release@v2.0.4
