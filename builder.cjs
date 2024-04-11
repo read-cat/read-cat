@@ -3,6 +3,7 @@ console.log('builder');
 console.log('version:', version, 'date:', date);
 const builder = require('electron-builder');
 const fs = require('fs');
+const { join } = require('path');
 const { Platform, Arch } = builder;
 /**
 * @type {import('electron-builder').Configuration}
@@ -103,5 +104,17 @@ Promise.allSettled(promises).then(res => {
 }).catch(e => {
   console.error(e);
 }).finally(() => {
-  console.log(fs.readdirSync(__dirname, { encoding: 'utf-8' }))
+  const dir = join(__dirname, 'build');
+  fs.readdirSync(dir, { encoding: 'utf-8' }).forEach(file => {
+    console.log(dir, file);
+    if (
+      file.toLowerCase().endsWith('.exe') ||
+      file.toLowerCase().endsWith('.tar.gz') ||
+      file.toLowerCase().endsWith('.dmg') ||
+      file.toLowerCase().endsWith('.appimage')
+    ) {
+      console.log('file:', join(dir, file), join(__dirname, 'release', file));
+      fs.renameSync(join(dir, file), join(__dirname, 'release', file));
+    }
+  });
 });
