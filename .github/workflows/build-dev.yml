@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         # os: [ windows-latest, macos-latest, ubuntu-latest ]
-        os: [ windows-latest ]
+        os: [ ubuntu-latest ]
       
     permissions:
       contents: write
@@ -26,22 +26,40 @@ jobs:
         uses: actions/setup-node@v4.0.2
         with:
           node-version: "20"
-        
+      
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v4.0.2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
       - name: Install Dependencies
-        run: npm install
+        # run: npm install
+        run: |
+          yarn install --frozen-lockfile
         
       - name: Build Windows platform
-        run: npm run build:win32:x64
+        # run: npm run build:win32:x64
+        run: yarn build:win32:x64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
+      - name: Cleanup artifacts
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          npx rimraf "build/!(*.exe|*.tar.gz)"
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4.3.1
         with:
           name: ${{ matrix.os }}
-          path: |
-            build/*.exe
-            build/*.tar.gz
+          path: build
           
       - name: Release
         uses: softprops/action-gh-release@v2.0.4
