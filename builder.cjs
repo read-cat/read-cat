@@ -104,21 +104,23 @@ Promise.allSettled(promises).then(res => {
 }).catch(e => {
   console.error(e);
 }).finally(() => {
-  const dir = join(__dirname, 'build');
-  fs.readdirSync(dir, { encoding: 'utf-8' }).forEach(file => {
-    console.log(dir, file);
+  const buildDir = join(__dirname, 'build');
+  const releaseDir = join(__dirname, 'release');
+  fs.mkdirSync(releaseDir, {
+    recursive: true
+  });
+  fs.readdirSync(buildDir, { encoding: 'utf-8' }).forEach(file => {
+    console.log(buildDir, file);
     if (
       file.toLowerCase().endsWith('.exe') ||
       file.toLowerCase().endsWith('.tar.gz') ||
       file.toLowerCase().endsWith('.dmg') ||
       file.toLowerCase().endsWith('.appimage')
     ) {
-      const release = join(__dirname, 'release');
-      fs.mkdirSync(release, {
-        recursive: true
-      });
-      console.log('file:', join(dir, file), join(release, file));
-      fs.renameSync(join(dir, file), join(release, file));
+      
+      
+      console.log('file:', join(buildDir, file), join(releaseDir, file));
+      fs.renameSync(join(buildDir, file), join(releaseDir, file));
     }
   });
 });
