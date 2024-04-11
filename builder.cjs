@@ -1,5 +1,6 @@
 const { version, date, branch } = require('./metadata.json');
-console.log('builder--:', version, date, branch);
+console.log('builder');
+console.log('version:', version, 'date:', date);
 const builder = require('electron-builder');
 const { Platform, Arch } = builder;
 /**

@@ -35,19 +35,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-      - name: upload artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4.3.1
         with:
           name: ${{ matrix.os }}
-          path: build
+          path: |
+            build/*.exe
+            build/*.tar.gz
           
-      - name: release
+      - name: Release
         uses: softprops/action-gh-release@v2.0.4
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: |
-            "build/*.exe"
-            "build/*.tar.gz"
+          files: "build/**"
           prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
