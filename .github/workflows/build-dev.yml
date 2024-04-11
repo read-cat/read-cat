@@ -14,7 +14,10 @@ jobs:
       matrix:
         # os: [ windows-latest, macos-latest, ubuntu-latest ]
         os: [ windows-latest ]
-
+      
+    permissions:
+      contents: write
+      
     steps:
       - name: Check out git repository
         uses: actions/checkout@v4.1.1
@@ -28,7 +31,7 @@ jobs:
         run: npm install
         
       - name: Build Windows platform
-        run: npm run build:win32
+        run: npm run build:win32:x64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         

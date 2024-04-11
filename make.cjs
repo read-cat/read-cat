@@ -1,6 +1,6 @@
-const { execSync } = require('child_process');
+// const { execSync } = require('child_process');
 const fs = require('fs');
-function format(date, format) {
+/* function format(date, format) {
   const o = {
     'M+': date.getMonth() + 1,
     'd+': date.getDate(),
@@ -53,6 +53,6 @@ const out = {
   branch,
   date,
   commit
-}
-
-fs.writeFileSync('metadata.json', JSON.stringify(out), { encoding: 'utf-8' });
+} */
+const createMetadata = require('./metadata.cjs');
+fs.writeFileSync('metadata.json', JSON.stringify(createMetadata()), { encoding: 'utf-8' });
