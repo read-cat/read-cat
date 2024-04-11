@@ -1,0 +1,52 @@
+name: Build pre-release
+
+on:
+  push:
+    tags:
+      - v*.*-dev
+
+jobs:
+  pre-release:
+    name: Build and pre-release by dev branch
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ windows-latest, macos-latest, ubuntu-latest ]
+
+    steps:
+      - name: Check out git repository
+        uses: actions/checkout@v4.1.1
+    
+      - name: Install Node.js
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version: "20"
+        
+      - name: Install Dependencies
+        run: npm install
+        
+      - name: Build Windows platform
+        run: npm run build:win32
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: Cleanup Artifacts for Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          npx rimraf "build/!(*.exe|*.tar.gz)"
+        
+      - name: upload artifacts
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: ${{ matrix.os }}
+          path: build
+          
+      - name: release
+        uses: softprops/action-gh-release@v2.0.4
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: "build/**"
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

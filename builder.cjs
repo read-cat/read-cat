@@ -14,7 +14,7 @@ const config = {
   ],
   compression: 'maximum',
   directories: {
-    'output': `build/${version}`
+    'output': `build`
   },
   files: [
     'dist',
@@ -24,13 +24,6 @@ const config = {
   ],
   win: {
     icon: 'public/favicon.ico',
-    /* target: [{
-      target: 'nsis',
-      arch: ['x64', 'ia32']
-    }, {
-      target: 'tar.gz',
-      arch: ['x64', 'ia32']
-    }], */
     artifactName: '${productName}-windows-${arch}' + `-${version}${branch === 'dev' ? '.' + date : ''}` + '.${ext}',
   },
   nsis: {
@@ -43,24 +36,10 @@ const config = {
   },
   mac: {
     icon: 'public/favicon.icns',
-    target: [{
-      target: 'dmg',
-      arch: ['x64', 'arm64']
-    }, {
-      target: 'tar.gz',
-      arch: ['x64', 'arm64']
-    }],
     artifactName: '${productName}-darwin-${arch}' + `-${version}${branch === 'dev' ? '.' + date : ''}` + '.${ext}',
     darkModeSupport: true
   },
   linux: {
-    target: [{
-      target: 'AppImage',
-      arch: ['x64', 'arm64']
-    }, {
-      target: 'tar.gz',
-      arch: ['x64', 'arm64']
-    }],
     artifactName: '${productName}-linux-${arch}' + `-${version}${branch === 'dev' ? '.' + date : ''}` + '.${ext}',
   }
 }
@@ -100,10 +79,10 @@ platforms.forEach(a => {
     targets = Platform.WINDOWS.createTarget(['nsis', 'tar.gz'], ...archs);
   } else if (a === '--darwin') {
     (archs.length <= 0) && (archs.push(Arch.x64, Arch.arm64));
-    targets = Platform.MAC.createTarget();
+    targets = Platform.MAC.createTarget(['dmg', 'tar.gz'], ...archs);
   } else if (a === '--linux') {
     (archs.length <= 0) && (archs.push(Arch.x64, Arch.arm64));
-    targets = Platform.LINUX.createTarget();
+    targets = Platform.LINUX.createTarget(['AppImage', 'tar.gz'], ...archs);
   }
   targets && promises.push(builder.build({
     targets,
