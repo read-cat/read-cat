@@ -2,6 +2,7 @@ const { version, date, branch } = require('./metadata.json');
 console.log('builder');
 console.log('version:', version, 'date:', date);
 const builder = require('electron-builder');
+const fs = require('fs');
 const { Platform, Arch } = builder;
 /**
 * @type {import('electron-builder').Configuration}
@@ -101,4 +102,6 @@ Promise.allSettled(promises).then(res => {
   }
 }).catch(e => {
   console.error(e);
+}).finally(() => {
+  console.log(fs.readdirSync(__dirname, { encoding: 'utf-8' }))
 });
