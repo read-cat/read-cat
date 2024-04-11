@@ -36,13 +36,14 @@ const getBranch = (branch) => {
 
 module.exports = () => {
   const pkg = require('./package.json');
+  const { branch } = pkg;
   const commit = execSync('git log -1 --pretty=format:%H', { encoding: 'utf-8' }).trim();
   console.log('metadata');
-  console.log('branch:', pkg.branch, 'commit:', commit);
+  console.log('branch:', branch, 'commit:', commit);
   const date = format(new Date(), 'yyMMddHH');
 
   
-  const b = getBranch(pkg.branch);
+  const b = getBranch(branch);
   let versionCode = Number(`${pkg.versionCode}.${date}`);
   if (b === 'dev') {
     versionCode = Number(`0.${date}`);
