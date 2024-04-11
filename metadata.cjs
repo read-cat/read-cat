@@ -40,19 +40,13 @@ module.exports = () => {
   const commit = execSync('git log -1 --pretty=format:%H', { encoding: 'utf-8' }).trim();
   console.log('metadata');
   console.log('branch:', branch, 'commit:', commit);
-  const date = format(new Date(), 'yyMMddHH');
+  const date = format(new Date(), 'yyMMdd');
+  const versionCode = Number(`${pkg.version.charAt(0)}.${`0${pkg.versionCode}`.slice(-2)}${date}`);
 
-  
   const b = getBranch(branch);
-  let versionCode = Number(`${pkg.versionCode}.${date}`);
-  if (b === 'dev') {
-    versionCode = Number(`0.${date}`);
-  } else if (b === 'release') {
-    versionCode = Number(`${pkg.versionCode}.${date}`);
-  }
-  const version = `${pkg.version}-${b}`;
   return {
-    version,
+    tag: `v${versionCode}${b === 'release' ? '' : '-' + b}`,
+    version: `${pkg.version}${b === 'release' ? '' : '-' + b}`,
     versionCode,
     branch,
     date,
