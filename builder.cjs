@@ -113,8 +113,12 @@ Promise.allSettled(promises).then(res => {
       file.toLowerCase().endsWith('.dmg') ||
       file.toLowerCase().endsWith('.appimage')
     ) {
-      console.log('file:', join(dir, file), join(__dirname, 'release', file));
-      fs.renameSync(join(dir, file), join(__dirname, 'release', file));
+      const release = join(__dirname, 'release');
+      fs.mkdirSync(release, {
+        recursive: true
+      });
+      console.log('file:', join(dir, file), join(release, file));
+      fs.renameSync(join(dir, file), join(release, file));
     }
   });
 });
