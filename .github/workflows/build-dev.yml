@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         # os: [ windows-latest, macos-latest, ubuntu-latest ]
-        os: [ ubuntu-latest ]
+        os: [ macos-latest ]
       
     permissions:
       contents: write
@@ -51,7 +51,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
       - name: Cleanup artifacts
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'macos-latest'
         run: |
           npx rimraf "build/!(*.exe|*.tar.gz)"
 
