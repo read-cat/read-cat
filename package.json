@@ -4,6 +4,7 @@
   "author": "Panda <ljy1345514736@163.com>",
   "version": "1.0.0",
   "versionCode": 1.0,
+  "branch": "dev",
   "private": true,
   "license": "GPL-3.0",
   "scripts": {
