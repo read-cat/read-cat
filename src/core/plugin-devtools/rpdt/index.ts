@@ -43,8 +43,8 @@ export async function decompress(file: string | Buffer, target: string): Promise
     buf = file;
   }
   const { match, metadata } = await checkout(buf);
-  const newp = path.join(target, `${metadata.version}-${metadata.branch}`);
-  const backup = path.join(target, `backup_${metadata.version}-${metadata.branch}`);
+  const newp = path.join(target, `${metadata.version}`);
+  const backup = path.join(target, `backup_${metadata.version}`);
   const exist = existsSync(newp);
   if (exist) {
     await fs.rename(newp, backup);

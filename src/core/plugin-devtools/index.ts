@@ -94,7 +94,7 @@ export class PluginDevtools {
         const metadata: Metadata = JSON.parse(await fs.readFile(path.join(resourcePath, 'metadata.json'), 'utf-8'));
         for (const { file, sha256 } of metadata.files) {
           const hash = createHash('sha256');
-          const buf = await fs.readFile(path.join(resourcePath, file));
+          const buf = await fs.readFile(path.join(resourcePath, ...file.split('\\')));
           hash.update(buf);
           const hex = hash.digest('hex');
           if (sha256 === hex) {
