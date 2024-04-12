@@ -51,7 +51,7 @@ export async function decompress(file: string | Buffer, target: string): Promise
   }
   for (const key in match) {
     const value = match[key];
-    const _filename = path.join(newp, key);
+    const _filename = path.join(newp, ...key.split('\\'));
     const dir = path.dirname(_filename);
     if (!existsSync(dir)) {
       await fs.mkdir(dir, {
