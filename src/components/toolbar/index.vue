@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import {
   ElTooltip,
-  ElDivider
+  // ElDivider
 } from 'element-plus';
-import IconMinimize from '../../assets/svg/icon-minimize.svg';
+/* import IconMinimize from '../../assets/svg/icon-minimize.svg';
 import IconMaximize from '../../assets/svg/icon-maximize.svg';
 import IconMaximizeRestore from '../../assets/svg/icon-maximize-restore.svg';
-import IconClose from '../../assets/svg/icon-close.svg';
+import IconClose from '../../assets/svg/icon-close.svg'; */
 import IconMoon from '../../assets/svg/icon-moon.svg';
 import IconSun from '../../assets/svg/icon-sun.svg';
 import IconHistory from '../../assets/svg/icon-history.svg';
 import IconSettings from '../../assets/svg/icon-settings.svg';
-import IconExitFullScreen from '../../assets/svg/icon-exit-fullscreen.svg';
+// import IconExitFullScreen from '../../assets/svg/icon-exit-fullscreen.svg';
 import IconRedo from '../../assets/svg/icon-redo.svg';
 import Window, { WindowEvent } from '../window/index.vue';
 import Settings from '../settings/index.vue'
@@ -28,10 +28,10 @@ const win = useWindowStore();
 const {
   refresh,
   dark,
-  minimize,
+/*   minimize,
   maximizeOrRestore,
   close,
-  exitFullScreen
+  exitFullScreen */
 } = useEvent();
 
 const settingsWindow = ref<WindowEvent>();
@@ -72,10 +72,11 @@ export default {
         <Settings :window="settingsWindow" />
       </Window>
     </div>
-    <ElDivider v-memo="[win.currentPath, win.isDark]" direction="vertical" :style="{
+    
+    <!-- <ElDivider v-if="false" v-memo="[win.currentPath, win.isDark]" direction="vertical" :style="{
         '--el-border-color': win.currentPath === PagePath.READ && !win.isDark ? 'var(--rc-text-color)' : '',
       }" />
-    <div class="window-bar center">
+    <div class="window-bar center" v-if="false">
       <ElTooltip v-once effect="light" content="最小化" placement="bottom" :show-after="1000">
         <button class="rc-button" @click="minimize">
           <IconMinimize />
@@ -96,11 +97,11 @@ export default {
           <IconClose />
         </button>
       </ElTooltip>
-    </div>
+    </div> -->
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .center {
   display: flex;
   flex-direction: row;
@@ -118,8 +119,7 @@ export default {
       margin: 0;
     }
   }
-
-  .window-bar {
+  /* .window-bar {
     button {
 
       &:last-child {
@@ -128,7 +128,7 @@ export default {
         }
       }
     }
-  }
-
+  } */
+  
 }
 </style>

@@ -1,13 +1,15 @@
 :root {
   --rc-theme-color: #1e78eb;
-  --rc-text-color: #2D2D2D;
+  --rc-text-color-light: #2D2D2D;
+  --rc-text-color: var(--rc-text-color-light);
 
   --rc-window-box-bgcolor-light: #FFFFFF;
   --rc-main-color: #F6F6F6;
 
   --rc-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.1);
 
-  --rc-header-color: #F2F6FC;
+  --rc-header-color-light: #F2F6FC;
+  --rc-header-color: var(--rc-header-color-light);
   --rc-header-box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
 
   --rc-search-border-color: rgba(30, 120, 235, 0.3);

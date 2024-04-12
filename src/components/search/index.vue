@@ -11,7 +11,8 @@ import { useWindowStore } from '../../store/window';
 import SearchBox from './components/search-box/index.vue';
 import ChapterBox from './components/chapter-box/index.vue';
 import { reactive, ref } from 'vue';
-import { useSetSearchStyle } from './hooks/set-search-style';
+// import { useSetSearchStyle } from './hooks/set-header-color';
+import { useHeaderStyle } from '../../hooks/header-style';
 
 
 const win = useWindowStore();
@@ -19,7 +20,8 @@ const { currentPath, searchBoxHeaderText } = storeToRefs(win);
 
 const searchKey = ref('');
 const searchProgress = ref(0);
-const { searchStyle } = useSetSearchStyle(searchKey, searchProgress);
+// const { searchStyle } = useSetSearchStyle(searchKey, searchProgress);
+const { searchStyle } = useHeaderStyle(searchKey, searchProgress);
 
 const { isRunningSearch } = storeToRefs(useSearchStore());
 
@@ -70,13 +72,13 @@ export default {
 <style scoped lang="scss">
 .container {
   position: relative;
-
+  width: 100%;
   #search {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0 5px;
-    width: 290px;
+    width: calc(100% - 12px);
     height: 24px;
     color: var(--rc-theme-color);
     font-size: 12px;

@@ -13,15 +13,23 @@ export const useEvent = () => {
     GLOBAL_IPC.send(EventCode.ASYNC_SET_WINDOW_MAXIMIZE_OR_RESTORE);
   }
 
+  let isShowCloseBox = false;
   const close = () => {
+    if (isShowCloseBox) {
+      return;
+    }
+    isShowCloseBox = true;
     ElMessageBox.confirm('是否退出本程序?', {
       confirmButtonText: '退出',
       cancelButtonText: '关闭',
       type: 'info'
     }).then(() => {
       GLOBAL_IPC.send(EventCode.ASYNC_CLOSE_WINDOW);
-    }).catch(() => { });
+    }).catch(() => { }).finally(() => {
+      isShowCloseBox = false;
+    });
   }
+  GLOBAL_IPC.on(EventCode.ASYNC_CLOSE_WINDOW, close);
 
   const dark = () => {
     setTheme(win.isDark ? 'light' : 'dark');

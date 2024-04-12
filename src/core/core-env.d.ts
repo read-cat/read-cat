@@ -3,6 +3,17 @@ declare const GLOBAL_IPC: import('./ipc-renderer').IpcRenderer;
 declare const GLOBAL_DB: import('./database').Database;
 declare const GLOBAL_FONT: import('./font').Font;
 declare const GLOBAL_PLUGINS: import('./plugins').Plugins;
+declare const GLOBAL_UPDATER: import('./updater/updater').Updater;
+
+type Metadata = {
+  branch: string
+  commit: string
+  date: string
+  tag: string
+  version: string
+  versionCode: number
+}
+declare const METADATA: Metadata;
 
 type Accept = Record<string, string[]>;
 type FileType = {
@@ -43,4 +54,6 @@ interface Window {
   GLOBAL_PLUGINS: import('./plugins').Plugins,
   showOpenFilePicker: typeof showOpenFilePicker,
   showSaveFilePicker: typeof showSaveFilePicker,
+  METADATA: Metadata,
+  GLOBAL_UPDATER: import('./updater/updater').Updater,
 }

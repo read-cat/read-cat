@@ -1,5 +1,6 @@
 import { ReadColor } from '../../core/window/read-style'
 import { RequestProxy } from '../../core/request/defined/request';
+import { UpdateSource } from '../../core/updater/updater';
 
 export type SettingsOptions = {
   /**开启模糊效果 */
@@ -70,5 +71,7 @@ export type Settings = {
   shortcutKey: ShortcutKey
   /**主题 */
   theme: SettingsTheme
+  /**更新源 */
+  updateSource: UpdateSource
 }
 

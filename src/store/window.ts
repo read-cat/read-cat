@@ -38,6 +38,7 @@ export const useWindowStore = defineStore('Window', {
       searchBoxHeaderText: '搜索',
       disableShowSearchBox: new Map<PagePath, boolean>(),
       refreshEventMap: new Map<PagePath, () => void>(),
+      inited: false,
     }
   },
   getters: {

@@ -12,7 +12,7 @@ export const useSettingsStore = defineStore('Settings', {
       options: {
         enableBlur: true,
         enableAutoTextColor: false,
-        enableProxy: true,
+        enableProxy: false,
         enableReadBacktop: true,
         enableShowTipCloseButton: false,
         enableBookmarkHighlight: true,
@@ -43,7 +43,7 @@ export const useSettingsStore = defineStore('Settings', {
         prevChapter: 'ARROWLEFT',
       },
       theme: 'os',
-
+      updateSource: 'Github',
     }
   },
   getters: {

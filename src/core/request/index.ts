@@ -138,16 +138,6 @@ const request = async (url: string, method: RequestMethod, config?: RequestConfi
         signal: AbortSignal.timeout(10 * 1000)
       }, res => {
         const { headers, statusCode, statusMessage } = res;
-        if (statusCode && Math.floor(statusCode / 100) !== 2) {
-          return reje(new ResponseError(
-            `Request failed ${statusCode} ${statusMessage}\n` +
-            `url:${url}\n` +
-            `header:${Logger.toString(headers, 2, true)}\n`,
-            headers,
-            statusCode,
-            statusMessage
-          ));
-        }
         const type = res.headers['content-type'];
         const encoding = res.headers['content-encoding'];
         let body = Buffer.alloc(0);
@@ -165,6 +155,17 @@ const request = async (url: string, method: RequestMethod, config?: RequestConfi
           ));
         });
         res.on('close', () => {
+          if (statusCode && Math.floor(statusCode / 100) !== 2) {
+            return reje(new ResponseError(
+              `Request failed ${statusCode} ${statusMessage}\n` +
+              `body: ${body.toString('utf-8')}\n` +
+              `url:${url}\n` +
+              `header:${Logger.toString(headers, 2, true)}\n`,
+              headers,
+              statusCode,
+              statusMessage
+            ));
+          }
           if (_config.responseType === 'buffer') {
             return reso({
               code: statusCode,
@@ -221,8 +222,8 @@ const request = async (url: string, method: RequestMethod, config?: RequestConfi
       });
       if (method === 'POST' && !isUndefined(params)) {
         req.write(params);
+        req.end();
       }
-	  req.end();
     } catch (e) {
       return reje(e);
     }

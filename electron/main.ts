@@ -23,10 +23,15 @@ function createWindow() {
     height: 650,
     minWidth: 950,
     minHeight: 650,
-    frame: false,
+    // frame: false,
     show: false,
     icon,
-    titleBarStyle: 'hiddenInset',
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#00000000',
+      symbolColor: '#FFFFFF',
+      height: 35
+    },
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
@@ -61,6 +66,16 @@ function createWindow() {
   });
   win.on('unmaximize', () => {
     win?.webContents.send(EventCode.ASYNC_WINDOW_IS_MAXIMIZE, false);
+  });
+  win.on('close', e => {
+    e.preventDefault();
+    win?.webContents.send(EventCode.ASYNC_CLOSE_WINDOW);
+  });
+  ipcMain.on(EventCode.ASYNC_SET_TITLE_BAR_STYLE, (_, bgcolor, textcolor) => {
+    win?.setTitleBarOverlay({
+      color: `${bgcolor}00`.slice(0, 9),
+      symbolColor: textcolor
+    });
   });
   ipcMain.on(EventCode.ASYNC_CLOSE_WINDOW, () => {
     app.quit();

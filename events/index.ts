@@ -15,6 +15,8 @@ export class EventCode {
    * 窗口最大化或退出最大化
    */
   static ASYNC_SET_WINDOW_MAXIMIZE_OR_RESTORE: string
+  /**设置titleBarOverlay */
+  static ASYNC_SET_TITLE_BAR_STYLE: string
   /**
    * 是否全屏
    */

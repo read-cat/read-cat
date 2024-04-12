@@ -39,16 +39,18 @@ const setScrollTop = ({ target }: Event) => {
 }
 
 const { options } = useSettingsStore();
+const { platform } = process;
 </script>
 
 <template>
   <ElContainer id="container" :style="{
     '--rc-header-color': win.backgroundColor
   }">
-    <ElHeader id="header" class="app-drag" :style="{
-    '--rc-text-color': win.textColor
-  }">
+    <ElHeader id="header" :class="['app-drag', platform, win.isFullScreen ? 'fullscreen' : '']" :style="{
+      '--rc-text-color': win.textColor
+    }">
       <div class="left-box">
+        <div class="window-controls-container app-no-darg"></div>
         <div v-show="win.currentPath !== PagePath.READ" id="logo">
           <img class="app-drag" src="./assets/logo.png" alt="ReadCat">
         </div>
@@ -66,6 +68,8 @@ const { options } = useSettingsStore();
       </div>
       <div class="right-box">
         <Toolbar :path="win.currentPath" class="app-no-drag" />
+        <div :class="['window-controls-container', 'app-no-darg', platform, win.isFullScreen ? 'fullscreen' : '']">
+        </div>
       </div>
     </ElHeader>
     <ElMain id="main" :class="['rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']"
@@ -115,13 +119,15 @@ const { options } = useSettingsStore();
     align-items: center;
   }
 
-  $left-right-box-width: 240px;
+  $left-right-box-width: 310px;
 
   .left-box {
     width: $left-right-box-width;
     justify-content: flex-start;
   }
-
+  .center-box {
+    width: 280px;
+  }
   .right-box {
     width: $left-right-box-width;
     justify-content: flex-end;
@@ -149,6 +155,28 @@ const { options } = useSettingsStore();
     margin-left: 10px;
     font-size: 14px;
     color: var(--rc-text-color);
+  }
+
+
+}
+
+#header:not(.darwin):not(.fullscreen) {
+  .left-box .window-controls-container {
+    display: none;
+  }
+  .right-box .window-controls-container {
+    width: 138px;
+  }
+}
+#header:not(.win32):not(.linux):not(.fullscreen) {
+  .left-box .window-controls-container {
+    width: 80px;
+  }
+  #logo {
+    display: none;
+  }
+  .right-box .window-controls-container {
+    display: none;
   }
 }
 
