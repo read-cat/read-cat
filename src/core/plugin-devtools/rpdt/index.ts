@@ -11,8 +11,9 @@ export type Metadata = {
   name: string,
   version: string,
   branch: string,
-  version_code: number,
+  versionCode: number,
   date: string,
+  commit: string,
   files: {
     file: string,
     sha256: string
@@ -88,8 +89,9 @@ const checkout = async (buf: Buffer) => {
       isUndefined(metadata.name) ||
       isUndefined(metadata.version) ||
       isUndefined(metadata.branch) ||
-      isUndefined(metadata.version_code) ||
+      isUndefined(metadata.versionCode) ||
       isUndefined(metadata.date) ||
+      isUndefined(metadata.commit) ||
       isUndefined(metadata.files) ||
       metadata.files.length <= 0
     ) {
