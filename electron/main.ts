@@ -71,7 +71,7 @@ function createWindow() {
   });
   ipcMain.on(EventCode.ASYNC_SET_WINDOW_MAXIMIZE_OR_RESTORE, () => {
     if (!win) return;
-    win.isMaximized() ? win.restore() : win.maximize();
+    win.isMaximized() ? win.unmaximize() : win.maximize();
   });
   ipcMain.on(EventCode.SYNC_IS_DEV, e => {
     e.returnValue = VITE_DEV_SERVER_URL ? true : false;
