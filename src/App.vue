@@ -46,11 +46,11 @@ const { platform } = process;
   <ElContainer id="container" :style="{
     '--rc-header-color': win.backgroundColor
   }">
-    <ElHeader id="header" :class="['app-drag', platform, win.isFullScreen ? 'fullscreen' : '']" :style="{
+    <ElHeader id="header" :class="['app-drag', 'darwin', win.isFullScreen ? 'fullscreen' : '']" :style="{
       '--rc-text-color': win.textColor
     }">
       <div class="left-box">
-        <div v-if="platform === 'darwin'" v-once class="window-controls-container app-no-darg"></div>
+        <div v-if="platform !== 'darwin'" class="window-controls-container app-no-darg"></div>
         <div v-show="win.currentPath !== PagePath.READ" id="logo">
           <img class="app-drag" src="./assets/logo.png" alt="ReadCat">
         </div>
@@ -168,9 +168,11 @@ const { platform } = process;
   }
 }
 
-#header:has(.darwin):not(.fullscreen) {
-  .left-box .window-controls-container {
-    width: 65px;
+#header:is(.darwin) {
+  &:not(.fullscreen) {
+    .left-box .window-controls-container {
+      width: 65px;
+    }
   }
 
   #logo {
