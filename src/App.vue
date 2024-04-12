@@ -171,7 +171,7 @@ const { platform } = process;
 #header:has(.darwin) {
   &:not(.fullscreen) {
     .left-box .window-controls-container {
-      width: 50px;
+      width: 65px;
     }
   }
   #logo {
