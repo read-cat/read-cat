@@ -69,6 +69,7 @@ function createWindow() {
   });
   win.on('close', e => {
     e.preventDefault();
+    win?.focus();
     win?.webContents.send(EventCode.ASYNC_CLOSE_WINDOW);
   });
   (process.platform === 'win32') && ipcMain.on(EventCode.ASYNC_SET_TITLE_BAR_STYLE, (_, bgcolor, textcolor) => {

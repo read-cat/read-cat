@@ -50,7 +50,7 @@ const { platform } = process;
       '--rc-text-color': win.textColor
     }">
       <div class="left-box">
-        <div class="window-controls-container app-no-darg"></div>
+        <div v-if="platform === 'darwin'" v-once class="window-controls-container app-no-darg"></div>
         <div v-show="win.currentPath !== PagePath.READ" id="logo">
           <img class="app-drag" src="./assets/logo.png" alt="ReadCat">
         </div>
@@ -68,8 +68,8 @@ const { platform } = process;
       </div>
       <div class="right-box">
         <Toolbar :path="win.currentPath" class="app-no-drag" />
-        <div :class="['window-controls-container', 'app-no-darg', platform, win.isFullScreen ? 'fullscreen' : '']">
-        </div>
+        <div v-if="platform !== 'darwin'"
+          :class="['window-controls-container', 'app-no-darg', platform, win.isFullScreen ? 'fullscreen' : '']"></div>
       </div>
     </ElHeader>
     <ElMain id="main" :class="['rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']"
@@ -125,9 +125,11 @@ const { platform } = process;
     width: $left-right-box-width;
     justify-content: flex-start;
   }
+
   .center-box {
     width: 280px;
   }
+
   .right-box {
     width: $left-right-box-width;
     justify-content: flex-end;
@@ -161,23 +163,17 @@ const { platform } = process;
 }
 
 #header:not(.darwin):not(.fullscreen) {
-  .left-box .window-controls-container {
-    display: none;
-  }
   .right-box .window-controls-container {
     width: 138px;
   }
 }
-#header:has(.darwin) {
-  &:not(.fullscreen) {
-    .left-box .window-controls-container {
-      width: 65px;
-    }
+
+#header:has(.darwin):not(.fullscreen) {
+  .left-box .window-controls-container {
+    width: 65px;
   }
+
   #logo {
-    display: none;
-  }
-  .right-box .window-controls-container {
     display: none;
   }
 }
