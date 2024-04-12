@@ -1,4 +1,4 @@
-const { version, date, branch } = require('./metadata.json');
+const { version, commit } = require('./metadata.json');
 const builder = require('electron-builder');
 const fs = require('fs');
 const { join } = require('path');
@@ -26,7 +26,7 @@ const config = {
   ],
   win: {
     icon: 'public/favicon.ico',
-    artifactName: '${productName}-windows-${arch}' + `-${version}${branch === 'dev' ? '.' + date : ''}` + '.${ext}',
+    artifactName: '${productName}-windows-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
   },
   nsis: {
     installerIcon: 'public/favicon.ico',
@@ -38,11 +38,11 @@ const config = {
   },
   mac: {
     icon: 'public/favicon.icns',
-    artifactName: '${productName}-darwin-${arch}' + `-${version}${branch === 'dev' ? '.' + date : ''}` + '.${ext}',
+    artifactName: '${productName}-darwin-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
     darkModeSupport: true
   },
   linux: {
-    artifactName: '${productName}-linux-${arch}' + `-${version}${branch === 'dev' ? '.' + date : ''}` + '.${ext}',
+    artifactName: '${productName}-linux-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
   }
 }
 
