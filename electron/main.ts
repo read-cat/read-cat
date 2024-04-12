@@ -26,6 +26,7 @@ function createWindow() {
     frame: false,
     show: false,
     icon,
+    titleBarStyle: 'hiddenInset',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
