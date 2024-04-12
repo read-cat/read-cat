@@ -3,7 +3,7 @@ name: Build dev branch
 on:
   push:
     tags:
-      - v*.*-dev
+      - v*.*.*-dev
 
 jobs:
   pre-release:
@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         # os: [ windows-latest, macos-latest, ubuntu-latest ]
-        os: [ windows-latest ]
+        os: [ windows-latest, macos-latest ]
       
     permissions:
       contents: write
@@ -32,6 +32,11 @@ jobs:
         
       - name: Build electron apps for windows platform
         run: npm run build:win32
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build electron apps for darwin platform
+        run: npm run build:darwin:x64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         

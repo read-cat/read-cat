@@ -1,4 +1,5 @@
 const fs = require('fs');
 const createMetadata = require('./metadata.cjs');
-console.log(createMetadata());
-fs.writeFileSync('metadata.json', JSON.stringify(createMetadata()), { encoding: 'utf-8' });
+const metadata = createMetadata();
+console.log('metadata:', metadata);
+fs.writeFileSync('metadata.json', JSON.stringify(metadata), { encoding: 'utf-8' });

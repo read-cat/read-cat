@@ -1,6 +1,4 @@
 const { version, date, branch } = require('./metadata.json');
-console.log('builder');
-console.log('version:', version, 'date:', date);
 const builder = require('electron-builder');
 const fs = require('fs');
 const { join } = require('path');
@@ -81,10 +79,10 @@ platforms.forEach(a => {
   if (platform === '--win32') {
     (archs.length <= 0) && (archs.push(Arch.x64, Arch.ia32));
     targets = Platform.WINDOWS.createTarget(['nsis', 'tar.gz'], ...archs);
-  } else if (a === '--darwin') {
+  } else if (platform === '--darwin') {
     (archs.length <= 0) && (archs.push(Arch.x64, Arch.arm64));
     targets = Platform.MAC.createTarget(['dmg', 'tar.gz'], ...archs);
-  } else if (a === '--linux') {
+  } else if (platform === '--linux') {
     (archs.length <= 0) && (archs.push(Arch.x64, Arch.arm64));
     targets = Platform.LINUX.createTarget(['AppImage', 'tar.gz'], ...archs);
   }
@@ -101,15 +99,12 @@ Promise.allSettled(promises).then(res => {
       console.error('build error', item.reason);
     }
   }
-}).catch(e => {
-  console.error(e);
-}).finally(() => {
   const buildDir = join(__dirname, 'build');
   const releaseDir = join(__dirname, 'release');
   fs.mkdirSync(releaseDir, {
     recursive: true
   });
-  fs.readdirSync(buildDir, { encoding: 'utf-8' }).forEach(file => {
+  fs.existsSync(buildDir) && fs.readdirSync(buildDir, { encoding: 'utf-8' }).forEach(file => {
     console.log(buildDir, file);
     if (
       file.toLowerCase().endsWith('.exe') ||
@@ -117,10 +112,12 @@ Promise.allSettled(promises).then(res => {
       file.toLowerCase().endsWith('.dmg') ||
       file.toLowerCase().endsWith('.appimage')
     ) {
-      
-      
+
+
       console.log('file:', join(buildDir, file), join(releaseDir, file));
       fs.renameSync(join(buildDir, file), join(releaseDir, file));
     }
   });
+}).catch(e => {
+  console.error(e);
 });
