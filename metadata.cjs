@@ -39,7 +39,7 @@ module.exports = () => {
   const { branch } = pkg;
   const commit = execSync('git log -1 --pretty=format:%H', { encoding: 'utf-8' }).trim();
   console.log('branch:', branch, '\ncommit:', commit);
-  const date = format(new Date(), 'yyyy/MM/dd HH:mm:ss');
+  const date = format(new Date(), 'yyMMdd');
   const vs = pkg.version.split('.');
   const versionCode = Number(`${vs[0]}.${vs.slice(1).join('')}`);
   const b = getBranch(branch);
