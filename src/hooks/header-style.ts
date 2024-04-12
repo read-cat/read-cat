@@ -65,7 +65,9 @@ export const useHeaderStyle = (searchkey: Ref<string>, progress: Ref<number>) =>
       }
     }
     setSearchBoxBackgroundColor(win.isDark);
-    win.inited && GLOBAL_IPC.send(EventCode.ASYNC_SET_TITLE_BAR_STYLE, headerColor, headerTextColor);
+    if (process.platform === 'win32' && win.inited) {
+      GLOBAL_IPC.send(EventCode.ASYNC_SET_TITLE_BAR_STYLE, headerColor, headerTextColor);
+    }
   }
   const setBorderColor = (autoTextColor: boolean, backgroundColor: string) => {
     let r = 0, g = 0, b = 0;

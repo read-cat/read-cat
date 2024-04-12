@@ -50,7 +50,7 @@ app.mount('#app').$nextTick().then(() => {
   Core.init().catch(es => Promise.resolve(es)).then(es => {
     startListener();
     postMessage({ payload: 'removeLoading' }, '*');
-    initHeaderColor();
+    (process.platform === 'win32') && initHeaderColor();
     if (!isUndefined(es)) {
       const message = useMessage();
       for (const e of es) {

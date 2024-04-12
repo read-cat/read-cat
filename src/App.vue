@@ -168,9 +168,11 @@ const { platform } = process;
     width: 138px;
   }
 }
-#header:not(.win32):not(.linux):not(.fullscreen) {
-  .left-box .window-controls-container {
-    width: 80px;
+#header:has(.darwin) {
+  &:not(.fullscreen) {
+    .left-box .window-controls-container {
+      width: 50px;
+    }
   }
   #logo {
     display: none;

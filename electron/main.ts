@@ -71,7 +71,7 @@ function createWindow() {
     e.preventDefault();
     win?.webContents.send(EventCode.ASYNC_CLOSE_WINDOW);
   });
-  ipcMain.on(EventCode.ASYNC_SET_TITLE_BAR_STYLE, (_, bgcolor, textcolor) => {
+  (process.platform === 'win32') && ipcMain.on(EventCode.ASYNC_SET_TITLE_BAR_STYLE, (_, bgcolor, textcolor) => {
     win?.setTitleBarOverlay({
       color: `${bgcolor}00`.slice(0, 9),
       symbolColor: textcolor
