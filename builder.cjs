@@ -120,11 +120,11 @@ const pass = (filename) => {
   if (typeof filename !== 'string') {
     return false;
   }
-  exts.forEach(e => {
+  for (const e of exts) {
     if (filename.toLowerCase().endsWith(e.toLowerCase())) {
       return true;
     }
-  });
+  }
   return false;
 }
 
