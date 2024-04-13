@@ -85,19 +85,49 @@ platforms.forEach(a => {
   });
   if (platform === '--win32') {
     (archs.length <= 0) && (archs.push(Arch.x64, Arch.ia32));
-    targets = Platform.WINDOWS.createTarget(['nsis', 'tar.gz'], ...archs);
+    targets = Platform.WINDOWS.createTarget([
+      'nsis',
+      'tar.gz'
+    ], ...archs);
   } else if (platform === '--darwin') {
     (archs.length <= 0) && (archs.push(Arch.x64, Arch.arm64));
-    targets = Platform.MAC.createTarget(['dmg', 'tar.gz'], ...archs);
+    targets = Platform.MAC.createTarget([
+      'dmg',
+      'tar.gz'
+    ], ...archs);
   } else if (platform === '--linux') {
     (archs.length <= 0) && (archs.push(Arch.x64, Arch.arm64));
-    targets = Platform.LINUX.createTarget(['AppImage', 'tar.gz'], ...archs);
+    targets = Platform.LINUX.createTarget([
+      'AppImage',
+      'tar.gz',
+      'deb'
+    ], ...archs);
   }
   targets && promises.push(builder.build({
     targets,
     config
   }));
 });
+
+const exts = [
+  '.exe',
+  '.tar.gz',
+  '.dmg',
+  '.appimage',
+  '.deb',
+];
+const pass = (filename) => {
+  if (typeof filename !== 'string') {
+    return false;
+  }
+  exts.forEach(e => {
+    if (filename.toLowerCase().endsWith(e.toLowerCase())) {
+      return true;
+    }
+  });
+  return false;
+}
+
 Promise.allSettled(promises).then(res => {
   for (const item of res) {
     if (item.status === 'fulfilled') {
@@ -113,14 +143,7 @@ Promise.allSettled(promises).then(res => {
   });
   fs.existsSync(buildDir) && fs.readdirSync(buildDir, { encoding: 'utf-8' }).forEach(file => {
     console.log(buildDir, file);
-    if (
-      file.toLowerCase().endsWith('.exe') ||
-      file.toLowerCase().endsWith('.tar.gz') ||
-      file.toLowerCase().endsWith('.dmg') ||
-      file.toLowerCase().endsWith('.appimage')
-    ) {
-
-
+    if (pass(file)) {
       console.log('file:', join(buildDir, file), join(releaseDir, file));
       fs.renameSync(join(buildDir, file), join(releaseDir, file));
     }
