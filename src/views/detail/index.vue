@@ -199,6 +199,7 @@ const bookmarkWindow = ref<WindowEvent>();
         display: flex;
         flex-direction: row;
         justify-content: space-between;
+        margin-bottom: 5px;
       }
 
       .info {
@@ -220,7 +221,6 @@ const bookmarkWindow = ref<WindowEvent>();
           width: calc(100% - 150px);
 
           p {
-            margin-bottom: 5px;
             font-size: 14px;
             text-overflow: ellipsis;
             text-wrap: nowrap;
