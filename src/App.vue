@@ -54,7 +54,7 @@ const { platform } = process;
         <div v-show="win.currentPath !== PagePath.READ" id="logo">
           <img class="app-drag" src="./assets/logo.png" alt="ReadCat">
         </div>
-        <Navigation v-show="win.currentPath !== PagePath.READ" :path="win.currentPath" class="app-no-drag" />
+        <Navigation v-show="win.currentPath !== PagePath.READ" :path="win.currentPath" class="navigation app-no-drag" />
         <GoBack id="goback" class="app-no-drag" :style="{
           marginLeft: win.currentPath === PagePath.READ ? '0' : '10px'
         }" />
@@ -174,7 +174,9 @@ const { platform } = process;
       width: 65px;
     }
   }
-
+  .navigation {
+    margin-left: 0;
+  }
   #logo {
     display: none;
   }
