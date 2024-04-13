@@ -68,7 +68,7 @@ const { platform } = process;
       </div>
       <div class="right-box">
         <Toolbar :path="win.currentPath" class="app-no-drag" />
-        <div v-if="platform !== 'darwin'"
+        <div v-if="platform === 'win32'"
           :class="['window-controls-container', 'app-no-darg', platform, win.isFullScreen ? 'fullscreen' : '']"></div>
       </div>
     </ElHeader>
@@ -162,7 +162,7 @@ const { platform } = process;
 
 }
 
-#header:not(.darwin):not(.fullscreen) {
+#header:is(.win32):not(.fullscreen) {
   .right-box .window-controls-container {
     width: 138px;
   }

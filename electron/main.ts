@@ -16,6 +16,7 @@ let win: BrowserWindow | null;
 let pluginDevtoolsWin: BrowserWindow | null = null;
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
 const icon = path.join(process.env.VITE_PUBLIC, 'favicon.ico');
+
 function createWindow() {
   win = new BrowserWindow({
     title: 'ReadCat',
@@ -23,7 +24,7 @@ function createWindow() {
     height: 650,
     minWidth: 950,
     minHeight: 650,
-    // frame: false,
+    frame: process.platform !== 'linux',
     show: false,
     icon,
     titleBarStyle: 'hidden',

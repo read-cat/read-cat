@@ -10,6 +10,7 @@ export const createPluginDevtoolsWindow = (url: string, icon: string) => {
     minHeight: 700,
     icon,
     show: false,
+    frame: process.platform !== 'linux',
     titleBarStyle: 'hidden',
     titleBarOverlay: {
       color: '#3C3C3C00',
@@ -35,6 +36,12 @@ export const createPluginDevtoolsWindow = (url: string, icon: string) => {
   win.on('leave-full-screen', () => {
     win?.webContents.send(PluginDevtoolsEventCode.ASYNC_IS_FULLSCREEN_DEVTOOLS_WINDOW, false);
   });
+  win.on('maximize', () => {
+    win?.webContents.send(PluginDevtoolsEventCode.ASYNC_PLUGIN_DEVTOOLS_WINDOW_IS_MAXIMIZE, true);
+  });
+  win.on('unmaximize', () => {
+    win?.webContents.send(PluginDevtoolsEventCode.ASYNC_PLUGIN_DEVTOOLS_WINDOW_IS_MAXIMIZE, false);
+  });
   win.on('close', e => {
     e.preventDefault();
     win?.focus();
@@ -42,6 +49,12 @@ export const createPluginDevtoolsWindow = (url: string, icon: string) => {
   });
   win.on('closed', () => {
     win = null;
+  });
+  ipcMain.on(PluginDevtoolsEventCode.ASYNC_SET_PLUGIN_DEVTOOLS_WINDOW_MINIMIZE, () => {
+    win?.minimize();
+  });
+  ipcMain.on(PluginDevtoolsEventCode.ASYNC_SET_PLUGIN_DEVTOOLS_WINDOW_MAXIMIZE_OR_RESTORE, () => {
+    win?.isMaximized() ? win?.unmaximize() : win?.maximize();
   });
   ipcMain.on(PluginDevtoolsEventCode.ASYNC_CONSOLE_LOG, (_, err, type, args) => {
     win?.webContents.send(PluginDevtoolsEventCode.ASYNC_CONSOLE_LOG, err, type, args);
