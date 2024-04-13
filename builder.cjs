@@ -1,8 +1,12 @@
 const { version, commit } = require('./metadata.json');
+const { devDependencies } = require('./package.json');
 const builder = require('electron-builder');
 const fs = require('fs');
 const { join } = require('path');
 const { Platform, Arch } = builder;
+
+const electronVersion = /\d+\.\d+\.\d+/.exec(devDependencies.electron);
+
 /**
 * @type {import('electron-builder').Configuration}
 * @see https://www.electron.build/configuration/configuration
@@ -14,6 +18,7 @@ const config = {
   asarUnpack: [
     'node_modules'
   ],
+  electronVersion: electronVersion && electronVersion[0] ? electronVersion[0] : '29.2.0',
   compression: 'maximum',
   directories: {
     'output': `build`
