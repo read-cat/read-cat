@@ -16,6 +16,7 @@
     "build:darwin": "npm run build:vite && node builder.cjs --darwin",
     "build:darwin:x64": "npm run build:vite && node builder.cjs --darwin=x64",
     "build:linux": "npm run build:vite && node builder.cjs --linux",
+    "build:linux:x64": "npm run build:vite && node builder.cjs --linux=x64",
     "build": "npm run build:vite && node builder.cjs --win32 --darwin --linux",
     "make": "node make.cjs",
     "preview": "vite preview"

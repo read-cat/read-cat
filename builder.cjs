@@ -22,7 +22,8 @@ const config = {
     'dist',
     'dist-electron',
     '!node_modules/**/*.map',
-    '!dist/favicon.icns'
+    '!dist/favicon.icns',
+    '!dist/512x512.png',
   ],
   win: {
     icon: 'public/favicon.ico',
@@ -42,6 +43,7 @@ const config = {
     darkModeSupport: true
   },
   linux: {
+    icon: 'public/512x512.png',
     artifactName: '${productName}-linux-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
   }
 }

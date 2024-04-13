@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         # os: [ windows-latest, macos-latest, ubuntu-latest ]
-        os: [ windows-latest, macos-latest ]
+        os: [ windows-latest, macos-latest, ubuntu-latest ]
       
     permissions:
       contents: write
@@ -39,6 +39,12 @@ jobs:
       - name: Build electron apps for darwin platform
         if: matrix.os == 'macos-latest'
         run: npm run build:darwin:x64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build electron apps for linux platform
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run build:linux:x64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
