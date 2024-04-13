@@ -52,7 +52,7 @@ const { platform } = process;
       <div class="left-box">
         <div v-if="platform === 'darwin'" v-once class="window-controls-container app-no-darg"></div>
         <div v-show="win.currentPath !== PagePath.READ" id="logo">
-          <img class="app-drag" src="./assets/logo.png" alt="ReadCat">
+          <img class="app-drag" src="/icons/512x512.png" alt="ReadCat">
         </div>
         <Navigation v-show="win.currentPath !== PagePath.READ" :path="win.currentPath" class="navigation app-no-drag" />
         <GoBack id="goback" class="app-no-drag" :style="{

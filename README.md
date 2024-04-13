@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/read-cat/read-cat/">
-    <img src="src/assets/logo.png" alt="Logo" width="80" height="80">
+    <img src="public/icons/512x512.png" alt="Logo" width="80" height="80">
   </a>
   <h3 align="center">ReadCat</h3>
   <p align="center">

@@ -27,28 +27,27 @@ const config = {
     'dist',
     'dist-electron',
     '!node_modules/**/*.map',
-    '!dist/favicon.icns',
-    '!dist/512x512.png',
+    '!dist/icons/icon.icns',
   ],
   win: {
-    icon: 'public/favicon.ico',
+    icon: 'public/icons/icon.ico',
     artifactName: '${productName}-windows-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
   },
   nsis: {
-    installerIcon: 'public/favicon.ico',
-    installerHeaderIcon: 'public/favicon.ico',
+    installerIcon: 'public/icons/icon.ico',
+    installerHeaderIcon: 'public/icons/icon.ico',
     oneClick: false,
     perMachine: false,
     allowToChangeInstallationDirectory: true,
     deleteAppDataOnUninstall: true
   },
   mac: {
-    icon: 'public/favicon.icns',
+    icon: 'public/icons/icon.icns',
     artifactName: '${productName}-darwin-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
     darkModeSupport: true
   },
   linux: {
-    icon: 'public/512x512.png',
+    icon: 'public/icons',
     artifactName: '${productName}-linux-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
   }
 }

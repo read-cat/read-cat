@@ -15,7 +15,7 @@ app.commandLine.appendSwitch('enable-experimental-web-platform-features');
 let win: BrowserWindow | null;
 let pluginDevtoolsWin: BrowserWindow | null = null;
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
-const icon = path.join(process.env.VITE_PUBLIC, 'favicon.ico');
+const icon = path.join(process.env.VITE_PUBLIC, 'icons/icon.ico');
 
 function createWindow() {
   win = new BrowserWindow({
