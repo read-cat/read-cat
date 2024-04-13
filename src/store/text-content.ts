@@ -50,7 +50,7 @@ export const useTextContentStore = defineStore('TextContent', {
           if (!isNull(cache)) {
             await GLOBAL_DB.store.textContentStore.put({
               ...cache,
-              textContent: this.textContent
+              textContent: toRaw(this.textContent)
             });
           }
         }
