@@ -2,7 +2,7 @@ import { defineStore, storeToRefs } from 'pinia';
 import { Chapter } from '../core/book/book';
 import { BookSource } from '../core/plugins/plugins';
 import { chunkArray, errorHandler } from '../core/utils';
-import { isUndefined } from '../core/is';
+import { isNull, isUndefined } from '../core/is';
 import { useSettingsStore } from './settings';
 import { nanoid } from 'nanoid';
 import { toRaw } from 'vue';
@@ -46,6 +46,13 @@ export const useTextContentStore = defineStore('TextContent', {
         } else {
           this.textContent = (await booksource.getTextContent(chapter)).map(v => v.trim()).filter(v => v !== '');
           this.currentChapter = chapter;
+          const cache = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
+          if (!isNull(cache)) {
+            await GLOBAL_DB.store.textContentStore.put({
+              ...cache,
+              textContent: this.textContent
+            });
+          }
         }
         return;
       } catch (e) {

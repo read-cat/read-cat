@@ -40,7 +40,7 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
           .transaction([this.storeName], 'readonly')
           .objectStore(this.storeName)
           .index('index_pid_chapterUrl')
-          .get(IDBKeyRange.only([super.toRaw(pid), chapterUrl]));
+          .get(IDBKeyRange.only([super.toRaw(pid), super.toRaw(chapterUrl)]));
         requ.onsuccess = () => {
           let result: TextContentStoreEntity | null = null;
           if (!isUndefined(requ.result)) {
