@@ -18,7 +18,7 @@ export type Plugin = {
   updating: boolean
   searchIndex: string
   builtIn: boolean
-  ttsEngineRequire?: Record<string, 'string' | 'number' | 'boolean'>
+  ttsEngineRequire?: Record<string, string>
 }
 
 export const usePlugin = () => {

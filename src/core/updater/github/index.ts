@@ -16,7 +16,7 @@ export class GithubUpdater implements Updater {
     let { body } = await get(url, {
       proxy: options.enableProxy ? proxy?.value : void 0,
       headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0'
+        'user-agent': navigator.userAgent
       }
     });
     body = isString(body) ? body : body.toString('utf-8');

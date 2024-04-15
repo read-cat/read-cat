@@ -1,6 +1,6 @@
 import { defineStore, storeToRefs } from 'pinia';
 import { Chapter } from '../core/book/book';
-import { BookSource } from '../core/plugins/plugins';
+import { BookSource } from '../core/plugins/define/booksource';
 import { chunkArray, errorHandler } from '../core/utils';
 import { isNull, isUndefined } from '../core/is';
 import { useSettingsStore } from './settings';
@@ -42,9 +42,10 @@ export const useTextContentStore = defineStore('TextContent', {
         if (dbTextContent && !refresh) {
           const { chapter, textContent } = dbTextContent;
           this.currentChapter = chapter;
-          this.textContent = textContent;
+          this.textContent = [chapter.title, ...textContent];
         } else {
-          this.textContent = (await booksource.getTextContent(chapter)).map(v => v.trim()).filter(v => v !== '');
+          const textContent = (await booksource.getTextContent(chapter)).map(v => v.trim()).filter(v => v !== '');
+          this.textContent = [chapter.title, ...textContent];
           this.currentChapter = chapter;
           const cache = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
           if (!isNull(cache)) {

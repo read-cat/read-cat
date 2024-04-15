@@ -247,7 +247,7 @@ export const useBookmarks = () => {
         const { start, end, id } = sort[index];
         const substr = text.slice(from, start);
         (substr.length > 0) && arr.push(substr);
-        arr.push(`<span id="${id}" class="bookmark${(index + 1) % 2 === 0 ? ' even' : ''}" ondblclick="window.showBookmark('${bookmark.id}','${id}')">${text.slice(start, end)}</span>`);
+        arr.push(`<span id="${id}" class="bookmark${(index + 1) % 2 === 0 ? ' even' : ''}" ondblclick="showBookmark('${bookmark.id}','${id}')">${text.slice(start, end)}</span>`);
         handler(end, index + 1);
       }
     }

@@ -3,8 +3,8 @@ import { BookshelfStoreEntity } from '../core/database/database';
 import { useMessage } from '../hooks/message';
 import { chunkArray, errorHandler, replaceInvisibleStr } from '../core/utils';
 import { isNull, isUndefined } from '../core/is';
-import { BookSource } from '../core/plugins/plugins';
 import { useSettingsStore } from './settings';
+import { BookSource } from '../core/plugins/define/booksource';
 
 export type Book = {
   id: string,
@@ -159,7 +159,7 @@ export const useBookshelfStore = defineStore('Bookshelf', {
           throw `无法获取插件, 插件ID:${pid}`;
         }
         const { props, instance } = plugin;
-        if (props.BASE_URL.trim() !== this._books[index].baseUrl.trim()) {
+        if (isUndefined(props.BASE_URL) || props.BASE_URL.trim() !== this._books[index].baseUrl.trim()) {
           throw `插件请求目标链接[BASE_URL]不匹配`;
         }
         this._books[index].isRunningRefresh = true;
