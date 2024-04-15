@@ -27,7 +27,7 @@
 
 # 内测
 <p>由于诸多功能尚未实现，将暂时不在Github上发布Release版本</p>
-<p>若想提前体验ReadCat，请下载内测版本<a href="https://read-cat.github.io/insiders"></a></p>
+<p>若想提前体验ReadCat，请<a href="https://read-cat.github.io/insiders" target="_blank">下载内测版本</a></p>
 <p>欢迎您加入内测交流群，您有任何问题、建议等等，可在该群交流</p>
 <p>QQ群号：<strong>903473975</strong></p>
 
