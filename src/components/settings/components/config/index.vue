@@ -39,6 +39,11 @@ export default {
         <ElSwitch :validate-event="false" v-model="options.enableAppStartedFindNewVersion" />
       </SettingsCardItem>
     </SettingsCard>
+    <SettingsCard title="朗读">
+      <SettingsCardItem title="自动朗读下一章节" v-memo="[options.enableAutoReadAloudNextChapter]" help="当前章节朗读结束后自动朗读下一章节">
+        <ElSwitch :validate-event="false" v-model="options.enableAutoReadAloudNextChapter" />
+      </SettingsCardItem>
+    </SettingsCard>
     <SettingsCard title="界面">
       <SettingsCardItem v-memo="[options.enableBlur]" title="模糊效果" help="部分界面显示模糊效果">
         <ElSwitch :validate-event="false" v-model="options.enableBlur" />

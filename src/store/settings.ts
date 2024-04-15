@@ -18,6 +18,7 @@ export const useSettingsStore = defineStore('Settings', {
         enableBookmarkHighlight: true,
         enableAppStartedFindNewVersion: true,
         enableTransition: true,
+        enableAutoReadAloudNextChapter: false,
       },
       readStyle: {
         color: DefaultReadColor.GREEN_QINGCAO,
@@ -62,6 +63,10 @@ export const useSettingsStore = defineStore('Settings', {
     /**阅读样式 书签颜色 */
     bookmarkColorOdd(): string {
       return this.readStyle.color.bookmarkColor.odd;
+    },
+    /**阅读样式 正在朗读段落文本色 */
+    readAloudColor(): string {
+      return this.readStyle.color.readAloudColor;
     },
     /**阅读样式 字体大小*/
     fontSize(): string {

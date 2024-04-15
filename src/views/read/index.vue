@@ -21,6 +21,7 @@ import { useBookmarks } from './hooks/bookmarks';
 import { DefaultReadColor } from '../../core/window/read-style';
 import { useTextContent } from './hooks/text-content';
 import { useShortcutKey } from './hooks/shortcut-key';
+
 const route = useRoute();
 
 const pid = String(route.query.pid);
@@ -29,8 +30,6 @@ const detailUrl = String(route.query.detailUrl);
 const { setDefaultReadColorById } = useSettingsStore();
 (<any>window).setBgColor = (index: number) => {
   const all = DefaultReadColor.getAll();
-  console.log(all[index]);
-  
   setDefaultReadColorById(all[index].id);
 }
 
@@ -50,6 +49,7 @@ const {
   lineSpacing,
   bookmarkColorEven,
   bookmarkColorOdd,
+  readAloudColor,
 } = storeToRefs(useSettingsStore());
 onMounted(() => {
   setTimeout(() => calcReadProgress(mainElement), 500);
@@ -81,7 +81,9 @@ onRefresh(PagePath.READ, () => {
 });
 
 const { nextChapter, prevChapter } = useTextContent();
+
 useShortcutKey();
+
 </script>
 
 <template>
@@ -89,6 +91,7 @@ useShortcutKey();
     fontFamily: `'${fontFamily === '' ? Font.DEFAULT_FONT : fontFamily}'`
   }">
     <div id="text-content" v-show="!isRunningGetTextContent" v-html="contents" :style="{
+      '--rc-read-aloud-color': isDark ? '' : readAloudColor,
       '--rc-bookmark-odd-color': isDark ? '' : bookmarkColorOdd,
       '--rc-bookmark-even-color': isDark ? '' : bookmarkColorEven,
       '--rc-bookmark-odd-font-color': isDark ? options.enableBookmarkHighlight ? '' : 'none' : options.enableBookmarkHighlight ? bookmarkColorOdd : '',
@@ -140,7 +143,7 @@ useShortcutKey();
       line-height: v-bind(lineSpacing);
       user-select: text;
       cursor: default;
-
+      transition: color 0.3s ease;
       .bookmark {
         border-bottom: 1.5px solid var(--rc-bookmark-odd-color);
         color: var(--rc-bookmark-odd-font-color);
@@ -150,6 +153,13 @@ useShortcutKey();
           border-bottom: 1.5px solid var(--rc-bookmark-even-color);
           color: var(--rc-bookmark-even-font-color);
         }
+      }
+
+      &.current-read-aloud {
+        color: var(--rc-read-aloud-color);
+      }
+      &[data-index="0"] {
+        display: none;
       }
     }
   }

@@ -1,18 +1,17 @@
 import { existsSync, readFileSync } from 'fs';
 import { chunkArray, errorHandler } from '../utils';
-import { isArray, isDate, isFunction, isNull, isNumber, isString, isUndefined } from '../is';
+import { isArray, isDate, isFunction, isNull, isNumber, isObject, isString, isUndefined } from '../is';
 import { load } from 'cheerio';
 import { usePluginsStore } from '../../store/plugins';
 import { timeout, interval } from '../utils/timer';
-import { nanoid } from 'nanoid';
+import { nanoid as _nanoid } from 'nanoid';
+import { v4 as _uuid } from 'uuid';
 import { storeToRefs } from 'pinia';
 import { createPluginStore } from './store';
 import { useSettingsStore } from '../../store/settings';
 import { get as requestGet, post as requestPost } from '../request';
 import {
   BasePluginStoreInterface,
-  BookSource,
-  BookStore,
   Console,
   CreatePluginStore,
   PluginBaseProps,
@@ -22,12 +21,24 @@ import {
   PluginInterface,
   PluginRequestConfig,
   PluginsOptions
-} from './plugins';
+} from './define/plugins';
+import { BookSource } from './define/booksource';
+import { BookStore } from './define/bookstore';
 import { RequestProxy } from '../request/defined/request';
+import { isBookSource } from './booksource';
+import { isBookStore } from './bookstore';
+import { isTTSEngine } from './ttsengine';
+import { TextToSpeechEngine } from './define/ttsengine';
+import { EdgeTTSEngine } from './built-in/tts/edge';
+
+const { WebSocket: WebSocketClient } = require('ws');
+const nanoid = () => _nanoid();
+const uuid = () => _uuid().replaceAll('-', '').toUpperCase();
 
 export enum PluginType {
   BOOK_SOURCE,
-  BOOK_STORE
+  BOOK_STORE,
+  TTS_ENGINE,
 }
 export namespace PluginType {
   const map = new Map<number, PluginType>();
@@ -48,7 +59,8 @@ export class Plugins {
   private pluginsPool: Map<PluginId, {
     enable: boolean,
     props: PluginBaseProps,
-    instance: BookSource | BookStore | null
+    instance: BookSource | BookStore | null,
+    builtIn: boolean
   }> = new Map();
   public static readonly UGLIFY_JS = require('uglify-js');
   private pluginsStore: Map<PluginId, BasePluginStoreInterface> = new Map();
@@ -73,6 +85,7 @@ export class Plugins {
     }
     this.storeCreateFunction = storeCreateFunction;
     this.consoleImplement = console;
+    this.importBuiltIn();
   }
 
   public getPluginStore(id: string) {
@@ -88,8 +101,12 @@ export class Plugins {
     try {
       const plugin = await GLOBAL_DB.store.pluginsJSCode.getById(id);
       const p = this.pluginsPool.get(id);
-      if (isNull(plugin) || isUndefined(p)) {
+      if (isUndefined(p)) {
         throw `Cannot find plugin, id:${id}`;
+      }
+      if (isNull(plugin)) {
+        p.enable = false;
+        return;
       }
       await GLOBAL_DB.store.pluginsJSCode.put({
         ...plugin,
@@ -98,7 +115,8 @@ export class Plugins {
       this.pluginsPool.set(id, {
         enable: false,
         props: p.props,
-        instance: null
+        instance: null,
+        builtIn: false
       });
     } catch (e) {
       return errorHandler(e);
@@ -108,8 +126,12 @@ export class Plugins {
     try {
       const plugin = await GLOBAL_DB.store.pluginsJSCode.getById(id);
       const p = this.pluginsPool.get(id);
-      if (isNull(plugin) || isUndefined(p)) {
+      if (isUndefined(p)) {
         throw `Cannot find plugin, id:${id}`;
+      }
+      if (isNull(plugin)) {
+        p.enable = true;
+        return;
       }
       await GLOBAL_DB.store.pluginsJSCode.put({
         ...plugin,
@@ -155,6 +177,10 @@ export class Plugins {
     props: PluginBaseProps,
     instance: BookStore
   }[];
+  public getPluginsByType(type: PluginType.TTS_ENGINE, filter?: PluginFilter): {
+    props: PluginBaseProps,
+    instance: TextToSpeechEngine
+  }[];
   public getPluginsByType(type: PluginType, filter?: PluginFilter): {
     props: PluginBaseProps,
     instance: BookSource | BookStore
@@ -193,6 +219,10 @@ export class Plugins {
   }
 
   public async delete(id: string) {
+    const p = this.pluginsPool.get(id);
+    if (p && p.builtIn) {
+      return Promise.reject(new Error('无法删除内置插件'));
+    }
     await GLOBAL_DB.store.pluginsJSCode.remove(id);
     this.pluginsPool.delete(id);
   }
@@ -241,6 +271,80 @@ export class Plugins {
     return this.import(pluginFilePath, null, options);
   }
 
+  private createPluginClassInstance(cls: PluginInterface) {
+    const store = this.getPluginStore(cls.ID);
+    const settings = useSettingsStore();
+    return new cls({
+      request: {
+        async get(url: string, config?: PluginRequestConfig) {
+          let proxy: RequestProxy | undefined = void 0;
+          if (config?.proxy) {
+            if (settings.options.enableProxy && settings.proxy) {
+              proxy = settings.proxy;
+            } else {
+              throw `Proxy not enabled`;
+            }
+          }
+          return requestGet(url, {
+            ...config,
+            proxy
+          });
+        },
+        async post(url: string, config?: PluginRequestConfig) {
+          let proxy: RequestProxy | undefined = void 0;
+          if (config?.proxy) {
+            if (settings.options.enableProxy && settings.proxy) {
+              proxy = settings.proxy;
+            } else {
+              throw `Proxy not enabled`;
+            }
+          }
+          return requestPost(url, {
+            ...config,
+            proxy
+          });
+        },
+      },
+      store: {
+        setStoreValue: store.setStoreValue.bind(store),
+        getStoreValue: store.getStoreValue.bind(store),
+        removeStoreValue: store.removeStoreValue.bind(store),
+      },
+      cheerio: load,
+      nanoid,
+      uuid
+    });
+  }
+
+  private importBuiltIn() {
+    const instance = this.createPluginClassInstance(EdgeTTSEngine);
+    const {
+      ID,
+      TYPE,
+      GROUP,
+      NAME,
+      VERSION,
+      VERSION_CODE,
+      PLUGIN_FILE_URL,
+      TTS_ENGINE_REQUIRE
+    } = EdgeTTSEngine;
+    this.pluginsPool.set(ID, {
+      enable: true,
+      props: {
+        ID,
+        TYPE,
+        GROUP,
+        NAME,
+        VERSION,
+        VERSION_CODE,
+        PLUGIN_FILE_URL,
+        TTS_ENGINE_REQUIRE
+      },
+      instance,
+      builtIn: true
+    });
+  }
+
   private async import(pluginFilePath: string | null, jscode: string | null, options?: PluginImportOptions): Promise<BookSource | BookStore> {
     try {
       if (!isNull(pluginFilePath)) {
@@ -252,8 +356,6 @@ export class Plugins {
       if (isNull(jscode)) {
         throw `Plugin jscode not found`;
       }
-
-      const settings = useSettingsStore();
       const { PluginClass, code } = await this.check(jscode, options);
       const {
         ID,
@@ -263,48 +365,11 @@ export class Plugins {
         VERSION,
         VERSION_CODE,
         PLUGIN_FILE_URL,
-        BASE_URL
+        BASE_URL,
+        TTS_ENGINE_REQUIRE
       } = PluginClass;
-      const store = this.getPluginStore(ID);
-      const pluginClass = new PluginClass({
-        request: {
-          async get(url: string, config?: PluginRequestConfig) {
-            let proxy: RequestProxy | undefined = void 0;
-            if (config?.proxy) {
-              if (settings.options.enableProxy && settings.proxy) {
-                proxy = settings.proxy;
-              } else {
-                throw `Proxy not enabled`;
-              }
-            }
-            return requestGet(url, {
-              ...config,
-              proxy
-            });
-          },
-          async post(url: string, config?: PluginRequestConfig) {
-            let proxy: RequestProxy | undefined = void 0;
-            if (config?.proxy) {
-              if (settings.options.enableProxy && settings.proxy) {
-                proxy = settings.proxy;
-              } else {
-                throw `Proxy not enabled`;
-              }
-            }
-            return requestPost(url, {
-              ...config,
-              proxy
-            });
-          },
-        },
-        store: {
-          setStoreValue: store.setStoreValue.bind(store),
-          getStoreValue: store.getStoreValue.bind(store),
-          removeStoreValue: store.removeStoreValue.bind(store),
-        },
-        cheerio: load,
-        nanoid: () => nanoid()
-      });
+      
+      const instance = this.createPluginClassInstance(PluginClass);
       if (!options?.debug) {
         await GLOBAL_DB.store.pluginsJSCode.put({
           id: ID,
@@ -322,11 +387,13 @@ export class Plugins {
           VERSION,
           VERSION_CODE,
           PLUGIN_FILE_URL,
-          BASE_URL
+          BASE_URL,
+          TTS_ENGINE_REQUIRE
         },
-        instance: options?.enable ? pluginClass : null
+        instance: options?.enable ? instance : null,
+        builtIn: false
       });
-      return pluginClass;
+      return instance;
     } catch (e) {
       GLOBAL_LOG.error('Plugins import', e);
       return errorHandler(e);
@@ -360,35 +427,6 @@ export class Plugins {
     } catch (e) {
       return errorHandler(e);
     }
-  }
-  private _isBookSource(plugin: PluginInterface) {
-    const p = plugin.prototype as BookSource;
-    if (isUndefined(p.search)) {
-      throw 'Function [search] not found';
-    }
-    if (!isFunction(p.search)) {
-      throw 'Property [search] is not of function type';
-    }
-
-    if (isUndefined(p.getDetail)) {
-      throw 'Function [getDetail] not found';
-    }
-    if (!isFunction(p.getDetail)) {
-      throw 'Property [getDetail] is not of function type';
-    }
-
-    if (isUndefined(p.getTextContent)) {
-      throw 'Function [getTextContent] not found';
-    }
-    if (!isFunction(p.getTextContent)) {
-      throw 'Property [getTextContent] is not of function type';
-    }
-  }
-  private _isBookStore(plugin: PluginInterface) {
-    const p = plugin.prototype as BookStore;
-    console.log(p);
-
-    throw `unknown`;
   }
   private _isPlugin(plugin: PluginInterface) {
     if (isUndefined(plugin.ID)) {
@@ -470,18 +508,29 @@ export class Plugins {
       throw 'The [PLUGIN_FILE_URL] format is not standard';
     }
 
-    if (isUndefined(plugin.BASE_URL)) {
-      throw 'Static property [BASE_URL] not found';
+    if ([PluginType.BOOK_SOURCE, PluginType.BOOK_STORE].includes(plugin.TYPE)) {
+      if (isUndefined(plugin.BASE_URL)) {
+        throw 'Static property [BASE_URL] not found';
+      }
+      if (!isString(plugin.BASE_URL)) {
+        throw 'Static property [BASE_URL] is not of string type';
+      }
+      if (!plugin.BASE_URL.trim()) {
+        throw 'Static property [BASE_URL] is empty';
+      }
+      if (!/^https?:\/\/.*?/i.test(plugin.BASE_URL)) {
+        throw 'The [BASE_URL] format is not standard';
+      }
     }
-    if (!isString(plugin.BASE_URL)) {
-      throw 'Static property [BASE_URL] is not of string type';
+    if (PluginType.TTS_ENGINE === plugin.TYPE) {
+      if (isUndefined(plugin.TTS_ENGINE_REQUIRE)) {
+        throw 'Static property [TTS_ENGINE_REQUIRE] not found';
+      }
+      if (!isObject(plugin.TTS_ENGINE_REQUIRE)) {
+        throw 'Static property [BASE_URL] is not of object type';
+      }
     }
-    if (!plugin.BASE_URL.trim()) {
-      throw 'Static property [BASE_URL] is empty';
-    }
-    if (!/^https?:\/\/.*?/i.test(plugin.BASE_URL)) {
-      throw 'The [BASE_URL] format is not standard';
-    }
+    
     /* if (plugin.PLUGIN_FILE_URL.trim() !== plugin.PLUGIN_FILE_URL) {
       throw 'The PLUGIN_FILE_URL format is not standard';
     } */
@@ -491,11 +540,14 @@ export class Plugins {
 
     switch (plugin.TYPE) {
       case PluginType.BOOK_STORE:
-        this._isBookStore(plugin);
+        isBookStore(plugin);
+        break;
+      case PluginType.TTS_ENGINE:
+        isTTSEngine(plugin);
         break;
       case PluginType.BOOK_SOURCE:
       default:
-        this._isBookSource(plugin);
+        isBookSource(plugin);
         break;
     }
 
@@ -520,6 +572,8 @@ export class Plugins {
       Number,
       Boolean,
       Date,
+      Buffer,
+      Blob,
       Math,
       RegExp,
       JSON,
@@ -536,6 +590,8 @@ export class Plugins {
         timeout, interval
       },
       URLSearchParams,
+      WebSocketClient,
+      Uint8Array
     }
     const handler: ProxyHandler<any> = {
       has() {

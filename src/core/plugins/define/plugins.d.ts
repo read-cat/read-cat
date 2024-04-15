@@ -1,31 +1,9 @@
-import { Charset, Params } from '../request/defined/request';
+import { Charset, Params } from '../../request/defined/request';
 import { IncomingHttpHeaders } from 'http';
-import { SearchEntity, DetailEntity, Chapter } from '../book/book';
+import { BookSource } from './booksource';
+import { BookStore } from './bookstore';
+import { TextToSpeechEngine } from './ttsengine';
 export type PluginId = string;
-export interface BookSource {
-  /**
-   * 搜索书本
-   * @param searchkey 搜索关键词
-   * @param author 作者(可选)
-   * @returns 
-   */
-  search: (searchkey: string) => Promise<SearchEntity[]>;
-  /**
-   * 获取详情页内容
-   * @param detailPageUrl 详情页链接
-   * @returns 
-   */
-  getDetail: (detailPageUrl: string) => Promise<DetailEntity>;
-  /**
-   * 获取正文
-   * @param chapter 章节
-   * @returns 
-   */
-  getTextContent: (chapter: Chapter) => Promise<string[]>;
-}
-export interface BookStore {
-
-}
 
 export interface PluginImportOptions {
   /**强制导入插件 */
@@ -62,7 +40,8 @@ export type PluginConstructorParams = {
   request: PluginRequestMethod,
   store: BasePluginStoreInterface,
   cheerio,
-  nanoid: () => string
+  nanoid: () => string,
+  uuid: () => string
 }
 export interface PluginBaseProps {
   /**插件ID */
@@ -80,11 +59,12 @@ export interface PluginBaseProps {
   /**插件文件更新地址 */
   readonly PLUGIN_FILE_URL: string;
   /**书源、书城的请求链接 */
-  readonly BASE_URL: string;
+  readonly BASE_URL?: string;
+  readonly TTS_ENGINE_REQUIRE?: Record<string, string>;
 }
 export interface PluginInterface extends PluginBaseProps {
-  new(params: PluginConstructorParams): BookSource | BookStore;
-  prototype: BookSource | BookStore;
+  new(params: PluginConstructorParams): BookSource | BookStore | TextToSpeechEngine;
+  prototype: BookSource | BookStore | TextToSpeechEngine;
 }
 
 export type PluginFilter = {

@@ -2,7 +2,7 @@ import { serialize, deserialize } from 'v8';
 import { isNull, isUndefined } from '../is';
 import { nanoid } from 'nanoid';
 import { errorHandler } from '../utils';
-import { CreatePluginStore, PluginStoreInterface } from './plugins';
+import { CreatePluginStore, PluginStoreInterface } from './define/plugins';
 
 export const createPluginStore: CreatePluginStore = (pid: string, maxByteLength: number) => {
   return new PluginStore(pid, maxByteLength);

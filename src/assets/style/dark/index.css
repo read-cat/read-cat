@@ -35,6 +35,8 @@
   --rc-bookmark-odd-font-color: #7B800A;
   --rc-bookmark-even-font-color: currentColor;
 
+  --rc-read-aloud-color: var(--rc-theme-color);
+
   --rc-card-bgcolor: #222526;
 
   --rc-settings-window-bgcolor: #1F2022;

@@ -10,7 +10,7 @@ import { PluginDevtoolsEventCode } from '../../../events/plugin-devtools';
 import { EventCode } from '../../../events';
 import { runCompile, runGetDetail, runGetTextContent, runSearch, sendLog } from './event/handler';
 import { Plugins } from '../plugins';
-import { BasePluginStoreInterface } from '../plugins/plugins';
+import { BasePluginStoreInterface } from '../plugins/define/plugins';
 import { Logger, LogType } from '../logger';
 import { errorHandler } from '../utils';
 import { Metadata } from './rpdt';

@@ -19,6 +19,8 @@ export type SettingsOptions = {
   enableAppStartedFindNewVersion: boolean,
   /**开启过渡动画 */
   enableTransition: boolean,
+  /**当前章节朗读结束时，自动朗读下一章节 */
+  enableAutoReadAloudNextChapter: boolean
 }
 export type SettingsReadStyle = {
   /**阅读颜色 */

@@ -105,7 +105,7 @@ export default {
       <ElTable v-memo="[showValue]" :data="showValue" height="260" @selection-change="handleSelectionChange"
         empty-text="暂无插件">
         <ElTableColumn type="selection" width="30" />
-        <ElTableColumn label="ID" width="100">
+        <ElTableColumn label="ID" width="90">
           <template #default="{ row }">
             <ElTooltip effect="light" placement="bottom-start" :content="row.id">
               <span class="settings-card-item-plugin-label">{{ row.id }}</span>
@@ -116,6 +116,7 @@ export default {
           <template #default="{ row }">
             <ElTag v-if="row.type === PluginType.BOOK_SOURCE">书源</ElTag>
             <ElTag v-else-if="row.type === PluginType.BOOK_STORE">书城</ElTag>
+            <ElTag v-else-if="row.type === PluginType.TTS_ENGINE">TTS</ElTag>
           </template>
         </ElTableColumn>
         <ElTableColumn label="分组" width="80">
@@ -150,8 +151,11 @@ export default {
         </ElTableColumn>
         <ElTableColumn label="操作" fixed="right">
           <template #default="{ row }">
-            <ElButton link size="small" type="danger" @click="deletePlugin(row)">删除</ElButton>
-            <ElButton link size="small" type="success" @click="updatePlugin(row)">更新</ElButton>
+            <ElButton v-if="row.ttsEngineRequire && Object.keys(row.ttsEngineRequire).length > 0" link size="small" type="info" @click="">设置</ElButton>
+            <template v-if="!row.builtIn">
+              <ElButton link size="small" type="danger" @click="deletePlugin(row)">删除</ElButton>
+              <ElButton link size="small" type="success" @click="updatePlugin(row)">更新</ElButton>
+            </template>
           </template>
         </ElTableColumn>
       </ElTable>
@@ -253,6 +257,11 @@ export default {
       display: flex;
       align-items: center;
       font-size: 12px;
+      padding: 0 0 0 10px;
+
+      .el-button+.el-button {
+        margin-left: 2px;
+      }
     }
   }
 }
