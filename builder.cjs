@@ -31,7 +31,7 @@ const config = {
   ],
   win: {
     icon: 'public/icons/icon.ico',
-    artifactName: '${productName}-windows-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
+    artifactName: '${productName}-win32-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
   },
   nsis: {
     installerIcon: 'public/icons/icon.ico',

@@ -187,7 +187,7 @@ const request = async (url: string, method: RequestMethod, config?: RequestConfi
                 break;
             }
           } catch (e) {
-            GLOBAL_LOG.debug('request', url, `statusCode:${statusCode}`, `statusMessage:${statusMessage}`, `headers:`, headers, e);
+            GLOBAL_LOG.debug('request', url, `statusCode:${statusCode}`, `statusMessage:${statusMessage}`, 'headers:', headers, e);
           }
           let charset: string;
           if (isUndefined(_config.charset)) {
@@ -204,7 +204,7 @@ const request = async (url: string, method: RequestMethod, config?: RequestConfi
             bodystr = decode(body, charset);
           } catch (e) {
             bodystr = body.toString();
-            GLOBAL_LOG.debug('request', url, `statusCode:${statusCode}`, `statusMessage:${statusMessage}`, `headers:${headers}`, e);
+            GLOBAL_LOG.debug('request', url, `statusCode:${statusCode}`, `statusMessage:${statusMessage}`, 'headers:', headers, e);
           }
           return reso({
             code: statusCode,
