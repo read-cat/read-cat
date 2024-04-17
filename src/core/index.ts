@@ -22,6 +22,14 @@ export class Core {
   static updater: Updater;
 
   static async init(): Promise<Error[] | undefined> {
+    Core.setValue(window, 'require', (id: string) => {
+      throw new Error(`Illegal function call require('${id}')`);
+    });
+    Core.setValue(window, 'process', {
+      platform: process.platform,
+      cwd: process.cwd
+    });
+    Core.setValue(window, 'module', {});
     const error: Error[] = [];
     Core.setValue(window, 'METADATA', metadata);
     Core.initUpdater();
@@ -39,12 +47,9 @@ export class Core {
 
   public static setValue(obj: any, key: string, value: any) {
     Object.defineProperty(obj, key, {
-      set() {
-        return;
-      },
-      get() {
-        return value;
-      },
+      value,
+      configurable: false,
+      writable: false
     });
   }
 
@@ -76,22 +81,10 @@ export class Core {
   }
 
   public static async initPlugins() {
+
     Core.setValue(Core, 'plugins', new Plugins());
     Core.setValue(window, 'GLOBAL_PLUGINS', Core.plugins);
     await Core.plugins.importPool();
-    /* // 弃用 
-     const load = (Module as any)._load;
-     (Module as any)._load = (requests: string, parent: any, isMain: boolean) => {
-     // 校验插件是否使用require导入模块, 若导入则该模块指向Error
-     // 禁止在插件中使用require导入模块
-     // console.log('Module load', requests, parent, GLOBAL_PLUGINS.isPlugin(parent.exports), GLOBAL_PLUGINS.tempPluginFilePaths.has(parent.filename));
-     console.log(requests, parent);
-     
-     if (GLOBAL_PLUGINS.isPlugin(parent.exports) || GLOBAL_PLUGINS.tempPluginFilePaths.has(parent.filename)) {
-       return new Error('Permission denied');
-     }
-     return load(requests, parent, isMain);
-   } */
   }
 
   public static async initDatabase() {

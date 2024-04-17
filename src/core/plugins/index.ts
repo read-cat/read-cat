@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'fs';
-import { chunkArray, errorHandler } from '../utils';
+import { chunkArray, errorHandler, sanitizeHTML } from '../utils';
 import { isArray, isDate, isFunction, isNull, isNumber, isObject, isString, isUndefined } from '../is';
 import { load } from 'cheerio';
 import { usePluginsStore } from '../../store/plugins';
@@ -30,6 +30,7 @@ import { isBookStore } from './bookstore';
 import { isTTSEngine } from './ttsengine';
 import { TextToSpeechEngine } from './define/ttsengine';
 import { EdgeTTSEngine } from './built-in/tts/edge';
+import { Chapter } from '../book/book';
 
 const { WebSocket: WebSocketClient } = require('ws');
 const nanoid = () => _nanoid();
@@ -221,7 +222,7 @@ export class Plugins {
   public async delete(id: string) {
     const p = this.pluginsPool.get(id);
     if (p && p.builtIn) {
-      return Promise.reject(new Error('无法删除内置插件'));
+      throw new Error('无法删除内置插件');
     }
     await GLOBAL_DB.store.pluginsJSCode.remove(id);
     this.pluginsPool.delete(id);
@@ -368,8 +369,17 @@ export class Plugins {
         BASE_URL,
         TTS_ENGINE_REQUIRE
       } = PluginClass;
-      
       const instance = this.createPluginClassInstance(PluginClass);
+
+      //拦截书源插件getTextContent方法
+      if (TYPE === PluginType.BOOK_SOURCE) {
+        (<any>PluginClass.prototype)._getTextContent = (<BookSource>PluginClass.prototype).getTextContent;
+        (<BookSource>PluginClass.prototype).getTextContent = async (chapter: Chapter) => {
+          const res: string[] = await (<any>PluginClass.prototype)._getTextContent.call(instance, chapter);
+          //对HTML字符串消毒
+          return res.map(v => sanitizeHTML(v)).filter(v => v !== '');
+        }
+      }
       if (!options?.debug) {
         await GLOBAL_DB.store.pluginsJSCode.put({
           id: ID,
@@ -403,21 +413,15 @@ export class Plugins {
   private async check(jscode: string, options?: PluginImportOptions) {
     try {
       if (!options || options.minify) {
-        const ast = Plugins.UGLIFY_JS.parse(jscode);
-        ast.walk(new Plugins.UGLIFY_JS.TreeWalker((node: any) => {
-          if (
-            (isString(node.name) && node.name === 'import')
-            || (isString(node.start.value) && node.start.value === 'import')
-          ) {
-            throw `Cannot import modules, in the ${node.start.line} line`;
+        const { error, code } = Plugins.UGLIFY_JS.minify(jscode, {
+          compress: {
+            drop_console: !options?.debug,
+            drop_debugger: !options?.debug
           }
-        }));
-        ast.figure_out_scope();
-        ast.compute_char_frequency();
-        ast.mangle_names();
-        jscode = ast.transform(new Plugins.UGLIFY_JS.TreeTransformer()).print_to_string();
+        });
+        if (error) throw error;
+        jscode = code;
       }
-      
       const plugin = await this.pluginExports(jscode);
       this._isPlugin(plugin);
       if (!options?.force && this.pluginsPool.has(plugin.ID)) {
@@ -592,7 +596,7 @@ export class Plugins {
       URLSearchParams,
       WebSocketClient,
       Uint8Array
-    }
+    };
     const handler: ProxyHandler<any> = {
       has() {
         // 拦截所有属性
@@ -620,8 +624,7 @@ export class Plugins {
         throw `Permission denied to set property or function [${String(p)}]`
       },
     }
-    const proxy = new Proxy(sandbox, handler);
-    (new Function('sandbox', `with(sandbox){${script}}`))(proxy);
+    ;(new Function('sandbox', `with(sandbox){${script}}`))(new Proxy(sandbox, handler));
     return function () {
       return sandbox.plugin.exports;
     }

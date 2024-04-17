@@ -216,25 +216,21 @@ export const useBookmarks = () => {
     }
   }
 
-  const addPTag = (text: string, index: number) => {
-    return `<p data-index="${index}">${text}</p>`;
+  const addTag = (text: string, index: number) => {
+    return `<div data-index="${index}">${text}</div>`;
   }
+
   const handlerBookmarks = (text: string, index: number, bookmark?: BookmarkStoreEntity) => {
-    //去除text中的HTML标签
-    let div: HTMLElement | null = document.createElement('div');
-    div.innerHTML = text;
-    text = div.innerText;
-    div = null;
     if (isNull(currentChapter.value)) {
-      return addPTag(text, index);
+      return addTag(text, index);
     }
     isUndefined(bookmark) && (bookmark = getBookmarkByChapterUrl(currentChapter.value.url));
     if (isUndefined(bookmark)) {
-      return addPTag(text, index);
+      return addTag(text, index);
     }
     const ranges = bookmark.range.filter(v => v.index === index);
     if (ranges.length <= 0) {
-      return addPTag(text, index);
+      return addTag(text, index);
     }
     const arr: string[] = [];
     const sort = ranges.sort((a, b) => a.start - b.start);
@@ -252,15 +248,17 @@ export const useBookmarks = () => {
       }
     }
     handler(0, 0);
-    return addPTag(arr.join(''), index);
+    return addTag(arr.join(''), index);
   }
 
   watch(() => textContent.value, (newVal) => {
     if (currentChapter.value) {
       searchBoxHeaderText.value = currentChapter.value.title;
     }
-    if (!newVal || newVal.length <= 0) {
-      contents.value = addPTag('正文获取失败', 0);
+    if (isNull(newVal) || newVal.length <= 1) {
+      const err = isNull(newVal) ? ['无法获取章节标题'] : [...newVal];
+      err.push('正文获取失败');
+      contents.value = err.map(e => addTag(e, 1)).join('');
       return;
     }
     contents.value = newVal.map((text, index) => handlerBookmarks(text, index)).join('');

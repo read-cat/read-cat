@@ -11,7 +11,6 @@ import { useMessage } from '../hooks/message';
 import { useWindowStore } from './window';
 import { PagePath } from '../core/window';
 
-
 export const useTextContentStore = defineStore('TextContent', {
   state: () => {
     return {
@@ -44,7 +43,7 @@ export const useTextContentStore = defineStore('TextContent', {
           this.currentChapter = chapter;
           this.textContent = [chapter.title, ...textContent];
         } else {
-          const textContent = (await booksource.getTextContent(chapter)).map(v => v.trim()).filter(v => v !== '');
+          const textContent = (await booksource.getTextContent(chapter));
           this.textContent = [chapter.title, ...textContent];
           this.currentChapter = chapter;
           const cache = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
@@ -92,7 +91,7 @@ export const useTextContentStore = defineStore('TextContent', {
             }
             ps.push(new Promise<void>(async (reso, reje) => {
               try {
-                const textContent = (await booksource.getTextContent(chapter)).map(v => v.trim()).filter(v => v !== '');
+                const textContent = (await booksource.getTextContent(chapter));
                 if (textContent.length <= 0) {
                   throw `text content length: 0`;
                 }

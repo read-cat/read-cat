@@ -131,7 +131,7 @@ export const usePlugin = () => {
         for (const item of items) {
           ps.push(GLOBAL_PLUGINS.delete(item).catch(e => {
             e.id = item;
-            return e;
+            return Promise.reject(e);
           }));
         }
         for (const item of await Promise.allSettled(ps)) {

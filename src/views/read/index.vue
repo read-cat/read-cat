@@ -136,7 +136,7 @@ useShortcutKey();
     width: v-bind(width);
     font-size: v-bind(fontSize);
 
-    :deep(p) {
+    &>:deep(div[data-index]) {
       margin-bottom: v-bind(sectionSpacing);
       text-indent: 2em;
       letter-spacing: v-bind(letterSpacing);
@@ -158,8 +158,15 @@ useShortcutKey();
       &.current-read-aloud {
         color: var(--rc-read-aloud-color);
       }
-      &[data-index="0"] {
+      &:first-child {
         display: none;
+      }
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      * {
+        max-width: 100%;
       }
     }
   }

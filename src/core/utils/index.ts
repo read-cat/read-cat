@@ -1,4 +1,5 @@
 import { isError, isString } from '../is';
+import DOMPurify from 'dompurify';
 
 export function errorHandler(error: any, toString?: false): Promise<never>;
 export function errorHandler(error: any, toString: true): string;
@@ -76,3 +77,20 @@ export const replaceInvisibleStr = <T extends Record<string, any>>(obj: T): T =>
   });
   return val;
 }
+
+/**
+ * 对HTML字符串消毒
+ * @param removeTags 是否移除HTML标签
+ */
+export const sanitizeHTML = (() => {
+  const divContainer = document.createElement('div');
+  return (html: string, removeTags = false) => {
+    let str = DOMPurify.sanitize(html);
+    if (removeTags) {
+      divContainer.innerHTML = str;
+      str = divContainer.innerText;
+      divContainer.innerHTML = '';
+    }
+    return str.trim();
+  }
+})();

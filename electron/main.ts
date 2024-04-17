@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import path from 'node:path';
 import { EventCode } from '../events';
 import { createPluginDevtoolsWindow } from './plugin-devtools';
@@ -10,7 +10,7 @@ process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
 app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
-app.commandLine.appendSwitch('enable-experimental-web-platform-features');
+// app.commandLine.appendSwitch('enable-experimental-web-platform-features');
 
 let win: BrowserWindow | null;
 let pluginDevtoolsWin: BrowserWindow | null = null;
@@ -45,11 +45,11 @@ function createWindow() {
   } else {
     win.loadFile(path.join(process.env.DIST, 'index.html'));
   }
-
+  Menu.setApplicationMenu(null);
   win.on('ready-to-show', () => {
     win?.show();
     if (VITE_DEV_SERVER_URL) {
-      // win?.webContents.openDevTools();
+      win?.webContents.openDevTools();
     }
   });
   win.on('closed', () => {
