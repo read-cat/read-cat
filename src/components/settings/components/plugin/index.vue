@@ -252,7 +252,14 @@ export default {
     .el-table__cell {
       padding: 5px 0;
     }
-
+    .el-table__header-wrapper {
+      .el-table-column--selection .cell {
+        padding-left: 10px;
+      }
+      .cell {
+        padding: 0 10px;
+      }
+    }
     td.el-table__cell div {
       display: flex;
       align-items: center;

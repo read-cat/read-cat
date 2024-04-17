@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
 import { useSettingsStore } from '../../store/settings';
 import { nanoid } from 'nanoid';
 import { useShowMenu } from './hooks/show';
@@ -14,12 +13,6 @@ export type MenuProps = {
 const { options } = useSettingsStore();
 const props = defineProps<MenuProps>();
 
-const _backgroundColor = ref('');
-watch(() => options.enableBlur, (newVal) => {
-  _backgroundColor.value = newVal ? 'var(--rc-window-box-blur-bgcolor)' : 'var(--rc-window-box-bgcolor)';
-}, {
-  immediate: true
-});
 const id = `menu-${nanoid(10)}`;
 
 const { showMenu, onEnter } = useShowMenu(id, props);
@@ -41,7 +34,7 @@ export default {
         options.enableBlur ? 'app-blur' : '',
         className ? className : ''
       ]" :style="{
-        backgroundColor: _backgroundColor
+        backgroundColor: options.enableBlur ? 'var(--rc-menu-window-box-blur-bgcolor)' : 'var(--rc-window-box-bgcolor)'
       }">
         <div :class="['rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
           <slot />

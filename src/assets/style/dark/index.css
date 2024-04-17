@@ -40,4 +40,7 @@
   --rc-card-bgcolor: #222526;
 
   --rc-settings-window-bgcolor: #1F2022;
+
+  --rc-menu-window-box-blur-bgcolor: rgba(34, 34, 34, 0.8);
+  --rc-menu-item-hover-bgcolor: rgba(255, 255, 255, 0.2);
 }

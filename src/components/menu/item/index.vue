@@ -33,7 +33,7 @@ export default {
   border-radius: 5px;
 
   &:hover {
-    background-color: rgba(127, 127, 127, 0.15);
+    background-color: var(--rc-menu-item-hover-bgcolor);
   }
   &:active {
     transform: scale(0.97);

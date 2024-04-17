@@ -98,7 +98,6 @@ const { platform } = process;
 .router_animate-leave-active {
   animation: slideOutLeft 0.1s;
 }
-
 #header {
   position: sticky;
   top: 0;
