@@ -41,7 +41,6 @@ export class EdgeTTSEngine {
         },
       });
       this.wss?.once('open', () => {
-        console.log('已连接');
         this.wss?.send(
           'Path: speech.config\r\n' +
           `X-Timestamp: ${(new Date).toISOString()}\r\n` +
@@ -54,9 +53,9 @@ export class EdgeTTSEngine {
       this.wss?.once('error', e => {
         return reje(e);
       });
-      this.wss?.once('close', () => {
+      /* this.wss?.once('close', () => {
         console.log('断开连接');
-      });
+      }); */
     });
   }
   sendSSMLRequest(ssmlHeaders: string) {

@@ -25,11 +25,11 @@ export const useReadAloudStore = defineStore('ReadAloud', {
   actions: {
     addReadAloudClass() {
       const { scrollTop } = useScrollTopStore();
-      const p = document.querySelector<HTMLElement>(`#text-content p[data-index="${this.currentPlayIndex}"]`);
-      if (!isNull(p)) {
-        p.previousElementSibling?.classList.remove('current-read-aloud');
-        p.classList.add('current-read-aloud');
-        scrollTop(p.offsetTop - window.screen.height / 3);
+      const section = document.querySelector<HTMLElement>(`#text-content > div[data-index="${this.currentPlayIndex}"]`);
+      if (!isNull(section)) {
+        section.previousElementSibling?.classList.remove('current-read-aloud');
+        section.classList.add('current-read-aloud');
+        scrollTop(section.offsetTop - window.screen.height / 3);
       }
     },
     async play(start = 0) {
