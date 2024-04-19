@@ -1,3 +1,4 @@
+import NodeFormData from 'form-data';
 
 export const toStringCall = (val: any): string => {
   return Object.prototype.toString.call(val);
@@ -15,7 +16,7 @@ export const isString = (val: any): val is string => {
 export const isNumber = (val: any): val is number => {
   return toStringCall(val) === '[object Number]';
 }
-export const isArray = (val: any): val is [] => {
+export const isArray = (val: any): val is Array<any> => {
   return toStringCall(val) === '[object Array]';
 }
 export const isDate = (val: any): val is Date => {
@@ -44,6 +45,15 @@ export const isPromise = <T = any>(val: any): val is Promise<T> => {
 }
 export const isURLSearchParams = (val: any): val is URLSearchParams => {
   return toStringCall(val) === '[object URLSearchParams]';
+}
+export const isFormData = (val: any): val is FormData => {
+  return toStringCall(val) === '[object FormData]';
+}
+export const isNodeFormData = (val: any): val is NodeFormData => {
+  return toStringCall(val) === '[object NodeFormData]';
+}
+export const isFile = (val: any): val is File => {
+  return toStringCall(val) === '[object File]';
 }
 export const getType = (val: any): string => {
   const str = toStringCall(val);
