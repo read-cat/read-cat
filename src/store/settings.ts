@@ -42,6 +42,7 @@ export const useSettingsStore = defineStore('Settings', {
       shortcutKey: {
         nextChapter: 'ARROWRIGHT',
         prevChapter: 'ARROWLEFT',
+        openDevTools: 'Ctrl + Shift + I'
       },
       theme: 'os',
       updateSource: 'Github',
@@ -134,7 +135,7 @@ export const useSettingsStore = defineStore('Settings', {
         uc :
         '';
       }
-      return keys.join('+');
+      return keys.join(' + ');
     },
     setTheme(theme: SettingsTheme) {
       const { isDark } = storeToRefs(useWindowStore());

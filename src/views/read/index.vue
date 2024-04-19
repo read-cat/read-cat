@@ -20,7 +20,6 @@ import MenuItem from '../../components/menu/item/index.vue';
 import { useBookmarks } from './hooks/bookmarks';
 import { DefaultReadColor } from '../../core/window/read-style';
 import { useTextContent } from './hooks/text-content';
-import { useShortcutKey } from './hooks/shortcut-key';
 
 const route = useRoute();
 
@@ -81,9 +80,6 @@ onRefresh(PagePath.READ, () => {
 });
 
 const { nextChapter, prevChapter } = useTextContent();
-
-useShortcutKey();
-
 </script>
 
 <template>

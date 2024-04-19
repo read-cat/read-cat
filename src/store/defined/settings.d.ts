@@ -50,6 +50,8 @@ export type ShortcutKey = {
   nextChapter: string,
   /**上一章节 */
   prevChapter: string,
+  /**打开控制台 */
+  openDevTools: string
 }
 
 export type SettingsTheme = 'os' | 'light' | 'dark';

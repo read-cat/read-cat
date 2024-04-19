@@ -25,9 +25,12 @@ export class EventCode {
    * 设置全屏
    */
   static ASYNC_WINDOW_SET_FULLSCREEN: string
+  /**打开控制台 */
+  static ASYNC_OPEN_DEVTOOLS: string
 
   /**插件开发窗口被关闭 */
   static ASYNC_PLUGIN_WINDOW_CLOSED: string
+
 
   /**
    * 开发环境

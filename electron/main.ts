@@ -102,6 +102,12 @@ function createWindow() {
   ipcMain.on(EventCode.ASYNC_WINDOW_SET_FULLSCREEN, (_, is) => {
     win?.setFullScreen(is);
   });
+  ipcMain.on(EventCode.ASYNC_OPEN_DEVTOOLS, () => {
+    if (win?.webContents.isDevToolsOpened()) {
+      return;
+    }
+    win?.webContents.openDevTools();
+  });
   ipcMain.on(PluginDevtoolsEventCode.ASYNC_CREATE_PLUGIN_DEVTOOLS_WINDOW, (_, url) => {
     pluginDevtoolsWin = createPluginDevtoolsWindow(url, icon);
     pluginDevtoolsWin.on('closed', () => {

@@ -11,7 +11,9 @@ import Search from './components/search/index.vue';
 import { useWindowStore } from './store/window';
 import { PagePath } from './core/window';
 import { useSettingsStore } from './store/settings';
+import { useShortcutKey } from './hooks/shortcut-key';
 
+useShortcutKey();
 const win = useWindowStore();
 const router = useRouter();
 router.afterEach((to, _, fail) => {

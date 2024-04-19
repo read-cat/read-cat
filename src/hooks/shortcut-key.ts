@@ -1,23 +1,28 @@
 import { storeToRefs } from 'pinia';
-import { useTextContent } from './text-content';
-import { useSettingsStore } from '../../../store/settings';
-import { onMounted, onUnmounted } from 'vue';
-import { debounce } from '../../../core/utils/timer';
+import { debounce } from '../core/utils/timer';
+import { useTextContent } from '../views/read/hooks/text-content';
+import { useSettingsStore } from '../store/settings';
+import { useWindowStore } from '../store/window';
+import { PagePath } from '../core/window';
+import { EventCode } from '../../events';
 
 export const useShortcutKey = () => {
   const { nextChapter, prevChapter } = useTextContent();
   const { shortcutKey } = storeToRefs(useSettingsStore());
   const { handlerKeyboard } = useSettingsStore();
-
+  const win = useWindowStore();
+  
   const handler = debounce((key: string) => {
     switch (key) {
       case shortcutKey.value.nextChapter:
-        nextChapter();
+        win.currentPath === PagePath.READ && nextChapter();
         break;
       case shortcutKey.value.prevChapter:
-        prevChapter();
+        win.currentPath === PagePath.READ && prevChapter();
         break;
-
+      case shortcutKey.value.openDevTools:
+        GLOBAL_IPC.send(EventCode.ASYNC_OPEN_DEVTOOLS);
+        break;
       default:
         break;
     }
@@ -28,8 +33,5 @@ export const useShortcutKey = () => {
     handler(handlerKeyboard(altKey, ctrlKey, shiftKey, key));
   }
 
-  onMounted(() => document.body.addEventListener('keydown', onKeydown));
-  onUnmounted(() => document.body.removeEventListener('keydown', onKeydown));
-
-
+  window.addEventListener('keydown', onKeydown);
 }
