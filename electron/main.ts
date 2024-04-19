@@ -48,7 +48,6 @@ function createWindow() {
   Menu.setApplicationMenu(null);
   win.on('ready-to-show', () => {
     win?.show();
-    win?.webContents.openDevTools();
     if (VITE_DEV_SERVER_URL) {
       win?.webContents.openDevTools();
     }
@@ -69,22 +68,24 @@ function createWindow() {
   win.on('unmaximize', () => {
     win?.webContents.send(EventCode.ASYNC_WINDOW_IS_MAXIMIZE, false);
   });
-  win.on('close', e => {
-    e.preventDefault();
-    win?.focus();
-    win?.webContents.send(EventCode.ASYNC_CLOSE_WINDOW);
-  });
+
   (process.platform === 'win32') && ipcMain.on(EventCode.ASYNC_SET_TITLE_BAR_STYLE, (_, bgcolor, textcolor) => {
     win?.setTitleBarOverlay({
       color: `${bgcolor}00`.slice(0, 9),
       symbolColor: textcolor
     });
   });
-  ipcMain.on(EventCode.ASYNC_CLOSE_WINDOW, () => {
-    app.quit();
-    win = null;
-    process.exit(0);
-  });
+  if (process.platform === 'linux') {
+    win.on('close', e => {
+      e.preventDefault();
+      win?.webContents.send(EventCode.ASYNC_CLOSE_WINDOW);
+    });
+    ipcMain.on(EventCode.ASYNC_CLOSE_WINDOW, () => {
+      app.quit();
+      win = null;
+      process.exit(0);
+    });
+  }
   ipcMain.on(EventCode.ASYNC_SET_WINDOW_MINIMIZE, () => {
     win?.minimize();
   });
