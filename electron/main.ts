@@ -52,6 +52,7 @@ function createWindow() {
   win.on('closed', () => {
     app.quit();
     win = null;
+    process.exit(0);
   });
   win.on('enter-full-screen', () => {
     win?.webContents.send(EventCode.ASYNC_WINDOW_IS_FULLSCREEN, true);
