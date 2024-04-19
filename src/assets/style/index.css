@@ -60,7 +60,7 @@ body,
   user-select: none;
   -webkit-user-drag: none;
   outline: none;
-  font-family: 'HarmonyOS Sans', serif;
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'PingFang SC', Arial, Helvetica;
 
   &::selection {
     background-color: rgba(127, 127, 127, 0.2);

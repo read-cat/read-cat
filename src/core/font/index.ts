@@ -32,7 +32,7 @@ export class FontFamily {
 }
 
 export class Font {
-  public static readonly DEFAULT_FONT = 'HarmonyOS Sans';
+  public static readonly DEFAULT_FONT = 'HarmonyOS Sans SC';
   private readonly pool = new Map<string, string>();
   private useFontElement: HTMLStyleElement | null = null;
   private readStyle;

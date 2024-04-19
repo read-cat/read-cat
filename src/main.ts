@@ -9,7 +9,7 @@ import 'animate.css/animate.min.css';
 import 'element-plus/theme-chalk/dark/css-vars.css';
 import './assets/style/index.css';
 import './assets/style/dark/index.css';
-import './assets/style/font/harmony-os-sans.css';
+import './assets/style/font/HarmonyOS_Sans_SC/index.css';
 import { isUndefined } from './core/is';
 import { useMessage } from './hooks/message';
 import { ElLoading } from 'element-plus';

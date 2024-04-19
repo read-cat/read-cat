@@ -24,7 +24,7 @@ export const useSettingsStore = defineStore('Settings', {
         color: DefaultReadColor.GREEN_QINGCAO,
         fontSize: 17.5,
         letterSpacing: 1.5,
-        fontFamily: 'HarmonyOS Sans',
+        fontFamily: 'HarmonyOS Sans SC',
         sectionSpacing: 13,
         lineSpacing: 2,
         width: 0.8
