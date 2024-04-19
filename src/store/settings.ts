@@ -117,12 +117,13 @@ export const useSettingsStore = defineStore('Settings', {
     setDefaultReadColor(color: ReadColor) {
       this.readStyle.color = color;
     },
-    handlerKeyboard(altKey: boolean, ctrlKey: boolean, shiftKey: boolean, key: string) {
+    handlerKeyboard(altKey: boolean, ctrlKey: boolean, shiftKey: boolean, metaKey: boolean, key: string) {
       const uc = key.toUpperCase();
-      if (['CONTROL', 'ALT', 'SHIFT'].includes(uc)) {
+      if (['CONTROL', 'ALT', 'SHIFT', 'META'].includes(uc)) {
         return '';
       }
       const keys = [];
+      metaKey && keys.push('Meta');
       ctrlKey && keys.push('Ctrl');
       shiftKey && keys.push('Shift');
       altKey && keys.push('Alt');

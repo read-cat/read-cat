@@ -29,8 +29,8 @@ export const useShortcutKey = () => {
   }, 200);
 
   const onKeydown = (e: KeyboardEvent) => {
-    const { altKey, ctrlKey, shiftKey, key } = e;
-    handler(handlerKeyboard(altKey, ctrlKey, shiftKey, key));
+    const { altKey, ctrlKey, shiftKey, metaKey, key } = e;
+    handler(handlerKeyboard(altKey, ctrlKey, shiftKey, metaKey, key));
   }
 
   window.addEventListener('keydown', onKeydown);
