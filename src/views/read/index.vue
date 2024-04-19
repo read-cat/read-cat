@@ -98,8 +98,8 @@ useShortcutKey();
       '--rc-bookmark-even-font-color': isDark ? options.enableBookmarkHighlight ? '' : 'none' : options.enableBookmarkHighlight ? bookmarkColorEven : '',
     }"></div>
     <Menu trigger="#main" class-name="read-menu" :disabled="isRunningGetTextContent">
-      <MenuItem label="上一章" @click="prevChapter" />
-      <MenuItem label="下一章" @click="nextChapter" />
+      <MenuItem label="上一章" @click="prevChapter(true)" />
+      <MenuItem label="下一章" @click="nextChapter(true)" />
       <ElDivider v-once />
       <MenuItem label="设置书签" @click="setBookmark" />
     </Menu>

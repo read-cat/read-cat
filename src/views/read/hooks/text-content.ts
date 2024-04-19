@@ -71,12 +71,12 @@ export const useTextContent = () => {
     }
   }
 
-  const nextChapter = async () => {
-    await handler('next');
+  const nextChapter = async (ignoreError = false) => {
+    await handler('next').catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
   }
 
-  const prevChapter = async () => {
-    await handler('prev');
+  const prevChapter = async (ignoreError = false) => {
+    await handler('prev').catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
   }
 
   return {
