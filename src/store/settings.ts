@@ -32,7 +32,9 @@ export const useSettingsStore = defineStore('Settings', {
       proxy: {
         host: '127.0.0.1',
         port: 7890,
-        protocol: 'http'
+        protocol: 'http',
+        username: '',
+        password: ''
       },
       threadsNumber: 8,
       maxCacheChapterNumber: 10,

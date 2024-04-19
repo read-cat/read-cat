@@ -64,7 +64,7 @@ export type Settings = {
   /**阅读样式 */
   readStyle: SettingsReadStyle
   /**代理 */
-  proxy?: RequestProxy
+  proxy: RequestProxy
   /**任务执行线程数 */
   threadsNumber: number
   /**最大缓存章节数 */

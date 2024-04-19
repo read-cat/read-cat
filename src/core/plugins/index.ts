@@ -280,7 +280,7 @@ export class Plugins {
         async get(url: string, config?: PluginRequestConfig) {
           let proxy: RequestProxy | undefined = void 0;
           if (config?.proxy) {
-            if (settings.options.enableProxy && settings.proxy) {
+            if (settings.options.enableProxy) {
               proxy = settings.proxy;
             } else {
               throw `Proxy not enabled`;
@@ -294,7 +294,7 @@ export class Plugins {
         async post(url: string, config?: PluginRequestConfig) {
           let proxy: RequestProxy | undefined = void 0;
           if (config?.proxy) {
-            if (settings.options.enableProxy && settings.proxy) {
+            if (settings.options.enableProxy) {
               proxy = settings.proxy;
             } else {
               throw `Proxy not enabled`;

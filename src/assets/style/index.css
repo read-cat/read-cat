@@ -205,3 +205,11 @@ button {
     background-color: transparent !important;
   }
 }
+
+.el-input__wrapper {
+  --el-input-focus-border-color: var(--rc-theme-color);
+}
+.el-select__wrapper.is-focused,
+.el-select-dropdown__item.is-selected {
+  --el-color-primary: var(--rc-theme-color);
+}

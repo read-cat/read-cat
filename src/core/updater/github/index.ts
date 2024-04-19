@@ -14,7 +14,7 @@ export class GithubUpdater implements Updater {
     let release: Release;
     const url = `https://api.github.com/repos/read-cat/read-cat.github.io/releases${branch === 'release' ? '/latest' : ''}`;
     let { body } = await get(url, {
-      proxy: options.enableProxy ? proxy?.value : void 0,
+      proxy: options.enableProxy ? proxy.value : void 0,
     });
     body = isString(body) ? body : body.toString('utf-8');
     if (branch === 'dev') {
