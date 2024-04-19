@@ -11,7 +11,7 @@ import {
 } from '../../is';
 import { formDataToObject, urlSearchParamsToObject } from '../utils';
 import { customAlphabet } from 'nanoid';
-import mime from 'mime';
+import { lookup } from 'mime-types';
 
 export const createParamsSerializer = (config: InternalAxiosRequestConfig) => {
   if (config.paramsSerializer) {
@@ -109,10 +109,11 @@ export const toMultipartFormData = (() => {
     } else if (isFormData(data)) {
       for (const [key, val] of data) {
         if (isFile(val)) {
+          const type = val.type || lookup(val.name) || 'application/octet-stream';
           payload += (
             `${boundaryKey}\r\n` +
             `Content-Disposition: form-data; name="${key}";${filename(val.name)}\r\n` +
-            `Content-Type: ${val.type ? val.type : mime.getType(val.name)}\r\n\r\n` +
+            `Content-Type: ${type}\r\n\r\n` +
             `${await val.text()}\r\n`
           );
         } else {

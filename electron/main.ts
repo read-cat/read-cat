@@ -48,6 +48,7 @@ function createWindow() {
   Menu.setApplicationMenu(null);
   win.on('ready-to-show', () => {
     win?.show();
+    win?.webContents.openDevTools();
     if (VITE_DEV_SERVER_URL) {
       win?.webContents.openDevTools();
     }
