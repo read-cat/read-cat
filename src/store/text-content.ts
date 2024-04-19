@@ -38,14 +38,15 @@ export const useTextContentStore = defineStore('TextContent', {
           throw `无法获取插件, 插件ID:${pid}不存在`;
         }
         const dbTextContent = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
+        this.currentChapter = chapter;
         if (dbTextContent && !refresh) {
           const { chapter, textContent } = dbTextContent;
-          this.currentChapter = chapter;
+          // this.currentChapter = chapter;
           this.textContent = [chapter.title, ...textContent];
         } else {
+          
           const textContent = (await booksource.getTextContent(chapter));
           this.textContent = [chapter.title, ...textContent];
-          this.currentChapter = chapter;
           const cache = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
           if (!isNull(cache)) {
             await GLOBAL_DB.store.textContentStore.put({

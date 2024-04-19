@@ -6,6 +6,7 @@ import { colorIsLight, getColorRGB } from '../core/utils';
 import { PagePath } from '../core/window';
 import { useSearchStore } from '../store/search';
 import { EventCode } from '../../events';
+import { useTextContentStore } from '../store/text-content';
 
 export type SearchHeaderStyle = {
   borderColor: string,
@@ -19,6 +20,8 @@ export const useHeaderStyle = (searchkey: Ref<string>, progress: Ref<number>) =>
   const { options } = useSettingsStore();
   const { backgroundColor, textColor } = storeToRefs(useSettingsStore());
   const { isRunningSearch } = storeToRefs(useSearchStore());
+  const { searchBoxHeaderText } = storeToRefs(useWindowStore());
+  const { currentChapter } = storeToRefs(useTextContentStore());
   const searchStyle = reactive<SearchHeaderStyle>({
     borderColor: '',
     backgroundColor: '',
@@ -114,6 +117,15 @@ export const useHeaderStyle = (searchkey: Ref<string>, progress: Ref<number>) =>
       return;
     }
     win.searchBoxHeaderText = key.value;
+  });
+  watchEffect(() => {
+    if (win.currentPath !== PagePath.READ) {
+      return;
+    }
+    if (!currentChapter.value) {
+      return;
+    }
+    searchBoxHeaderText.value = currentChapter.value.title;
   });
 
   watch(() => win.isDark, (newVal, _) => {

@@ -3,7 +3,6 @@ import { isNull, isUndefined } from '../../../core/is';
 import { useMessage } from '../../../hooks/message';
 import { useTextContentStore } from '../../../store/text-content';
 import { h, markRaw, ref, VNode, watch } from 'vue';
-import { useWindowStore } from '../../../store/window';
 import { useBookmarkStore } from '../../../store/bookmark';
 import { nanoid } from 'nanoid';
 import { ElInput, ElMessageBox, ElNotification } from 'element-plus';
@@ -20,7 +19,6 @@ export const useBookmarks = () => {
   const { options } = useSettingsStore();
   const { textContent } = storeToRefs(useTextContentStore());
   const { currentChapter } = storeToRefs(useTextContentStore());
-  const { searchBoxHeaderText } = storeToRefs(useWindowStore());
   const { getBookmarkByChapterUrl, put, getBookmarkById } = useBookmarkStore();
   const { _bookmarks } = storeToRefs(useBookmarkStore());
   const { currentDetailUrl, currentPid } = storeToRefs(useDetailStore());
@@ -252,9 +250,6 @@ export const useBookmarks = () => {
   }
 
   watch(() => textContent.value, (newVal) => {
-    if (currentChapter.value) {
-      searchBoxHeaderText.value = currentChapter.value.title;
-    }
     if (isNull(newVal) || newVal.length <= 1) {
       const err = isNull(newVal) ? ['无法获取章节标题'] : [...newVal];
       err.push('正文获取失败');
