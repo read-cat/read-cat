@@ -35,9 +35,18 @@ export class Core {
     Core.initUpdater();
     // Core.initIpcRenderer();
     Core.initLogger();
-    await Core.initDatabase().catch(e => error.push(e));
-    await Core.initPlugins().catch(e => error.push(e));
-    await Core.initFont().catch(e => error.push(e));
+    await Core.initDatabase().catch(e => {
+      error.push(e);
+      return Promise.resolve();
+    });
+    await Core.initPlugins().catch(e => {
+      error.push(e);
+      return Promise.resolve();
+    });
+    await Core.initFont().catch(e => {
+      error.push(e);
+      return Promise.resolve();
+    });
     GLOBAL_DB.store.bookshelfStore.read();
     Core.setValue(window, 'Core', Core);
     if (error.length > 0) {
