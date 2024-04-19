@@ -10,6 +10,8 @@ import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../store/settings';
 import { createUpdater } from './updater';
 import { Updater } from './updater/updater';
+import Module from 'module';
+import { newError } from './utils';
 
 export class Core {
   static logger: Logger;
@@ -22,9 +24,18 @@ export class Core {
   static updater: Updater;
 
   static async init(): Promise<Error[] | undefined> {
-    Core.setValue(window, 'require', (id: string) => {
-      throw new Error(`Illegal function call require('${id}')`);
-    });
+    const load = (<any>Module)._load;
+    (<any>Module)._load = (requests: string, parent: any, isMain: boolean) => {
+      const { stack } = newError();
+      if (
+        !stack ||
+        stack.includes('createPluginClassInstance') ||
+        stack.includes('runPluginScript')
+      ) {
+        throw newError(`Illegal function call require('${requests}')`);
+      }
+      return load(requests, parent, isMain);
+    }
     Core.setValue(window, 'process', {
       platform: process.platform,
       cwd: process.cwd
@@ -83,7 +94,7 @@ export class Core {
     Core.setValue(window, 'GLOBAL_IPC', Core.ipc);
     const userDataPath = Core.ipc.sendSync<string>(EventCode.SYNC_GET_USER_DATA_PATH);
     if (!userDataPath) {
-      throw 'user data path is null';
+      throw newError('user data path is null');
     }
     Core.setValue(Core, 'userDataPath', userDataPath);
     Core.setValue(Core, 'isDev', Core.ipc.sendSync<boolean>(EventCode.SYNC_IS_DEV));
