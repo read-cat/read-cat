@@ -91,7 +91,7 @@ export const useSearchStore = defineStore('Search', {
                 time: end - start
               })));
             }).catch((e: any) => {
-              GLOBAL_LOG.error(`Search ${searchkey} ID:${props.ID}, NAME:${props.NAME} ${errorHandler(e, true)}`);
+              GLOBAL_LOG.error(`Search ${searchkey} ID:${props.ID}, NAME:${props.NAME}`, e);
             }).finally(() => {
               searchProgress = Number(((++finish) / plugins.length).toFixed(2));
               callback && callback(searchProgress);

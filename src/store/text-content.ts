@@ -1,7 +1,7 @@
 import { defineStore, storeToRefs } from 'pinia';
 import { Chapter } from '../core/book/book';
 import { BookSource } from '../core/plugins/defined/booksource';
-import { chunkArray, errorHandler } from '../core/utils';
+import { chunkArray, errorHandler, newError } from '../core/utils';
 import { isNull, isUndefined } from '../core/is';
 import { useSettingsStore } from './settings';
 import { nanoid } from 'nanoid';
@@ -35,7 +35,7 @@ export const useTextContentStore = defineStore('TextContent', {
         win.disableShowSearchBox.set(PagePath.DETAIL, true);
         const booksource = GLOBAL_PLUGINS.getPluginInstanceById<BookSource>(pid);
         if (isUndefined(booksource)) {
-          throw `无法获取插件, 插件ID:${pid}不存在`;
+          throw newError(`无法获取插件, 插件ID:${pid}不存在`);
         }
         const dbTextContent = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
         this.currentChapter = chapter;
@@ -94,7 +94,7 @@ export const useTextContentStore = defineStore('TextContent', {
               try {
                 const textContent = (await booksource.getTextContent(chapter));
                 if (textContent.length <= 0) {
-                  throw `text content length: 0`;
+                  throw newError('text content length: 0');
                 }
                 await GLOBAL_DB.store.textContentStore.put({
                   id: nanoid(),

@@ -3,6 +3,7 @@ import { getType, isArray, isObject, isString, isUndefined } from '../is';
 import { AxiosError, AxiosHeaders } from 'axios';
 import { ClientRequest } from 'http';
 import { CustomInternalAxiosRequestConfig } from './defined/axios';
+import { newAxiosError } from '../utils';
 
 export enum ContentType {
   APPLICATION_FORM_URLENCODED = 'application/x-www-form-urlencoded',
@@ -94,5 +95,5 @@ export const handlerCookies = (config: CustomInternalAxiosRequestConfig) => {
     config.headers.set('Cookie', cookies, true);
     return;
   }
-  throw new AxiosError(`Unsupported cookie type: ${getType(config.cookies)}`, AxiosError.ERR_NOT_SUPPORT, config);
+  throw newAxiosError(`Unsupported cookie type: ${getType(config.cookies)}`, AxiosError.ERR_NOT_SUPPORT, config);
 }

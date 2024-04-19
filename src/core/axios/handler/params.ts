@@ -12,6 +12,7 @@ import {
 import { formDataToObject, urlSearchParamsToObject } from '../utils';
 import { customAlphabet } from 'nanoid';
 import { lookup } from 'mime-types';
+import { newAxiosError } from '../../utils';
 
 export const createParamsSerializer = (config: InternalAxiosRequestConfig) => {
   if (config.paramsSerializer) {
@@ -45,14 +46,14 @@ export const toURLEncoded = (config: InternalAxiosRequestConfig, data?: any) => 
   if (isString(params)) {
     return params.trim();
   }
-  throw new AxiosError(`Unsupported param type ${getType(params)}`, AxiosError.ERR_NOT_SUPPORT, config);
+  throw newAxiosError(`Unsupported param type ${getType(params)}`, AxiosError.ERR_NOT_SUPPORT, config);
 }
 
 export const toJSON = (config: InternalAxiosRequestConfig, data?: any) => {
   const method = config.method?.trim().toUpperCase();
   const params = data || config.data;
   if (!method || !['POST', 'PUT', 'PATCH'].includes(method)) {
-    throw new AxiosError('Illegal params conversion', AxiosError.ERR_NOT_SUPPORT, config);
+    throw newAxiosError('Illegal params conversion', AxiosError.ERR_NOT_SUPPORT, config);
   }
   if (!params) {
     return '';
@@ -71,9 +72,9 @@ export const toJSON = (config: InternalAxiosRequestConfig, data?: any) => {
       return params.trim();
     }
   } catch (e: any) {
-    throw new AxiosError(`JSON serialization failure, ${e.message}`, AxiosError.ERR_BAD_REQUEST, config);
+    throw newAxiosError(`JSON serialization failure, ${e.message}`, AxiosError.ERR_BAD_REQUEST, config);
   }
-  throw new AxiosError(`Unsupported param type: ${getType(params)}`, AxiosError.ERR_NOT_SUPPORT, config);
+  throw newAxiosError(`Unsupported param type: ${getType(params)}`, AxiosError.ERR_NOT_SUPPORT, config);
 }
 
 export const toMultipartFormData = (() => {
@@ -90,7 +91,7 @@ export const toMultipartFormData = (() => {
     const method = config.method?.trim().toUpperCase();
     const params = data || config.data;
     if (!method || !['POST', 'PUT', 'PATCH'].includes(method)) {
-      throw new AxiosError('Illegal params conversion', AxiosError.ERR_NOT_SUPPORT, config);
+      throw newAxiosError('Illegal params conversion', AxiosError.ERR_NOT_SUPPORT, config);
     }
     if (!params) {
       return void 0;
@@ -135,13 +136,13 @@ export const toMultipartFormData = (() => {
     if (isNodeFormData(data)) {
       const contentType = data.getHeaders()['content-type'] || data.getHeaders()['Content-Type'];
       if (!isString(contentType)) {
-        throw new AxiosError('Unknown headers', AxiosError.ERR_BAD_REQUEST, config);
+        throw newAxiosError('Unknown headers', AxiosError.ERR_BAD_REQUEST, config);
       }
       config.headers.setContentType(contentType, true);
       const length = await (new Promise<number>((reso, reje) => {
         data.getLength((err, length) => {
           if (err) {
-            return reje(new AxiosError(err.message, AxiosError.ERR_BAD_REQUEST, config));
+            return reje(newAxiosError(err.message, AxiosError.ERR_BAD_REQUEST, config));
           }
           return reso(length);
         });
@@ -149,6 +150,6 @@ export const toMultipartFormData = (() => {
       config.headers.setContentLength(length, true);
       return data;
     }
-    throw new AxiosError(`Unsupported param type: ${getType(params)}`, AxiosError.ERR_NOT_SUPPORT, config);
+    throw newAxiosError(`Unsupported param type: ${getType(params)}`, AxiosError.ERR_NOT_SUPPORT, config);
   }
 })();

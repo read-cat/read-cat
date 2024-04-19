@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { BookshelfStoreEntity } from '../core/database/database';
 import { useMessage } from '../hooks/message';
-import { chunkArray, errorHandler, replaceInvisibleStr } from '../core/utils';
+import { chunkArray, errorHandler, newError, replaceInvisibleStr } from '../core/utils';
 import { isNull, isUndefined } from '../core/is';
 import { useSettingsStore } from './settings';
 import { BookSource } from '../core/plugins/defined/booksource';
@@ -58,10 +58,10 @@ export const useBookshelfStore = defineStore('Bookshelf', {
       try {
         const _entity = replaceInvisibleStr(entity);
         if (!entity.id.trim()) {
-          throw `ID为空`;
+          throw newError('ID为空');
         }
         if (!entity.pid.trim() || !entity.detailPageUrl.trim()) {
-          throw `PID或DetailUrl为空`;
+          throw newError('PID或DetailUrl为空');
         }
         await GLOBAL_DB.store.bookshelfStore.put(_entity);
         const {
@@ -81,7 +81,7 @@ export const useBookshelfStore = defineStore('Bookshelf', {
         } = _entity;
         const props = GLOBAL_PLUGINS.getPluginPropsById(pid);
         if (isUndefined(props)) {
-          throw new Error('插件属性获取失败');
+          throw newError('插件属性获取失败');
         }
         const obj: Book = {
           id,
@@ -156,11 +156,11 @@ export const useBookshelfStore = defineStore('Bookshelf', {
         const { pid, detailPageUrl } = this._books[index];
         const plugin = GLOBAL_PLUGINS.getPluginById<BookSource>(pid);
         if (isUndefined(plugin)) {
-          throw `无法获取插件, 插件ID:${pid}`;
+          throw newError(`无法获取插件, 插件ID:${pid}`);
         }
         const { props, instance } = plugin;
         if (isUndefined(props.BASE_URL) || props.BASE_URL.trim() !== this._books[index].baseUrl.trim()) {
-          throw `插件请求目标链接[BASE_URL]不匹配`;
+          throw newError('插件请求目标链接[BASE_URL]不匹配');
         }
         this._books[index].isRunningRefresh = true;
         const detail = await instance.getDetail(detailPageUrl);

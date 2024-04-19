@@ -1,5 +1,5 @@
 import { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { errorHandler } from '../../utils';
+import { errorHandler, newAxiosError } from '../../utils';
 import { joinUrl } from './url';
 
 export const createAgent = (config: InternalAxiosRequestConfig) => {
@@ -15,6 +15,6 @@ export const createAgent = (config: InternalAxiosRequestConfig) => {
     }
     return void 0;
   } catch (e) {
-    throw new AxiosError(errorHandler(e, true), AxiosError.ERR_BAD_REQUEST, config);
+    throw newAxiosError(errorHandler(e, true), AxiosError.ERR_BAD_REQUEST, config);
   }
 }

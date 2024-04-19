@@ -3,10 +3,11 @@ import { isUndefined } from '../../is';
 import http from 'http';
 import https from 'https';
 import { toURLEncoded } from './params';
+import { newAxiosError } from '../../utils';
 
 export const getRequest = (protocol: string, config: InternalAxiosRequestConfig) => {
   if (protocol !== 'http:' && protocol !== 'https:') {
-    throw new AxiosError(`Unsupported protocol ${protocol}`, AxiosError.ERR_NOT_SUPPORT, config);
+    throw newAxiosError(`Unsupported protocol ${protocol}`, AxiosError.ERR_NOT_SUPPORT, config);
   }
   if (isUndefined(config.method) || ['GET', 'DOWNLOAD'].includes(config.method.toUpperCase())) {
     return protocol === 'http:' ? http.get : https.get;
@@ -31,7 +32,7 @@ export const joinUrl = (config: InternalAxiosRequestConfig) => {
   if (url) {
     return url;
   }
-  throw new AxiosError('url is empty or undefined', AxiosError.ERR_INVALID_URL, config);
+  throw newAxiosError('url is empty or undefined', AxiosError.ERR_INVALID_URL, config);
 }
 
 export const createURL = (config: InternalAxiosRequestConfig) => {
@@ -40,7 +41,7 @@ export const createURL = (config: InternalAxiosRequestConfig) => {
     const i = url.indexOf('?');
     const method = config.method?.trim().toUpperCase() || 'GET';
     if (!['DOWNLOAD', 'GET', 'DELETE', 'HEAD', 'OPTIONS', 'POST', 'PUT', 'PATCH'].includes(method)) {
-      throw new AxiosError(`Unsupported method ${method}`, AxiosError.ERR_NOT_SUPPORT, config);
+      throw newAxiosError(`Unsupported method ${method}`, AxiosError.ERR_NOT_SUPPORT, config);
     }
     config.method = method;
 
@@ -56,6 +57,6 @@ export const createURL = (config: InternalAxiosRequestConfig) => {
     }
     return new URL(`${url}&${paramsStr}`);
   } catch (e: any) {
-    throw isAxiosError(e) ? e : new AxiosError(e.message, AxiosError.ERR_INVALID_URL, config);
+    throw isAxiosError(e) ? e : newAxiosError(e.message, AxiosError.ERR_INVALID_URL, config);
   }
 }

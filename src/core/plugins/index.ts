@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'fs';
-import { chunkArray, errorHandler, sanitizeHTML } from '../utils';
+import { chunkArray, errorHandler, newError, sanitizeHTML } from '../utils';
 import { isArray, isDate, isFunction, isNull, isNumber, isObject, isString, isUndefined } from '../is';
 import { load } from 'cheerio';
 import { usePluginsStore } from '../../store/plugins';
@@ -103,7 +103,7 @@ export class Plugins {
       const plugin = await GLOBAL_DB.store.pluginsJSCode.getById(id);
       const p = this.pluginsPool.get(id);
       if (isUndefined(p)) {
-        throw `Cannot find plugin, id:${id}`;
+        throw newError(`Cannot find plugin, id:${id}`);
       }
       if (isNull(plugin)) {
         p.enable = false;
@@ -128,7 +128,7 @@ export class Plugins {
       const plugin = await GLOBAL_DB.store.pluginsJSCode.getById(id);
       const p = this.pluginsPool.get(id);
       if (isUndefined(p)) {
-        throw `Cannot find plugin, id:${id}`;
+        throw newError(`Cannot find plugin, id:${id}`);
       }
       if (isNull(plugin)) {
         p.enable = true;
@@ -222,7 +222,7 @@ export class Plugins {
   public async delete(id: string) {
     const p = this.pluginsPool.get(id);
     if (p && p.builtIn) {
-      throw new Error('无法删除内置插件');
+      throw newError('无法删除内置插件');
     }
     await GLOBAL_DB.store.pluginsJSCode.remove(id);
     this.pluginsPool.delete(id);
@@ -283,7 +283,7 @@ export class Plugins {
             if (settings.options.enableProxy) {
               proxy = settings.proxy;
             } else {
-              throw `Proxy not enabled`;
+              throw newError('Proxy not enabled');
             }
           }
           return requestGet(url, {
@@ -297,7 +297,7 @@ export class Plugins {
             if (settings.options.enableProxy) {
               proxy = settings.proxy;
             } else {
-              throw `Proxy not enabled`;
+              throw newError('Proxy not enabled');
             }
           }
           return requestPost(url, {
@@ -350,12 +350,12 @@ export class Plugins {
     try {
       if (!isNull(pluginFilePath)) {
         if (!existsSync(pluginFilePath)) {
-          throw `Plugin file "${pluginFilePath}" not found`;
+          throw newError(`Plugin file "${pluginFilePath}" not found`);
         }
         jscode = readFileSync(pluginFilePath, 'utf-8');
       }
       if (isNull(jscode)) {
-        throw `Plugin jscode not found`;
+        throw newError('Plugin jscode not found');
       }
       const { PluginClass, code } = await this.check(jscode, options);
       const {
@@ -425,7 +425,7 @@ export class Plugins {
       const plugin = await this.pluginExports(jscode);
       this._isPlugin(plugin);
       if (!options?.force && this.pluginsPool.has(plugin.ID)) {
-        throw `Plugin exists ID:${plugin.ID}`;
+        throw newError(`Plugin exists ID:${plugin.ID}`);
       }
       return { PluginClass: plugin, code: jscode };
     } catch (e) {
@@ -434,104 +434,104 @@ export class Plugins {
   }
   private _isPlugin(plugin: PluginInterface) {
     if (isUndefined(plugin.ID)) {
-      throw 'Static property [ID] not found';
+      throw newError('Static property [ID] not found');
     }
     if (!isString(plugin.ID)) {
-      throw 'Static property [ID] is not of string type';
+      throw newError('Static property [ID] is not of string type');
     }
     if (!/[A-Za-z0-9_\-]/.test(plugin.ID) || plugin.ID.trim() !== plugin.ID) {
-      throw 'The ID format is not standard';
+      throw newError('The ID format is not standard');
     }
     if (plugin.ID.length < 16 || plugin.ID.length > 32) {
-      throw `Static property [ID] Length:${plugin.ID.length}, ID range in length [16,32]`;
+      throw newError(`Static property [ID] Length:${plugin.ID.length}, ID range in length [16,32]`);
     }
 
     if (isUndefined(plugin.TYPE)) {
-      throw 'Static property [TYPE] not found';
+      throw newError('Static property [TYPE] not found');
     }
     if (!isNumber(plugin.TYPE)) {
-      throw 'Static property [TYPE] is not of number type';
+      throw newError('Static property [TYPE] is not of number type');
     }
     if (isUndefined(PluginType.valueOf(plugin.TYPE))) {
-      throw 'Static property [TYPE] is unknown plugin type';
+      throw newError('Static property [TYPE] is unknown plugin type');
     }
 
     if (isUndefined(plugin.GROUP)) {
-      throw 'Static property [GROUP] not found';
+      throw newError('Static property [GROUP] not found');
     }
     if (!isString(plugin.GROUP)) {
-      throw 'Static property [GROUP] is not of string type';
+      throw newError('Static property [GROUP] is not of string type');
     }
     if (plugin.GROUP.trim() !== plugin.GROUP) {
-      throw 'The GROUP format is not standard';
+      throw newError('The GROUP format is not standard');
     }
     if (plugin.GROUP.length < 1 || plugin.GROUP.length > 15) {
-      throw `Static property [GROUP] Length:${plugin.GROUP.length}, GROUP range in length [2,15]`;
+      throw newError(`Static property [GROUP] Length:${plugin.GROUP.length}, GROUP range in length [2,15]`);
     }
 
     if (isUndefined(plugin.NAME)) {
-      throw 'Static property [NAME] not found';
+      throw newError('Static property [NAME] not found');
     }
     if (!isString(plugin.NAME)) {
-      throw 'Static property [NAME] is not of string type';
+      throw newError('Static property [NAME] is not of string type');
     }
     if (plugin.NAME.trim() !== plugin.NAME) {
-      throw 'The NAME format is not standard';
+      throw newError('The NAME format is not standard');
     }
     if (plugin.NAME.length < 1 || plugin.NAME.length > 15) {
-      throw `Static property [NAME] Length:${plugin.NAME.length}, NAME range in length [2,15]`;
+      throw newError(`Static property [NAME] Length:${plugin.NAME.length}, NAME range in length [2,15]`);
     }
 
     if (isUndefined(plugin.VERSION)) {
-      throw 'Static property [VERSION] not found';
+      throw newError('Static property [VERSION] not found');
     }
     if (!isString(plugin.VERSION)) {
-      throw 'Static property [VERSION] is not of string type';
+      throw newError('Static property [VERSION] is not of string type');
     }
     if (plugin.VERSION.trim() !== plugin.VERSION) {
-      throw 'The VERSION format is not standard';
+      throw newError('The VERSION format is not standard');
     }
     if (plugin.VERSION.length < 0 || plugin.VERSION.length > 8) {
-      throw `Static property [VERSION] Length:${plugin.VERSION.length}, VERSION range in length [1,8]`;
+      throw newError(`Static property [VERSION] Length:${plugin.VERSION.length}, VERSION range in length [1,8]`);
     }
 
     if (isUndefined(plugin.VERSION_CODE)) {
-      throw 'Static property [VERSION_CODE] not found';
+      throw newError('Static property [VERSION_CODE] not found');
     }
     if (!isNumber(plugin.VERSION_CODE)) {
-      throw 'Static property [VERSION_CODE] is not of number type';
+      throw newError('Static property [VERSION_CODE] is not of number type');
     }
 
     if (isUndefined(plugin.PLUGIN_FILE_URL)) {
-      throw 'Static property [PLUGIN_FILE_URL] not found';
+      throw newError('Static property [PLUGIN_FILE_URL] not found');
     }
     if (!isString(plugin.PLUGIN_FILE_URL)) {
-      throw 'Static property [PLUGIN_FILE_URL] is not of string type';
+      throw newError('Static property [PLUGIN_FILE_URL] is not of string type');
     }
     if (plugin.PLUGIN_FILE_URL.trim() && !/^https?:\/\/.*?\.js$/i.test(plugin.PLUGIN_FILE_URL)) {
-      throw 'The [PLUGIN_FILE_URL] format is not standard';
+      throw newError('The [PLUGIN_FILE_URL] format is not standard');
     }
 
     if ([PluginType.BOOK_SOURCE, PluginType.BOOK_STORE].includes(plugin.TYPE)) {
       if (isUndefined(plugin.BASE_URL)) {
-        throw 'Static property [BASE_URL] not found';
+        throw newError('Static property [BASE_URL] not found');
       }
       if (!isString(plugin.BASE_URL)) {
-        throw 'Static property [BASE_URL] is not of string type';
+        throw newError('Static property [BASE_URL] is not of string type');
       }
       if (!plugin.BASE_URL.trim()) {
-        throw 'Static property [BASE_URL] is empty';
+        throw newError('Static property [BASE_URL] is empty');
       }
       if (!/^https?:\/\/.*?/i.test(plugin.BASE_URL)) {
-        throw 'The [BASE_URL] format is not standard';
+        throw newError('The [BASE_URL] format is not standard');
       }
     }
     if (PluginType.TTS_ENGINE === plugin.TYPE) {
       if (isUndefined(plugin.TTS_ENGINE_REQUIRE)) {
-        throw 'Static property [TTS_ENGINE_REQUIRE] not found';
+        throw newError('Static property [TTS_ENGINE_REQUIRE] not found');
       }
       if (!isObject(plugin.TTS_ENGINE_REQUIRE)) {
-        throw 'Static property [BASE_URL] is not of object type';
+        throw newError('Static property [BASE_URL] is not of object type');
       }
     }
     
@@ -565,7 +565,7 @@ export class Plugins {
     }
   }
 
-  private runScript(script: string) {
+  private runPluginScript(script: string) {
     const sandbox = {
       plugin: {
         exports: null as PluginInterface | null,
@@ -615,13 +615,13 @@ export class Plugins {
             return val;
           }
         }
-        throw `Permission denied to access property or function [${String(p)}]`;
+        throw newError(`Permission denied to access property or function [${String(p)}]`);
       },
       set(target, p, receiver) {
         if (target === sandbox.plugin && p === 'exports') {
           return Reflect.set(target, p, receiver);
         }
-        throw `Permission denied to set property or function [${String(p)}]`
+        throw newError(`Permission denied to set property or function [${String(p)}]`);
       },
     }
     ;(new Function('sandbox', `with(sandbox){${script}}`))(new Proxy(sandbox, handler));
@@ -632,13 +632,13 @@ export class Plugins {
   private pluginExports(jscode: string) {
     return new Promise<PluginInterface>((reso, reje) => {
       try {
-        const exports = this.runScript(jscode)();
+        const exports = this.runPluginScript(jscode)();
         if (!exports) {
-          throw 'Cannot find plugin';
+          throw newError('Cannot find plugin');
         }
         return reso(exports);
       } catch (e) {
-        return reje(new Error(errorHandler(e, true)));
+        return reje(newError(errorHandler(e, true)));
       }
     });
   }

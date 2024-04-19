@@ -8,6 +8,7 @@ import { BookshelfStoreDatabase } from './store/bookshelf-store';
 import { TextContentStoreDatabase } from './store/text-content-store';
 import { BookmarkStoreDatabase } from './store/bookmark-store';
 import { SettingsStoreDatabase } from './store/settings-store';
+import { newError } from '../utils';
 
 export enum StoreName {
   PLUGINS = 'store_plugins_jscode',
@@ -44,13 +45,13 @@ export class Database {
 
   public get store() {
     if (isNull(this._store)) {
-      throw `Database opening failure`;
+      throw newError('Database opening failure');
     }
     return this._store;
   }
   private initStore() {
     if (isNull(this.db)) {
-      throw `Database opening failure`;
+      throw newError('Database opening failure');
     }
     if (isNull(this._store)) {
       this._store = {
@@ -103,7 +104,7 @@ export class Database {
     return new Promise<void>((reso, reje) => {
       try {
         if (isNull(this.db)) {
-          throw `Database opening failure`;
+          throw newError('Database opening failure');
         }
         if (this.db.objectStoreNames.contains(storeName)) {
           return;

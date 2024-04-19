@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import { readFileSync } from 'fs';
 import path from 'path';
-import { errorHandler } from '../utils';
+import { errorHandler, newError } from '../utils';
 import { isNull } from '../is';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../../store/settings';
@@ -21,7 +21,7 @@ export class FontFamily {
 
   toString() {
     if (this.data.byteLength <= 0) {
-      throw `The data property has bytes length zero`;
+      throw newError('The data property has bytes length zero');
     }
     const base64 = `data:application/octet-stream;base64,${Buffer.from(this.data).toString('base64')}`;
     return `@font-face{font-family:'${this.id}';font-style:normal;font-display:auto;src:url('${base64}');}`;
@@ -45,7 +45,7 @@ export class Font {
     try {
       const font = await GLOBAL_DB.store.fontsStore.getById(id);
       if (isNull(font)) {
-        throw `Getting a font by id is null`;
+        throw newError('Getting a font by id is null');
       }
       const fontFamily = new FontFamily(font.name, font.type, font.data, font.id);
       const style = document.createElement('style');

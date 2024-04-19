@@ -4,6 +4,7 @@ import { Settings, SettingsTheme } from './defined/settings';
 import { nanoid } from 'nanoid';
 import { useWindowStore } from './window';
 import { useToggle } from '@vueuse/core';
+import { newError } from '../core/utils';
 
 export const useSettingsStore = defineStore('Settings', {
   state: (): Settings => {
@@ -99,20 +100,20 @@ export const useSettingsStore = defineStore('Settings', {
   actions: {
     setBackgroundColor(color: string) {
       if (!/#[a-fA-F0-9]{6}/.test(color)) {
-        throw `Not a hex color`;
+        throw newError('Not a hex color');
       }
       this.readStyle.color.backgroundColor = color;
     },
     setTextColor(color: string) {
       if (!/#[a-fA-F0-9]{6}/.test(color)) {
-        throw `Not a hex color`;
+        throw newError('Not a hex color');
       }
       this.readStyle.color.textColor = color;
     },
     setDefaultReadColorById(id: string) {
       const color = DefaultReadColor.get(id);
       if (!color) {
-        throw `Cannot set ReadColor, ID does not exist`
+        throw newError('Cannot set ReadColor, ID does not exist');
       }
       this.setDefaultReadColor(color);
     },

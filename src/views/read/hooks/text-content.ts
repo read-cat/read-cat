@@ -5,7 +5,7 @@ import { isNull } from '../../../core/is';
 import { useMessage } from '../../../hooks/message';
 import { useBookshelfStore } from '../../../store/bookshelf';
 import { useWindowStore } from '../../../store/window';
-import { errorHandler } from '../../../core/utils';
+import { errorHandler, newError } from '../../../core/utils';
 
 export const useTextContent = () => {
   const { detailResult, currentDetailUrl, currentPid } = storeToRefs(useDetailStore());
@@ -18,16 +18,16 @@ export const useTextContent = () => {
   const handler = async (type: 'next' | 'prev') => {
     try {
       if (isRunningGetTextContent.value) {
-        throw '正在获取章节正文';
+        throw newError('正在获取章节正文');
       }
       if (isNull(detailResult.value) || detailResult.value.chapterList.length <= 0) {
-        throw '无法获取章节列表';
+        throw newError('无法获取章节列表');
       }
       if (isNull(currentChapter.value)) {
-        throw '无法获取当前章节信息';
+        throw newError('无法获取当前章节信息');
       }
       if (isNull(currentPid.value)) {
-        throw '无法获取插件ID';
+        throw newError('无法获取插件ID');
       }
       let index;
       if (type === 'next') {
@@ -43,7 +43,7 @@ export const useTextContent = () => {
           throw null;
         }
       } else {
-        throw '未知类型';
+        throw newError('未知类型');
       }
       const chapter = detailResult.value.chapterList[index];
       await getTextContent(currentPid.value, chapter);

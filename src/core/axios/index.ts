@@ -7,6 +7,8 @@ import {
   CustomAxiosStatic,
   CustomDownloadAxiosRequestConfig
 } from './defined/axios';
+import { newError } from '../utils';
+
 
 const NodeFormData: typeof FormDataType = require('form-data');
 Object.defineProperty(NodeFormData.prototype, Symbol.toStringTag, {
@@ -80,7 +82,7 @@ customAxios.download = (() => {
     const isRange = headers['accept-ranges'] === 'bytes';
     const total = Number(headers['content-length']);
     if (existsSync(target)) {
-      throw new Error(`target exist: ${target}`);
+      throw newError(`target exist: ${target}`);
     }
     if (!isRange || isNaN(total)) {
       await download(url, createWriteStream(target), config);
@@ -121,7 +123,7 @@ customAxios.interceptors.response.use(resp => {
   if ([2, 3].includes(Math.floor(resp.status / 100))) {
     return Promise.resolve(resp);
   }
-  return Promise.reject(new Error(
+  return Promise.reject(newError(
     `status:${resp.status}, ${resp.statusText}\n` +
     `headers: ${Logger.toString(resp.headers, 2, true)}\n` +
     resp.data.toString()

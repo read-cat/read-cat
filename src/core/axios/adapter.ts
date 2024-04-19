@@ -13,7 +13,7 @@ import {
   isString,
   isUndefined
 } from '../is';
-import { errorHandler } from '../utils';
+import { errorHandler, newAxiosError } from '../utils';
 import { decode } from 'iconv-lite';
 import { Readable } from 'stream';
 import {
@@ -46,7 +46,7 @@ const createTransformRequest = (config: InternalAxiosRequestConfig) => {
     if (contentType === ContentType.MULTIPART_FORM_DATA) {
       return toMultipartFormData(this, data);
     }
-    throw new AxiosError(`Unsupported content type: ${contentType}`, AxiosError.ERR_NOT_SUPPORT, this);
+    throw newAxiosError(`Unsupported content type: ${contentType}`, AxiosError.ERR_NOT_SUPPORT, this);
   }
   return func.bind(config);
 }
@@ -113,14 +113,14 @@ export default (config: CustomInternalAxiosRequestConfig) => {
               maxBodyLength > 0 &&
               body.byteLength > maxBodyLength
             ) {
-              throw new AxiosError(`Response body length overflowed, length: ${body.byteLength}`, AxiosError.ERR_BAD_RESPONSE, config, client);
+              throw newAxiosError(`Response body length overflowed, length: ${body.byteLength}`, AxiosError.ERR_BAD_RESPONSE, config, client);
             }
             if (
               !isNaN(contentLength) &&
               !isUndefined(maxContentLength) &&
               contentLength > maxContentLength
             ) {
-              throw new AxiosError(`Content length overflowed, length: ${contentLength}`, AxiosError.ERR_BAD_RESPONSE, config, client);
+              throw newAxiosError(`Content length overflowed, length: ${contentLength}`, AxiosError.ERR_BAD_RESPONSE, config, client);
             }
             config.decompress && (body = decompressResponseBody(body, res.headers['content-encoding']));
             if (['POST', 'PUT', 'PATCH'].includes(method)) {
@@ -134,7 +134,7 @@ export default (config: CustomInternalAxiosRequestConfig) => {
               });
             }
           } catch (e) {
-            return reje(isAxiosError(e) ? e : new AxiosError(errorHandler(e, true), AxiosError.ERR_BAD_REQUEST, config, client));
+            return reje(isAxiosError(e) ? e : newAxiosError(errorHandler(e, true), AxiosError.ERR_BAD_REQUEST, config, client));
           }
         });
         res.on('close', () => {
@@ -186,11 +186,11 @@ export default (config: CustomInternalAxiosRequestConfig) => {
               config
             });
           } catch (e) {
-            return reje(isAxiosError(e) ? e : new AxiosError(errorHandler(e, true), AxiosError.ERR_BAD_REQUEST, config, client));
+            return reje(isAxiosError(e) ? e : newAxiosError(errorHandler(e, true), AxiosError.ERR_BAD_REQUEST, config, client));
           }
         });
         res.on('error', e => {
-          return new AxiosError(e.message, AxiosError.ERR_BAD_REQUEST, config, client);
+          return newAxiosError(e.message, AxiosError.ERR_BAD_REQUEST, config, client);
         });
       });
 
@@ -203,11 +203,11 @@ export default (config: CustomInternalAxiosRequestConfig) => {
             msg = e.cause;
           }
         }
-        return reje(new AxiosError(msg, AxiosError.ERR_BAD_REQUEST, config, client));
+        return reje(newAxiosError(msg, AxiosError.ERR_BAD_REQUEST, config, client));
       });
       client.on('timeout', () => {
         client.destroy();
-        return reje(new AxiosError(config.timeoutErrorMessage || 'connection timeout', AxiosError.ETIMEDOUT, config, client));
+        return reje(newAxiosError(config.timeoutErrorMessage || 'connection timeout', AxiosError.ETIMEDOUT, config, client));
       });
       if (['GET', 'HEAD', 'DELETE', 'OPTIONS'].includes(method) || !config.data) {
         client.end();
@@ -240,7 +240,7 @@ export default (config: CustomInternalAxiosRequestConfig) => {
         });
       }
     } catch (e) {
-      return reje(isAxiosError(e) ? e : new AxiosError(errorHandler(e, true), AxiosError.ERR_BAD_REQUEST, config));
+      return reje(isAxiosError(e) ? e : newAxiosError(errorHandler(e, true), AxiosError.ERR_BAD_REQUEST, config));
     }
   });
 }

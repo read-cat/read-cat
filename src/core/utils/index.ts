@@ -1,3 +1,4 @@
+import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { isError, isString } from '../is';
 import DOMPurify from 'dompurify';
 
@@ -8,9 +9,9 @@ export function errorHandler(error: any, toString: any): Promise<never> | string
   if (isError(error)) {
     err = error;
   } else if (isString(error)) {
-    err = new Error(error);
+    err = newError(error);
   } else {
-    err = new Error(String(error));
+    err = newError(String(error));
   }
   return toString ? err.message : Promise.reject(err);
 }
@@ -34,7 +35,7 @@ export const getColorRGB = (hexColor: string): [number, number, number] => {
     const b = hexColor.substring(3, 4);
     return [Number(`0x${r}${r}`), Number(`0x${g}${g}`), Number(`0x${b}${b}`)];
   }
-  throw `Not a hex color`;
+  throw newError('Not a hex color');
 }
 
 /**
@@ -94,3 +95,13 @@ export const sanitizeHTML = (() => {
     return str.trim();
   }
 })();
+
+
+export const newError = (message?: string) => new Error(message);
+export const newAxiosError = <T = any, D = any>(
+  message?: string,
+  code?: string,
+  config?: InternalAxiosRequestConfig<D>,
+  request?: any,
+  response?: AxiosResponse<T, D>
+) => new AxiosError(message, code, config, request, response);
