@@ -4,7 +4,7 @@ import { DetailEntity } from '../core/book/book';
 import { useWindowStore } from './window';
 import { PagePath } from '../core/window';
 import { useBookshelfStore } from './bookshelf';
-import { BookSource } from '../core/plugins/define/booksource';
+import { BookSource } from '../core/plugins/defined/booksource';
 
 export interface DetailPageResult extends DetailEntity {
   pid: string,

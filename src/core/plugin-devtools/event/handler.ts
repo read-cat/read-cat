@@ -3,7 +3,7 @@ import { PluginDevtoolsEventCode } from '../../../../events/plugin-devtools';
 import { Chapter } from '../../book/book';
 import { isUndefined } from '../../is';
 import { Plugins } from '../../plugins';
-import { BookSource } from '../../plugins/define/booksource';
+import { BookSource } from '../../plugins/defined/booksource';
 import { errorHandler } from '../../utils';
 
 export const sendLog = (type: string, args: any[]) => {

@@ -2,7 +2,7 @@ import { Logger } from '../logger';
 import adapter from './adapter';
 import { createWriteStream, existsSync, WriteStream } from 'fs';
 import FormDataType from 'form-data';
-import { CustomAxiosRequestConfig, CustomAxiosStatic, CustomDownloadAxiosRequestConfig } from './define/axios';
+import { CustomAxiosRequestConfig, CustomAxiosStatic, CustomDownloadAxiosRequestConfig } from './defined/axios';
 
 const NodeFormData: typeof FormDataType = require('form-data');
 Object.defineProperty(NodeFormData.prototype, Symbol.toStringTag, {

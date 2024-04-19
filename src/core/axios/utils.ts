@@ -2,7 +2,7 @@ import { unzipSync, brotliDecompressSync } from 'zlib';
 import { getType, isArray, isObject, isString, isUndefined } from '../is';
 import { AxiosError, AxiosHeaders } from 'axios';
 import { ClientRequest } from 'http';
-import { CustomInternalAxiosRequestConfig } from './define/axios';
+import { CustomInternalAxiosRequestConfig } from './defined/axios';
 
 export enum ContentType {
   APPLICATION_FORM_URLENCODED = 'application/x-www-form-urlencoded',

@@ -1,5 +1,5 @@
-import { BookStore } from './define/bookstore';
-import { PluginInterface } from './define/plugins';
+import { BookStore } from './defined/bookstore';
+import { PluginInterface } from './defined/plugins';
 
 export const isBookStore = (plugin: PluginInterface) => {
   const p = plugin.prototype as BookStore;

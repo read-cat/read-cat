@@ -26,7 +26,7 @@ import {
 import { toJSON, toMultipartFormData, toURLEncoded } from './handler/params';
 import { createURL, getRequest } from './handler/url';
 import { createAgent } from './handler/agent';
-import { CustomAxiosResponse, CustomInternalAxiosRequestConfig } from './define/axios';
+import { CustomAxiosResponse, CustomInternalAxiosRequestConfig } from './defined/axios';
 
 
 const createTransformRequest = (config: InternalAxiosRequestConfig) => {

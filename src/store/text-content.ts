@@ -1,6 +1,6 @@
 import { defineStore, storeToRefs } from 'pinia';
 import { Chapter } from '../core/book/book';
-import { BookSource } from '../core/plugins/define/booksource';
+import { BookSource } from '../core/plugins/defined/booksource';
 import { chunkArray, errorHandler } from '../core/utils';
 import { isNull, isUndefined } from '../core/is';
 import { useSettingsStore } from './settings';

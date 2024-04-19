@@ -1,7 +1,7 @@
 import { isNull, isNumber, isString, isUndefined } from '../../../is';
 import { WebSocket } from 'ws';
-import { PluginConstructorParams } from '../../define/plugins';
-import { EndCallback, NextCallback, TTSOptions, Voice } from '../../define/ttsengine';
+import { PluginConstructorParams } from '../../defined/plugins';
+import { EndCallback, NextCallback, TTSOptions, Voice } from '../../defined/ttsengine';
 const WebSocketClient = require('ws').WebSocket;
 
 /**

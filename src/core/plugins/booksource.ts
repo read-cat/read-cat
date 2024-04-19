@@ -1,6 +1,6 @@
 import { isFunction, isUndefined } from '../is';
-import { BookSource } from './define/booksource';
-import { PluginInterface } from './define/plugins';
+import { BookSource } from './defined/booksource';
+import { PluginInterface } from './defined/plugins';
 
 export const isBookSource = (plugin: PluginInterface) => {
   const p = <BookSource>plugin.prototype;

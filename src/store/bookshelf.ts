@@ -4,7 +4,7 @@ import { useMessage } from '../hooks/message';
 import { chunkArray, errorHandler, replaceInvisibleStr } from '../core/utils';
 import { isNull, isUndefined } from '../core/is';
 import { useSettingsStore } from './settings';
-import { BookSource } from '../core/plugins/define/booksource';
+import { BookSource } from '../core/plugins/defined/booksource';
 
 export type Book = {
   id: string,

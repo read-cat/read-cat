@@ -21,14 +21,14 @@ import {
   PluginInterface,
   PluginRequestConfig,
   PluginsOptions
-} from './define/plugins';
-import { BookSource } from './define/booksource';
-import { BookStore } from './define/bookstore';
+} from './defined/plugins';
+import { BookSource } from './defined/booksource';
+import { BookStore } from './defined/bookstore';
 import { RequestProxy } from '../request/defined/request';
 import { isBookSource } from './booksource';
 import { isBookStore } from './bookstore';
 import { isTTSEngine } from './ttsengine';
-import { TextToSpeechEngine } from './define/ttsengine';
+import { TextToSpeechEngine } from './defined/ttsengine';
 import { EdgeTTSEngine } from './built-in/tts/edge';
 import { Chapter } from '../book/book';
 

@@ -1,6 +1,6 @@
 import { isFunction, isUndefined } from '../is';
-import { PluginInterface } from './define/plugins';
-import { TextToSpeechEngine } from './define/ttsengine';
+import { PluginInterface } from './defined/plugins';
+import { TextToSpeechEngine } from './defined/ttsengine';
 
 export const isTTSEngine = (plugin: PluginInterface) => {
   const p = <TextToSpeechEngine>plugin.prototype;
