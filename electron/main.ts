@@ -25,7 +25,6 @@ function createWindow() {
     minWidth: 950,
     minHeight: 650,
     frame: process.platform !== 'linux',
-    show: false,
     icon,
     titleBarStyle: 'hidden',
     titleBarOverlay: {
@@ -33,6 +32,7 @@ function createWindow() {
       symbolColor: '#FFFFFF',
       height: 35
     },
+    backgroundColor: '#2980B9',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
@@ -47,10 +47,7 @@ function createWindow() {
   }
   Menu.setApplicationMenu(null);
   win.on('ready-to-show', () => {
-    win?.show();
-    if (VITE_DEV_SERVER_URL) {
-      win?.webContents.openDevTools();
-    }
+    VITE_DEV_SERVER_URL && win?.webContents.openDevTools();
   });
   win.on('closed', () => {
     app.quit();
