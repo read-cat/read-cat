@@ -43,12 +43,16 @@ export const useSettingsStore = defineStore('Settings', {
         port: 5543
       },
       shortcutKey: {
-        nextChapter: 'ARROWRIGHT',
-        prevChapter: 'ARROWLEFT',
-        openDevTools: 'Ctrl + Shift + I'
+        nextChapter: '→',
+        prevChapter: '←',
+        openDevTools: 'Ctrl + Shift + I',
+        zoomInWindow: 'Ctrl + =',
+        zoomOutWindow: 'Ctrl + -',
+        zoomRestWindow: 'Ctrl + \\',
       },
       theme: 'os',
       updateSource: 'Github',
+      zoomFactor: 1,
     }
   },
   getters: {
@@ -135,11 +139,31 @@ export const useSettingsStore = defineStore('Settings', {
         return '';
       }
       if (keys.length === 1) {
-        return ['ARROWUP', 'ARROWRIGHT', 'ARROWDOWN', 'ARROWLEFT'].includes(uc) ?
-        uc :
-        '';
+        switch (uc) {
+          case 'ARROWUP':
+            return '↑';
+          case 'ARROWRIGHT':
+            return '→';
+          case 'ARROWDOWN':
+            return '↓';
+          case 'ARROWLEFT':
+            return '←';
+          default:
+            return '';
+        }
       }
       return keys.join(' + ');
+    },
+    hasShortcutKey(key: string) {
+      if (!key) {
+        return false;
+      }
+      for (const k in this.shortcutKey) {
+        if ((<Record<string, string>>this.shortcutKey)[k] === key) {
+          return true;
+        }
+      }
+      return false;
     },
     setTheme(theme: SettingsTheme) {
       const { isDark } = storeToRefs(useWindowStore());

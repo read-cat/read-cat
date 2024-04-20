@@ -39,6 +39,7 @@ export const useWindowStore = defineStore('Window', {
       disableShowSearchBox: new Map<PagePath, boolean>(),
       refreshEventMap: new Map<PagePath, () => void>(),
       inited: false,
+      isSetShortcutKey: false,
     }
   },
   getters: {

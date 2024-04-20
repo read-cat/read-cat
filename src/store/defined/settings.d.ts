@@ -47,11 +47,17 @@ export type SettingsPluginDevtools = {
 
 export type ShortcutKey = {
   /**下一章节 */
-  nextChapter: string,
+  nextChapter: string
   /**上一章节 */
-  prevChapter: string,
+  prevChapter: string
   /**打开控制台 */
   openDevTools: string
+  /**放大窗口 */
+  zoomInWindow: string
+  /**缩小窗口 */
+  zoomOutWindow: string
+  /**缩放重置 */
+  zoomRestWindow: string
 }
 
 export type SettingsTheme = 'os' | 'light' | 'dark';
@@ -70,12 +76,14 @@ export type Settings = {
   /**最大缓存章节数 */
   maxCacheChapterNumber: number
   /**开发者工具 */
-  pluginDevtools: SettingsPluginDevtools,
+  pluginDevtools: SettingsPluginDevtools
   /**快捷键 */
   shortcutKey: ShortcutKey
   /**主题 */
   theme: SettingsTheme
   /**更新源 */
   updateSource: UpdateSource
+  /**缩放系数 */
+  zoomFactor: number
 }
 

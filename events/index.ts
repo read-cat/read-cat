@@ -27,6 +27,8 @@ export class EventCode {
   static ASYNC_WINDOW_SET_FULLSCREEN: string
   /**打开控制台 */
   static ASYNC_OPEN_DEVTOOLS: string
+  /**缩放窗口 */
+  static ASYNC_ZOOM_WINDOW: string
 
   /**插件开发窗口被关闭 */
   static ASYNC_PLUGIN_WINDOW_CLOSED: string

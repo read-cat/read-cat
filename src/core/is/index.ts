@@ -55,6 +55,9 @@ export const isNodeFormData = (val: any): val is NodeFormData => {
 export const isFile = (val: any): val is File => {
   return toStringCall(val) === '[object File]';
 }
+export const isKeyboardEvent = (val: any): val is KeyboardEvent => {
+  return toStringCall(val) === '[object KeyboardEvent]';
+}
 export const getType = (val: any): string => {
   const str = toStringCall(val);
   return str.substring(1, str.length - 1).replace('object ', '');

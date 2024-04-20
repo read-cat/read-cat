@@ -12,6 +12,7 @@ import { useWindowStore } from './store/window';
 import { PagePath } from './core/window';
 import { useSettingsStore } from './store/settings';
 import { useShortcutKey } from './hooks/shortcut-key';
+import { storeToRefs } from 'pinia';
 
 useShortcutKey();
 const win = useWindowStore();
@@ -41,12 +42,14 @@ const setScrollTop = ({ target }: Event) => {
 }
 
 const { options } = useSettingsStore();
+const { zoomFactor } = storeToRefs(useSettingsStore());
 const { platform } = process;
 </script>
 
 <template>
   <ElContainer id="container" :style="{
-    '--rc-header-color': win.backgroundColor
+    '--rc-header-color': win.backgroundColor,
+    '--zoom-factor': zoomFactor
   }">
     <ElHeader id="header" :class="['app-drag', platform, win.isFullScreen ? 'fullscreen' : '']" :style="{
       '--rc-text-color': win.textColor
@@ -100,6 +103,7 @@ const { platform } = process;
 .router_animate-leave-active {
   animation: slideOutLeft 0.1s;
 }
+
 #header {
   position: sticky;
   top: 0;
@@ -107,7 +111,8 @@ const { platform } = process;
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;
-  height: 35px;
+  height: calc(35px * var(--zoom-factor));
+  min-height: calc(35px / var(--zoom-factor));
   background-color: var(--rc-header-color);
   box-shadow: var(--rc-header-box-shadow);
   z-index: 999;
@@ -122,8 +127,13 @@ const { platform } = process;
 
   $left-right-box-width: 310px;
 
+  .left-box,
+  .right-box {
+    width: calc($left-right-box-width * var(--zoom-factor));
+    min-width: calc($left-right-box-width / var(--zoom-factor));
+  }
+
   .left-box {
-    width: $left-right-box-width;
     justify-content: flex-start;
   }
 
@@ -132,7 +142,6 @@ const { platform } = process;
   }
 
   .right-box {
-    width: $left-right-box-width;
     justify-content: flex-end;
   }
 
@@ -165,19 +174,21 @@ const { platform } = process;
 
 #header:is(.win32):not(.fullscreen) {
   .right-box .window-controls-container {
-    width: 138px;
+    width: calc(135px / var(--zoom-factor, 1));
   }
 }
 
 #header:is(.darwin) {
   &:not(.fullscreen) {
     .left-box .window-controls-container {
-      width: 65px;
+      width: calc(65px / var(--zoom-factor, 1));
     }
   }
+
   .navigation {
     margin-left: 0;
   }
+
   #logo {
     display: none;
   }

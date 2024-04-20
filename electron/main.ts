@@ -36,7 +36,7 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
-      contextIsolation: false,
+      contextIsolation: false
     },
   });
 
@@ -106,6 +106,14 @@ function createWindow() {
     }
     win?.webContents.openDevTools();
   });
+  ipcMain.on(EventCode.ASYNC_ZOOM_WINDOW, (_, val) => {
+    if (win?.webContents.getZoomFactor() === val) {
+      return;
+    }
+    win?.webContents.setZoomFactor(val);
+  });
+
+
   ipcMain.on(PluginDevtoolsEventCode.ASYNC_CREATE_PLUGIN_DEVTOOLS_WINDOW, (_, url) => {
     pluginDevtoolsWin = createPluginDevtoolsWindow(url, icon);
     pluginDevtoolsWin.on('closed', () => {
