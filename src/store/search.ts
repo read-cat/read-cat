@@ -71,6 +71,7 @@ export const useSearchStore = defineStore('Search', {
           const p = [];
           for (const { props, instance } of bookSources) {
             const start = Date.now();
+            if (isNull(instance)) continue;
             p.push(instance.search(searchkey).then(vs => {
               const end = Date.now();
               this.searchResult.push(...vs.filter(v => {

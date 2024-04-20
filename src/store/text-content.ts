@@ -37,6 +37,9 @@ export const useTextContentStore = defineStore('TextContent', {
         if (isUndefined(booksource)) {
           throw newError(`无法获取插件, 插件ID:${pid}不存在`);
         }
+        if (isNull(booksource)) {
+          throw newError(`插件未启用, 插件ID:${pid}`);
+        }
         const dbTextContent = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
         this.currentChapter = chapter;
         if (dbTextContent && !refresh) {

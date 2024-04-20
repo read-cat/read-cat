@@ -6,6 +6,7 @@ import { PluginType } from '../core/plugins';
 import { useScrollTopStore } from './scrolltop';
 import { useTextContent } from '../views/read/hooks/text-content';
 import { useSettingsStore } from './settings';
+import { newError } from '../core/utils';
 
 
 export const useReadAloudStore = defineStore('ReadAloud', {
@@ -62,7 +63,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
         message.error('未能获取到TTS插件, 插件不存在或未启用');
         return;
       }
-      
+
       if (this.chapterUrl === currentChapter.value.url) {
         this.readAloudRef.play();
         this.addReadAloudClass();
@@ -75,7 +76,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
       this.currentPlayIndex = -1;
       this.audios = [];
       this.abortController = null;
-      const { instance } = plugins[0];
+      const { instance, props } = plugins[0];
       this.abortController = new AbortController();
       let first = true;
       const play = () => {
@@ -130,7 +131,9 @@ export const useReadAloudStore = defineStore('ReadAloud', {
       this.readAloudRef.onplay = () => {
         this.isPlay = true;
       }
-      
+      if (isNull(instance)) {
+        throw newError(`插件未启用, 插件ID:${props.ID}`);
+      }
       await instance.transform(textContent.value, {
         start,
         signal: this.abortController.signal,

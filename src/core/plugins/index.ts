@@ -147,7 +147,7 @@ export class Plugins {
       return errorHandler(e);
     }
   }
-  public getPluginInstanceById<R = BookSource | BookStore>(id: string): R | undefined {
+  public getPluginInstanceById<R = BookSource | BookStore>(id: string): R | null | undefined {
     const val = this.pluginsPool.get(id);
     return val && (<R>val.instance);
   }
@@ -161,7 +161,7 @@ export class Plugins {
 
   public getPluginById<R>(id: string): {
     props: PluginBaseProps,
-    instance: R
+    instance: R | null
   } | undefined {
     const plugin = this.pluginsPool.get(id);
     if (isUndefined(plugin)) {
@@ -172,19 +172,19 @@ export class Plugins {
   }
   public getPluginsByType(type: PluginType.BOOK_SOURCE, filter?: PluginFilter): {
     props: PluginBaseProps,
-    instance: BookSource
+    instance: BookSource | null
   }[];
   public getPluginsByType(type: PluginType.BOOK_STORE, filter?: PluginFilter): {
     props: PluginBaseProps,
-    instance: BookStore
+    instance: BookStore | null
   }[];
   public getPluginsByType(type: PluginType.TTS_ENGINE, filter?: PluginFilter): {
     props: PluginBaseProps,
-    instance: TextToSpeechEngine
+    instance: TextToSpeechEngine | null
   }[];
   public getPluginsByType(type: PluginType, filter?: PluginFilter): {
     props: PluginBaseProps,
-    instance: BookSource | BookStore
+    instance: BookSource | BookStore | null
   }[] {
     filter = {
       enable: true,
@@ -211,9 +211,9 @@ export class Plugins {
       });
   }
 
-  public getPluginInstanceByType(type: PluginType.BOOK_SOURCE, filter?: PluginFilter): BookSource[];
-  public getPluginInstanceByType(type: PluginType.BOOK_STORE, filter?: PluginFilter): BookSource[];
-  public getPluginInstanceByType(type: number, filter?: PluginFilter): (BookSource | BookStore)[] {
+  public getPluginInstanceByType(type: PluginType.BOOK_SOURCE, filter?: PluginFilter): (BookSource | null)[];
+  public getPluginInstanceByType(type: PluginType.BOOK_STORE, filter?: PluginFilter): (BookStore | null)[];
+  public getPluginInstanceByType(type: number, filter?: PluginFilter): (BookSource | BookStore | null)[] {
     return this.getPluginsByType(type, filter).map(p => {
       return p.instance;
     });

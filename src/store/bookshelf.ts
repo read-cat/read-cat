@@ -159,6 +159,9 @@ export const useBookshelfStore = defineStore('Bookshelf', {
           throw newError(`无法获取插件, 插件ID:${pid}`);
         }
         const { props, instance } = plugin;
+        if (isNull(instance)) {
+          throw newError(`插件未启用, 插件ID:${pid}`);
+        }
         if (isUndefined(props.BASE_URL) || props.BASE_URL.trim() !== this._books[index].baseUrl.trim()) {
           throw newError('插件请求目标链接[BASE_URL]不匹配');
         }
