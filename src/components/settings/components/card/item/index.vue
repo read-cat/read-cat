@@ -39,17 +39,6 @@ export default {
     </div>
   </div>
 </template>
-<style lang="scss">
-.settings-help {
-  .el-popover__title {
-    font-size: 15px;
-  }
-  .help-content {
-    font-size: 13px;
-  }
-  
-}
-</style>
 <style scoped lang="scss">
 .settings-card-item {
   display: flex;

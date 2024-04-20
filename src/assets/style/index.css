@@ -213,3 +213,12 @@ button {
 .el-select-dropdown__item.is-selected {
   --el-color-primary: var(--rc-theme-color);
 }
+
+.settings-help {
+  .el-popover__title {
+    font-size: 15px;
+  }
+  .help-content {
+    font-size: 13px;
+  }
+}

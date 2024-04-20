@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import IconHelp from '../../../../assets/svg/icon-help.svg';
 import {
-  ElDivider
+  ElDivider,
+  ElPopover,
+  ElIcon
 } from 'element-plus';
 defineProps<{
-  title?: string
+  title?: string,
+  help?: string
 }>();
 
 </script>
@@ -15,7 +19,20 @@ export default {
 
 <template>
   <div class="settings-card">
-    <header v-if="title" class="is-prop"> {{ title }}</header>
+    <header v-if="title" class="is-prop">
+      <span>{{ title }}</span>
+      <ElPopover v-once v-if="help" placement="bottom-start" popper-class="settings-help" trigger="hover" :width="350"
+        title="提示">
+        <template #reference>
+          <ElIcon>
+            <IconHelp />
+          </ElIcon>
+        </template>
+        <template #default>
+          <div v-html="help" class="help-content"></div>
+        </template>
+      </ElPopover>
+    </header>
     <header v-else class="is-slot">
       <slot name="header" />
     </header>
@@ -44,7 +61,15 @@ export default {
   }
 
   header {
+
     &.is-prop {
+      display: flex;
+      align-items: center;
+
+      span {
+        margin-right: 5px;
+      }
+
       font-weight: bold;
     }
 
