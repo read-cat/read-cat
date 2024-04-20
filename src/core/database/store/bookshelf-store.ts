@@ -6,7 +6,7 @@ import { useMessage } from '../../../hooks/message';
 
 export class BookshelfStoreDatabase extends BaseStoreDatabase<BookshelfStoreEntity> {
   constructor(db: IDBDatabase, storeName: string) {
-    super(db, storeName, BookshelfStoreDatabase.name);
+    super(db, storeName, 'BookshelfStoreDatabase');
   }
   public read() {
     const message = useMessage();

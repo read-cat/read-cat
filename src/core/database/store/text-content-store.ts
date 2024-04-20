@@ -6,7 +6,7 @@ import { BaseStoreDatabase } from './base-store';
 export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStoreEntity> {
 
   constructor(db: IDBDatabase, storeName: string) {
-    super(db, storeName, TextContentStoreDatabase.name);
+    super(db, storeName, 'TextContentStoreDatabase');
   }
   getByPidAndDetailUrl(pid: string, detailUrl: string): Promise<TextContentStoreEntity[] | null> {
     return new Promise<TextContentStoreEntity[] | null>((reso, reje) => {

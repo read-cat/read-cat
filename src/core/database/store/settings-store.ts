@@ -9,7 +9,7 @@ import { isNull, isUndefined } from '../../is';
 export class SettingsStoreDatabase extends BaseStoreDatabase<SettingsEntity> {
 
   constructor(db: IDBDatabase, storeName: string) {
-    super(db, storeName, SettingsStoreDatabase.name);
+    super(db, storeName, 'SettingsStoreDatabase');
     this.read().finally(() => {
       this.watch();
     });

@@ -5,7 +5,7 @@ import { BaseStoreDatabase } from './base-store';
 export class PluginsStoreDatabase extends BaseStoreDatabase<PluginsStoreEntity> {
 
   constructor(db: IDBDatabase, storeName: string) {
-    super(db, storeName, PluginsStoreDatabase.name);
+    super(db, storeName, 'PluginsStoreDatabase');
   }
 
   getByPidAndKey(pid: string, key: string): Promise<PluginsStoreEntity | null> {
