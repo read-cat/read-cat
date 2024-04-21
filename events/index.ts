@@ -29,6 +29,12 @@ export class EventCode {
   static ASYNC_OPEN_DEVTOOLS: string
   /**缩放窗口 */
   static ASYNC_ZOOM_WINDOW: string
+  /**注册全局快捷键 */
+  static ASYNC_REGISTER_SHORTCUT_KEY: string
+  /**卸载全局快捷键 */
+  static ASYNC_UNREGISTER_SHORTCUT_KEY: string
+  /**初始化全局快捷键 */
+  static ASYNC_INIT_GLOBAL_SHORTCUT_KEY: string
 
   /**插件开发窗口被关闭 */
   static ASYNC_PLUGIN_WINDOW_CLOSED: string

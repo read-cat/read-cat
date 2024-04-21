@@ -58,6 +58,10 @@ export type ShortcutKey = {
   zoomOutWindow: string
   /**缩放重置 */
   zoomRestWindow: string
+} & GlobalShortcutKey
+export type GlobalShortcutKey = {
+  /**老板键 */
+  globalBossKey: string
 }
 
 export type SettingsTheme = 'os' | 'light' | 'dark';

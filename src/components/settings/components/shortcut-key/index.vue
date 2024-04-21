@@ -6,16 +6,19 @@ import SettingsCard from '../card/index.vue';
 import SettingsCardItem from '../card/item/index.vue';
 import { useSettingsStore } from '../../../../store/settings';
 import { useListener } from './hooks/listener';
+import { storeToRefs } from 'pinia';
+import { useWindowStore } from '../../../../store/window';
 
 const { shortcutKey } = useSettingsStore();
-
+const { globalShortcutKeyRegisterError } = storeToRefs(useWindowStore());
 const {
   prevChapterListener,
   nextChapterListener,
   openDevToolsListener,
   zoomInWindowListener,
   zoomOutWindowListener,
-  zoomRestWindowListener
+  zoomRestWindowListener,
+  bossKeyListener
 } = useListener();
 </script>
 <script lang="ts">
@@ -46,6 +49,16 @@ export default {
         <ElInput v-model="shortcutKey.zoomRestWindow" readonly @keydown="zoomRestWindowListener" />
       </SettingsCardItem>
     </SettingsCard>
+    <SettingsCard title="全局">
+      <SettingsCardItem title="老板键" v-memo="[shortcutKey.globalBossKey, globalShortcutKeyRegisterError.get('globalBossKey')]">
+        <ElInput
+          :class="[globalShortcutKeyRegisterError.get('globalBossKey') ? 'register-error' : '']"
+          v-model="shortcutKey.globalBossKey"
+          readonly
+          @keydown="bossKeyListener"
+        />
+      </SettingsCardItem>
+    </SettingsCard>
   </div>
 </template>
 
@@ -54,6 +67,13 @@ export default {
 
   :deep(.el-input) {
     height: 25px;
+
+    &.register-error {
+      .el-input__inner {
+        color: var(--rc-error-color);
+        font-weight: bold;
+      }
+    }
 
     .el-input__wrapper {
       cursor: default;

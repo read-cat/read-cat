@@ -49,6 +49,7 @@ export const useSettingsStore = defineStore('Settings', {
         zoomInWindow: 'Ctrl + =',
         zoomOutWindow: 'Ctrl + -',
         zoomRestWindow: 'Ctrl + \\',
+        globalBossKey: 'Alt+Q',
       },
       theme: 'os',
       updateSource: 'Github',

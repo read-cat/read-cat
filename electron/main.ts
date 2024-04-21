@@ -3,6 +3,7 @@ import path from 'node:path';
 import { EventCode } from '../events';
 import { createPluginDevtoolsWindow } from './plugin-devtools';
 import { PluginDevtoolsEventCode } from '../events/plugin-devtools';
+import { useShortcutKey } from './shortcut-key';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public');
@@ -42,13 +43,14 @@ function createWindow() {
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
+    win?.webContents.openDevTools();
   } else {
     win.loadFile(path.join(process.env.DIST, 'index.html'));
   }
   Menu.setApplicationMenu(null);
-  win.on('ready-to-show', () => {
+  /* win.on('ready-to-show', () => {
     VITE_DEV_SERVER_URL && win?.webContents.openDevTools();
-  });
+  }); */
   win.on('closed', () => {
     app.quit();
     win = null;
@@ -111,6 +113,21 @@ function createWindow() {
       return;
     }
     win?.webContents.setZoomFactor(val);
+  });
+
+  const { register, unregister } = useShortcutKey(win);
+  ipcMain.on(EventCode.ASYNC_REGISTER_SHORTCUT_KEY, (e, key, skey) => {
+    e.sender.send(EventCode.ASYNC_REGISTER_SHORTCUT_KEY, key, skey, register(key, skey));
+  });
+  ipcMain.on(EventCode.ASYNC_UNREGISTER_SHORTCUT_KEY, (_, skey) => {
+    unregister(skey);
+  });
+  ipcMain.once(EventCode.ASYNC_INIT_GLOBAL_SHORTCUT_KEY, (e, arr: [string, string][]) => {
+    const res: [string, string, boolean][] = [];
+    for (const [key, skey] of arr) {
+      res.push([key, skey, register(key, skey)]);
+    }
+    e.sender.send(EventCode.ASYNC_INIT_GLOBAL_SHORTCUT_KEY, res);
   });
 
 
