@@ -31,6 +31,7 @@ import { isTTSEngine } from './ttsengine';
 import { TextToSpeechEngine } from './defined/ttsengine';
 import { EdgeTTSEngine } from './built-in/tts/edge';
 import { Chapter } from '../book/book';
+import type { VM } from 'vm2';
 
 const { WebSocket: WebSocketClient } = require('ws');
 const nanoid = () => _nanoid();
@@ -68,6 +69,8 @@ export class Plugins {
   public static readonly PLUGIN_STORE_MAX_BYTE_LENGTH = 4 * 1024 * 1024;
   private storeCreateFunction: CreatePluginStore;
   private consoleImplement: Console;
+  private VM: typeof VM = require('vm2').VM;
+  // private VMScript = require('vm2').VMScript;
 
   constructor(options?: PluginsOptions) {
     const defaultOptions = {
@@ -275,7 +278,7 @@ export class Plugins {
   private createPluginClassInstance(cls: PluginInterface) {
     const store = this.getPluginStore(cls.ID);
     const settings = useSettingsStore();
-    (<any>cls.prototype.constructor).__proto__ = null;
+    // (<any>cls.prototype.constructor).__proto__ = null;
     return new cls({
       request: {
         async get(url: string, config?: PluginRequestConfig) {
@@ -596,36 +599,14 @@ export class Plugins {
       },
       URLSearchParams,
       WebSocketClient,
-      Uint8Array
+      Uint8Array,
     };
-    const handler: ProxyHandler<any> = {
-      has() {
-        // 拦截所有属性
-        return true;
-      },
-      get(target, p, receiver) {
-        if (p === Symbol.unscopables) {
-          return;
-        }
-        if (p in target) {
-          const val = Reflect.get(target, p, receiver);
-          if (val !== window) {
-            if (typeof val === 'object') {
-              return new Proxy(val, handler);
-            }
-            return val;
-          }
-        }
-        throw newError(`Permission denied to access property or function [${String(p)}]`);
-      },
-      set(target, p, receiver) {
-        if (target === sandbox.plugin && p === 'exports') {
-          return Reflect.set(target, p, receiver);
-        }
-        throw newError(`Permission denied to set property or function [${String(p)}]`);
-      },
-    }
-    ;(new Function('sandbox', `with(sandbox){${script}}`))(new Proxy(sandbox, handler));
+    
+    new this.VM({
+      timeout: 1 * 1000,
+      allowAsync: true,
+      sandbox
+    }).run(script);
     return function () {
       return sandbox.plugin.exports;
     }
