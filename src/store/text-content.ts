@@ -81,7 +81,7 @@ export const useTextContentStore = defineStore('TextContent', {
       }
       const booksource = GLOBAL_PLUGINS.getPluginInstanceById<BookSource>(pid);
       if (!booksource) {
-        GLOBAL_LOG.warn(`Text Content cache plugin: undefined, pid:${pid}`, cacheList);
+        GLOBAL_LOG.warn(`Text Content cache plugin: undefined, pid:${pid}`);
         return;
       }
       const arrs = chunkArray(cacheList, threadsNumber.value);
@@ -108,12 +108,12 @@ export const useTextContentStore = defineStore('TextContent', {
                 });
                 return reso();
               } catch (e) {
-                GLOBAL_LOG.error(`Text Content cache pid:${pid}`, chapter, e);
+                GLOBAL_LOG.error(`Text Content cache pid:${pid}`, e);
                 return reje();
               }
             }));
           } catch (e) {
-            GLOBAL_LOG.error(`Text Content cache pid:${pid}`, chapter, e);
+            GLOBAL_LOG.error(`Text Content cache pid:${pid}`, e);
           }
         }
         await Promise.allSettled(ps);

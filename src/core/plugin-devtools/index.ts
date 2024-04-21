@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import { isNull, isUndefined } from '../is';
 import path from 'path';
 import { createServer, Server } from 'http';
-import { Express } from 'express';
+import _express, { Express } from 'express';
 import { createHash } from 'crypto';
 import { WebSocketServer, WebSocket } from 'ws';
 import { PluginDevtoolsEventCode } from '../../../events/plugin-devtools';
@@ -16,7 +16,7 @@ import { errorHandler, newError } from '../utils';
 import { Metadata } from './rpdt';
 
 const WEB_SOCKET_SERVER = require('ws').Server;
-const express = require('express');
+const express: typeof _express = require('express');
 
 class TempPluginStore implements BasePluginStoreInterface {
   private store: Map<string, any>;
@@ -102,7 +102,7 @@ export class PluginDevtools {
           }
           throw newError(`File "${file}" sha256 does not match`);
         }
-        this.app = <Express>express();
+        this.app = express();
         this.app.use(express.static(resourcePath));
         this.server = createServer(this.app);
         this.port = port;
