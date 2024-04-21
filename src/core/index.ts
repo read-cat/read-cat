@@ -11,7 +11,7 @@ import { useSettingsStore } from '../store/settings';
 import { createUpdater } from './updater';
 import { Updater } from './updater/updater';
 import Module from 'module';
-import { newError } from './utils';
+import { isPluginContext, newError } from './utils';
 
 export class Core {
   static logger: Logger;
@@ -26,11 +26,12 @@ export class Core {
   static async init(): Promise<Error[] | undefined> {
     const load = (<any>Module)._load;
     (<any>Module)._load = (requests: string, parent: any, isMain: boolean) => {
-      const { stack } = newError();
+      // const { stack } = newError();
       if (
-        !stack ||
+        /* !stack ||
         stack.includes('createPluginClassInstance') ||
-        stack.includes('runPluginScript')
+        stack.includes('runPluginScript') */
+        isPluginContext()
       ) {
         throw newError(`Illegal function call require('${requests}')`);
       }
@@ -67,9 +68,13 @@ export class Core {
 
   public static setValue(obj: any, key: string, value: any) {
     Object.defineProperty(obj, key, {
-      value,
+      get() {
+        if (isPluginContext()) {
+          throw newError(`Permission denied to access property or function [${String(key)}]`);
+        }
+        return value;
+      },
       configurable: false,
-      writable: false
     });
   }
 

@@ -105,3 +105,15 @@ export const newAxiosError = <T = any, D = any>(
   request?: any,
   response?: AxiosResponse<T, D>
 ) => new AxiosError(message, code, config, request, response);
+
+export const isPluginContext = () => {
+  const { stack } = new Error;
+  if (
+    !stack ||
+    stack.includes('createPluginClassInstance') ||
+    stack.includes('runPluginScript')
+  ) {
+    return true;
+  }
+  return false;
+}
