@@ -82,33 +82,16 @@ export class BookshelfStoreDatabase extends BaseStoreDatabase<BookshelfStoreEnti
     });
   }
   async put(val: BookshelfStoreEntity): Promise<void> {
-    const _val = super.toRaw(val);
+    const _val = super.revocationProxy(val);
     const raw = await this.getByPidAndDetailPageUrl(_val.pid, _val.detailPageUrl);
     await super.put({
       ..._val,
-      chapterList: val.chapterList.map((v, i) => {
+      chapterList: _val.chapterList.map((v, i) => {
         v.index = isUndefined(v.index) ? i : v.index;
         return v;
       }),
       id: isNull(raw) ? _val.id : raw.id
     });
-    /* return new Promise<void>(async (reso, reje) => {
-      try {
-        const _val = super.toRaw(val);
-        const raw = await this.getByPidAndDetailPageUrl(_val.pid, _val.detailPageUrl);
-        await super.put({
-          ..._val,
-          chapterList: val.chapterList.map((v, i) => {
-            v.index = isUndefined(v.index) ? i : v.index;
-            return v;
-          }),
-          id: isNull(raw) ? _val.id : raw.id
-        });
-        return reso();
-      } catch (e) {
-        return reje(e);
-      }
-    }); */
   }
   removeByPidAndDetailPageUrl(pid: string, detailPageUrl: string): Promise<void> {
     return new Promise<void>(async (reso, reje) => {
