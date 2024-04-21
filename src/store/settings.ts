@@ -45,10 +45,10 @@ export const useSettingsStore = defineStore('Settings', {
       shortcutKey: {
         nextChapter: '→',
         prevChapter: '←',
-        openDevTools: 'Ctrl + Shift + I',
-        zoomInWindow: 'Ctrl + =',
-        zoomOutWindow: 'Ctrl + -',
-        zoomRestWindow: 'Ctrl + \\',
+        openDevTools: 'Ctrl+Shift+I',
+        zoomInWindow: 'Ctrl+=',
+        zoomOutWindow: 'Ctrl+-',
+        zoomRestWindow: 'Ctrl+\\',
         globalBossKey: 'Alt+Q',
       },
       theme: 'os',
@@ -153,7 +153,7 @@ export const useSettingsStore = defineStore('Settings', {
             return '';
         }
       }
-      return keys.join(' + ');
+      return keys.join('+');
     },
     hasShortcutKey(key: string) {
       if (!key) {
