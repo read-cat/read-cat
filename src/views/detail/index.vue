@@ -334,6 +334,7 @@ const bookmarkWindow = ref<WindowEvent>();
             margin-right: 10px;
 
             .el-col {
+              display: flex;
               padding: 0 10px;
               height: 30px;
               font-size: 13px;
