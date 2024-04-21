@@ -28,15 +28,18 @@ export const useShortcutKey = () => {
       case shortcutKey.value.zoomInWindow:
         if (zoomFactor.value >= 2.9) break;
         zoomFactor.value = Number((zoomFactor.value + 0.1).toFixed(2));
+        document.body.style.setProperty('--zoom-factor', `${zoomFactor.value}`);
         GLOBAL_IPC.send(EventCode.ASYNC_ZOOM_WINDOW, zoomFactor.value);
         break;
       case shortcutKey.value.zoomOutWindow:
         if (zoomFactor.value <= 0.1) break;
         zoomFactor.value = Number((zoomFactor.value - 0.1).toFixed(2));
+        document.body.style.setProperty('--zoom-factor', `${zoomFactor.value}`);
         GLOBAL_IPC.send(EventCode.ASYNC_ZOOM_WINDOW, zoomFactor.value);
         break;
       case shortcutKey.value.zoomRestWindow:
         zoomFactor.value = 1;
+        document.body.style.setProperty('--zoom-factor', `${zoomFactor.value}`);
         GLOBAL_IPC.send(EventCode.ASYNC_ZOOM_WINDOW, zoomFactor.value);
         break;
       default:
@@ -45,7 +48,6 @@ export const useShortcutKey = () => {
   }, 200);
 
   const onKeydown = (e: KeyboardEvent) => {
-    e.preventDefault();
     if (isSetShortcutKey.value) {
       return;
     }

@@ -12,7 +12,6 @@ import { useWindowStore } from './store/window';
 import { PagePath } from './core/window';
 import { useSettingsStore } from './store/settings';
 import { useShortcutKey } from './hooks/shortcut-key';
-import { storeToRefs } from 'pinia';
 
 useShortcutKey();
 const win = useWindowStore();
@@ -42,14 +41,12 @@ const setScrollTop = ({ target }: Event) => {
 }
 
 const { options } = useSettingsStore();
-const { zoomFactor } = storeToRefs(useSettingsStore());
 const { platform } = process;
 </script>
 
 <template>
   <ElContainer id="container" :style="{
     '--rc-header-color': win.backgroundColor,
-    '--zoom-factor': zoomFactor
   }">
     <ElHeader id="header" :class="['app-drag', platform, win.isFullScreen ? 'fullscreen' : '']" :style="{
       '--rc-text-color': win.textColor
@@ -111,8 +108,8 @@ const { platform } = process;
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;
-  height: calc(35px * var(--zoom-factor));
-  min-height: calc(35px / var(--zoom-factor));
+  height: calc(35px * var(--zoom-factor, 1));
+  min-height: calc(35px / var(--zoom-factor, 1));
   background-color: var(--rc-header-color);
   box-shadow: var(--rc-header-box-shadow);
   z-index: 999;
@@ -129,8 +126,8 @@ const { platform } = process;
 
   .left-box,
   .right-box {
-    width: calc($left-right-box-width * var(--zoom-factor));
-    min-width: calc($left-right-box-width / var(--zoom-factor));
+    width: calc($left-right-box-width * var(--zoom-factor, 1));
+    min-width: calc($left-right-box-width / var(--zoom-factor, 1));
   }
 
   .left-box {

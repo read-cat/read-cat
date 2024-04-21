@@ -1,4 +1,18 @@
 import { BrowserWindow, globalShortcut } from 'electron';
+const debounce = (executor: (...args: any[]) => void, ms = 1000) => {
+  let timeout: NodeJS.Timeout | null = null;
+
+  return (...args: any[]) => {
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+    timeout = setTimeout(() => {
+      executor(...args);
+      timeout = null;
+    }, ms);
+  }
+}
 export const useShortcutKey = (win: BrowserWindow) => {
 
   /**
@@ -22,9 +36,10 @@ export const useShortcutKey = (win: BrowserWindow) => {
 
 
   const registerGlobalBossKey = (skey: string) => {
-    return globalShortcut.register(skey, () => {
+    const debo = debounce(() => {
       win.isVisible() ? win.hide() : win.show();
-    });
+    }, 200);
+    return globalShortcut.register(skey, debo);
   }
 
   return {
