@@ -27,6 +27,9 @@ const config = {
     'dist',
     'dist-electron',
     '!node_modules/**/*.map',
+    '!node_modules/**/*.md',
+    '!node_modules/**/*.ts',
+    '!node_modules/**/*.scss',
     '!dist/icons/icon.icns',
   ],
   win: {
@@ -39,7 +42,7 @@ const config = {
     oneClick: false,
     perMachine: false,
     allowToChangeInstallationDirectory: true,
-    deleteAppDataOnUninstall: true
+    deleteAppDataOnUninstall: false
   },
   mac: {
     icon: 'public/icons/icon.icns',

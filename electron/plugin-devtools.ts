@@ -44,8 +44,10 @@ export const createPluginDevtoolsWindow = (url: string, icon: string) => {
   });
   win.on('close', e => {
     e.preventDefault();
-    win?.focus();
     win?.webContents.send(PluginDevtoolsEventCode.ASYNC_CLOSE_PLUGIN_DEVTOOLS_WINDOW);
+    if (process.platform === 'linux') {
+      win?.focus();
+    }
   });
   win.on('closed', () => {
     win = null;
