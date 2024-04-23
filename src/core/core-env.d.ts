@@ -1,7 +1,6 @@
 declare const GLOBAL_LOG: import('./logger').Logger;
 declare const GLOBAL_IPC: import('./ipc-renderer').IpcRenderer;
 declare const GLOBAL_DB: import('./database').Database;
-declare const GLOBAL_FONT: import('./font').Font;
 declare const GLOBAL_PLUGINS: import('./plugins').Plugins;
 declare const GLOBAL_UPDATER: import('./updater/updater').Updater;
 
@@ -46,14 +45,26 @@ type SaveFilePickerOptions = {
 declare function showOpenFilePicker(options?: OpenFilePickerOptions): Promise<FileSystemFileHandle[]>;
 declare function showSaveFilePicker(options?: SaveFilePickerOptions): Promise<FileSystemFileHandle>;
 
+type QueryFontsOptions = {
+  postscriptNames?: string[]
+}
+type FontData = {
+  readonly family: string
+  readonly fullName: string
+  readonly postscriptName: string
+  readonly style: string
+  readonly blob: () => Promise<Blob>
+}
+declare function queryLocalFonts(options?: QueryFontsOptions): Promise<FontData[]>;
+
 interface Window {
   GLOBAL_LOG: import('./logger').Logger,
   GLOBAL_IPC: import('./ipc-renderer').IpcRenderer,
   GLOBAL_DB: import('./database').Database,
-  GLOBAL_FONT: import('./font').Font,
   GLOBAL_PLUGINS: import('./plugins').Plugins,
   showOpenFilePicker: typeof showOpenFilePicker,
   showSaveFilePicker: typeof showSaveFilePicker,
   METADATA: Metadata,
   GLOBAL_UPDATER: import('./updater/updater').Updater,
+  queryLocalFonts: typeof queryLocalFonts,
 }

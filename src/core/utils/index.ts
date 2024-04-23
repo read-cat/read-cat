@@ -1,5 +1,5 @@
 import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { isError, isString } from '../is';
+import { isError, isObject, isString } from '../is';
 import DOMPurify from 'dompurify';
 
 export function errorHandler(error: any, toString?: false): Promise<never>;
@@ -14,6 +14,13 @@ export function errorHandler(error: any, toString: any): Promise<never> | string
     err = newError(String(error));
   }
   return toString ? err.message : Promise.reject(err);
+}
+
+export const isHexColor = (color: string) => {
+  if (/^#[abcdef0-9]{3,6}$/i.test(color)) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -74,7 +81,7 @@ export const chunkArray = <T>(array: T[], size = 1) => {
 export const replaceInvisibleStr = <T extends Record<string, any>>(obj: T): T => {
   let val: any = {};
   Object.keys(obj).forEach((key: string) => {
-    val[key] = isString(obj[key]) ? obj[key].trim() : obj[key];
+    val[key] = isString(obj[key]) ? obj[key].trim() : isObject(obj[key]) ? replaceInvisibleStr(obj[key]) : obj[key];
   });
   return val;
 }
@@ -116,4 +123,8 @@ export const isPluginContext = () => {
     return true;
   }
   return false;
+}
+
+export const cloneByJSON = <T>(val: T): T => {
+  return JSON.parse(JSON.stringify(val));
 }

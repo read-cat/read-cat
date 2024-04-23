@@ -1,6 +1,7 @@
-import { ReadColor } from '../../core/window/read-style'
+import { ReadColor } from '../../core/window/default-read-style'
 import { RequestProxy } from '../../core/request/defined/request';
 import { UpdateSource } from '../../core/updater/updater';
+import { FontData } from '../../core/font';
 
 export type SettingsOptions = {
   /**开启模糊效果 */
@@ -27,10 +28,11 @@ export type SettingsReadStyle = {
   color: ReadColor
   /**字体大小 */
   fontSize: number
+  fontWeight: 'normal' | 'bold'
   /**文本间距 */
   letterSpacing: number
-  /**字体族 */
-  fontFamily: string
+  /**字体 */
+  font: FontData
   /**段落间距 */
   sectionSpacing: number
   /**行间距 */

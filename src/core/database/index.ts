@@ -1,6 +1,5 @@
 import { isNull } from '../is';
 import { SearchKeyStoreDatabase } from './store/searchkey-store';
-import { FontsStoreDatabase } from './store/font-store';
 import { HistoryStoreDatabase } from './store/history-store';
 import { PluginsStoreDatabase } from './store/plugin-store';
 import { PluginsJSCodeDatabase } from './store/plugins-jscode';
@@ -9,21 +8,22 @@ import { TextContentStoreDatabase } from './store/text-content-store';
 import { BookmarkStoreDatabase } from './store/bookmark-store';
 import { SettingsStoreDatabase } from './store/settings-store';
 import { newError } from '../utils';
+import { ReadColorStoreDatabase } from './store/read-color-store';
 
 export enum StoreName {
   PLUGINS = 'store_plugins_jscode',
   PLUGINS_STORE = 'store_plugins_store',
-  FONTS = 'store_fonts',
   HISTORY = 'store_history',
   SEARCH_KEY = 'store_searchkey',
   BOOKSHELF = 'store_bookshelf',
   TEXT_CONTENT = 'store_text_content',
   BOOKMARK = 'store_bookmark',
   SETTINGS = 'store_settings',
+  READ_COLOR = 'store_read_color',
 }
 
 export class Database {
-  public static readonly VERSION: number = 5;
+  public static readonly VERSION: number = 7;
   public static readonly NAME: string = 'ReadCatDatabase';
 
   private db: IDBDatabase | null = null;
@@ -31,13 +31,13 @@ export class Database {
   private _store: {
     pluginsJSCode: PluginsJSCodeDatabase,
     pluginsStore: PluginsStoreDatabase,
-    fontsStore: FontsStoreDatabase,
     historyStore: HistoryStoreDatabase,
     searchKeyStore: SearchKeyStoreDatabase,
     bookshelfStore: BookshelfStoreDatabase,
     textContentStore: TextContentStoreDatabase,
     bookmarkStore: BookmarkStoreDatabase,
     settingsStore: SettingsStoreDatabase,
+    readColorStore: ReadColorStoreDatabase,
   } | null = null;
   constructor() {
 
@@ -57,13 +57,13 @@ export class Database {
       this._store = {
         pluginsJSCode: new PluginsJSCodeDatabase(this.db, StoreName.PLUGINS),
         pluginsStore: new PluginsStoreDatabase(this.db, StoreName.PLUGINS_STORE),
-        fontsStore: new FontsStoreDatabase(this.db, StoreName.FONTS),
         historyStore: new HistoryStoreDatabase(this.db, StoreName.HISTORY),
         searchKeyStore: new SearchKeyStoreDatabase(this.db, StoreName.SEARCH_KEY),
         bookshelfStore: new BookshelfStoreDatabase(this.db, StoreName.BOOKSHELF),
         textContentStore: new TextContentStoreDatabase(this.db, StoreName.TEXT_CONTENT),
         bookmarkStore: new BookmarkStoreDatabase(this.db, StoreName.BOOKMARK),
         settingsStore: new SettingsStoreDatabase(this.db, StoreName.SETTINGS),
+        readColorStore: new ReadColorStoreDatabase(this.db, StoreName.READ_COLOR),
       };
     }
 
@@ -153,15 +153,6 @@ export class Database {
           unique: true
         }
       }]),
-      this.createStore(StoreName.FONTS, {
-        keyPath: 'id'
-      }, [{
-        name: 'index_id',
-        keyPath: 'id',
-        options: {
-          unique: true
-        }
-      }]),
       this.createStore(StoreName.SEARCH_KEY, {
         keyPath: 'id'
       }, [{
@@ -229,6 +220,15 @@ export class Database {
         }
       }]),
       this.createStore(StoreName.SETTINGS, {
+        keyPath: 'id'
+      }, [{
+        name: 'index_id',
+        keyPath: 'id',
+        options: {
+          unique: true
+        }
+      }]),
+      this.createStore(StoreName.READ_COLOR, {
         keyPath: 'id'
       }, [{
         name: 'index_id',

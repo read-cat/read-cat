@@ -18,7 +18,7 @@ import { useDetailStore } from '../../store/detail';
 import Menu from '../../components/menu/index.vue';
 import MenuItem from '../../components/menu/item/index.vue';
 import { useBookmarks } from './hooks/bookmarks';
-import { DefaultReadColor } from '../../core/window/read-style';
+import { DefaultReadColor } from '../../core/window/default-read-style';
 import { useTextContent } from './hooks/text-content';
 
 const route = useRoute();
@@ -43,6 +43,7 @@ const {
   width,
   fontFamily,
   fontSize,
+  fontWeight,
   letterSpacing,
   sectionSpacing,
   lineSpacing,
@@ -84,9 +85,12 @@ const { nextChapter, prevChapter } = useTextContent();
 
 <template>
   <div :class="['container', isRunningGetTextContent ? 'loading' : '']" v-loading="isRunningGetTextContent" :style="{
-    fontFamily: `'${fontFamily === '' ? Font.DEFAULT_FONT : fontFamily}'`
+    '--font-family': `'${fontFamily === '' ? Font.default : fontFamily}'`
   }">
     <div id="text-content" v-show="!isRunningGetTextContent" v-html="contents" :style="{
+      width,
+      fontSize,
+      fontWeight,
       '--rc-read-aloud-color': isDark ? '' : readAloudColor,
       '--rc-bookmark-odd-color': isDark ? '' : bookmarkColorOdd,
       '--rc-bookmark-even-color': isDark ? '' : bookmarkColorEven,
@@ -129,8 +133,9 @@ const { nextChapter, prevChapter } = useTextContent();
   }
 
   #text-content {
-    width: v-bind(width);
-    font-size: v-bind(fontSize);
+    * {
+      font-family: var(--font-family);
+    }
 
     &>:deep(div[data-index]) {
       margin-bottom: v-bind(sectionSpacing);
@@ -140,11 +145,13 @@ const { nextChapter, prevChapter } = useTextContent();
       user-select: text;
       cursor: default;
       transition: color 0.3s ease;
+
       .bookmark {
         border-bottom: 1.5px solid var(--rc-bookmark-odd-color);
         color: var(--rc-bookmark-odd-font-color);
         cursor: pointer;
         user-select: text;
+
         &.even {
           border-bottom: 1.5px solid var(--rc-bookmark-even-color);
           color: var(--rc-bookmark-even-font-color);
@@ -154,9 +161,11 @@ const { nextChapter, prevChapter } = useTextContent();
       &.current-read-aloud {
         color: var(--rc-read-aloud-color);
       }
+
       &:first-child {
         display: none;
       }
+
       &:last-child {
         margin-bottom: 0;
       }

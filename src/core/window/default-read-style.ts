@@ -7,6 +7,7 @@ export type BookmarkColor = {
 
 export type ReadColor = {
   id: string,
+  name: string,
   backgroundColor: string,
   textColor: string,
   bookmarkColor: BookmarkColor,
@@ -15,6 +16,7 @@ export type ReadColor = {
 export class DefaultReadColor {
   static readonly GREEN_QINGCAO: ReadColor = {
     id: 'VzeCYARdfw_V4STDOPqaN',
+    name: '青草绿',
     backgroundColor: '#E3EDCD',
     textColor: '#324F00',
     bookmarkColor: {
@@ -25,6 +27,7 @@ export class DefaultReadColor {
   }
   static readonly GREEN_HUYAN: ReadColor = {
     id: 'q5ASQqYHRHE8ZfmrqTd2t',
+    name: '护眼绿',
     backgroundColor: '#46784B',
     textColor: '#2D2D2D',
     bookmarkColor: {
@@ -35,6 +38,7 @@ export class DefaultReadColor {
   }
   static readonly YELLOW_XINGREN: ReadColor = {
     id: 'WwQheXytBQkPmVrPZyNMB',
+    name: '杏仁黄',
     backgroundColor: '#FAF9DE',
     textColor: '#2D2D2D',
     bookmarkColor: {
@@ -45,6 +49,7 @@ export class DefaultReadColor {
   }
   static readonly BROWN_QIUYE: ReadColor = {
     id: 'TPBuWNSxY_PjjzD4OvJtW',
+    name: '秋叶褐',
     backgroundColor: '#FFF2E2',
     textColor: '#2D2D2D',
     bookmarkColor: {
@@ -55,6 +60,7 @@ export class DefaultReadColor {
   }
   static readonly RED_YANZHI: ReadColor = {
     id: 'LddTKBJk0BpYZLeKZJqQQ',
+    name: '胭脂红',
     backgroundColor: '#FDE6E0',
     textColor: '#2D2D2D',
     bookmarkColor: {
@@ -65,6 +71,7 @@ export class DefaultReadColor {
   }
   static readonly BLUE_HAITIAN: ReadColor = {
     id: '97PsnTgv1awCwZZQbFilS',
+    name: '海天蓝',
     backgroundColor: '#DCE2F1',
     textColor: '#2D2D2D',
     bookmarkColor: {
@@ -75,13 +82,14 @@ export class DefaultReadColor {
   }
   static readonly PURPLE_GEJIN: ReadColor = {
     id: 'zaREtZXt1reKcxD6Wp3Ld',
+    name: '葛巾紫',
     backgroundColor: '#E9EBFE',
     textColor: '#2D2D2D',
     bookmarkColor: {
       odd: '#8784E3',
       even: 'currentColor'
     },
-    readAloudColor: '#DA70D6'
+    readAloudColor: '#DA70D6',
   }
 
   private static readonly MAP = new Map<string, ReadColor>();
@@ -89,6 +97,7 @@ export class DefaultReadColor {
     for (const key in DefaultReadColor) {
       const {
         id,
+        name,
         textColor,
         backgroundColor,
         bookmarkColor,
@@ -96,6 +105,7 @@ export class DefaultReadColor {
       } = (<any>DefaultReadColor)[key];
       if (
         isUndefined(id) ||
+        isUndefined(name) ||
         isUndefined(textColor) ||
         isUndefined(backgroundColor) ||
         isUndefined(bookmarkColor) ||
@@ -105,6 +115,7 @@ export class DefaultReadColor {
       }
       DefaultReadColor.MAP.set(id, {
         id,
+        name,
         textColor,
         backgroundColor,
         bookmarkColor: structuredClone(bookmarkColor),

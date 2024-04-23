@@ -1,10 +1,11 @@
 import { defineStore, storeToRefs } from 'pinia';
-import { DefaultReadColor, ReadColor } from '../core/window/read-style';
+import { DefaultReadColor, ReadColor } from '../core/window/default-read-style';
 import { Settings, SettingsTheme } from './defined/settings';
 import { nanoid } from 'nanoid';
 import { useWindowStore } from './window';
 import { useToggle } from '@vueuse/core';
-import { newError } from '../core/utils';
+import { cloneByJSON, newError } from '../core/utils';
+import { Font, FontData } from '../core/font';
 
 export const useSettingsStore = defineStore('Settings', {
   state: (): Settings => {
@@ -24,8 +25,9 @@ export const useSettingsStore = defineStore('Settings', {
       readStyle: {
         color: DefaultReadColor.GREEN_QINGCAO,
         fontSize: 17.5,
+        fontWeight: 'normal',
         letterSpacing: 1.5,
-        fontFamily: 'HarmonyOS Sans SC',
+        font: Font.default,
         sectionSpacing: 13,
         lineSpacing: 2,
         width: 0.8
@@ -81,13 +83,20 @@ export const useSettingsStore = defineStore('Settings', {
     fontSize(): string {
       return this.readStyle.fontSize + 'px';
     },
+    fontWeight(): string {
+      return this.readStyle.fontWeight;
+    },
     /**阅读样式 字体间距*/
     letterSpacing(): string {
       return this.readStyle.letterSpacing + 'px';
     },
     /**阅读样式 字体样式*/
     fontFamily(): string {
-      return this.readStyle.fontFamily;
+      return this.readStyle.font.family;
+    },
+    /**阅读样式 字体名称*/
+    fontName(): string {
+      return this.readStyle.font.fullName;
     },
     /**阅读样式 段落间距*/
     sectionSpacing(): string {
@@ -120,10 +129,23 @@ export const useSettingsStore = defineStore('Settings', {
       if (!color) {
         throw newError('Cannot set ReadColor, ID does not exist');
       }
-      this.setDefaultReadColor(color);
+      this.setReadColor(color);
     },
-    setDefaultReadColor(color: ReadColor) {
-      this.readStyle.color = color;
+    setReadColor(color: ReadColor) {
+      if (color.id === this.readStyle.color.id) {
+        return;
+      }
+      document.startViewTransition(() => {
+        this.readStyle.color = cloneByJSON(color);
+      }).ready.then(() => {
+        document.documentElement.animate(null, {
+          duration: 300,
+          easing: 'ease'
+        });
+      });
+    },
+    setFont(font: FontData) {
+      this.readStyle.font = cloneByJSON(font);
     },
     handlerKeyboard(altKey: boolean, ctrlKey: boolean, shiftKey: boolean, metaKey: boolean, key: string) {
       const uc = key.toUpperCase();
