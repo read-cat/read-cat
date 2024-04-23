@@ -79,8 +79,8 @@ export default {
       <ElTooltip v-memo="[win.isDark]" effect="light" :content="win.isDark ? '切换到浅色模式' : '切换到深色模式'" placement="bottom"
         :show-after="1000">
         <button class="rc-button" @click="dark">
-          <IconMoon style="color: #6F6CFF;" v-if="win.isDark" />
-          <IconSun style="color: #FF960F" v-else />
+          <IconMoon v-if="win.isDark" />
+          <IconSun v-else />
         </button>
       </ElTooltip>
       <ElTooltip v-memo="[win.currentPath]" effect="light" content="历史记录" placement="bottom" :show-after="1000">

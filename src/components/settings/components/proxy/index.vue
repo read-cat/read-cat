@@ -54,20 +54,21 @@ export default {
 
   :deep(.el-select__wrapper) {
     font-size: 14px;
-    height: 25px;
-    line-height: 25px;
+    height: 30px;
+    line-height: 30px;
   }
   :deep(.el-input) {
-    height: 25px;
+    height: 30px;
 
     .el-input__wrapper {
       cursor: default;
 
       .el-input__inner[type="text"] {
-        height: 15px !important;
+        height: 20px !important;
         text-align: right;
       }
       .el-input__inner[type="number"] {
+        height: 20px !important;
         font-size: 14px;
       }
     }

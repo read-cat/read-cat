@@ -73,7 +73,7 @@ export default {
           </template>
         </ElInput>
       </SettingsCardItem>
-      <SettingsCardItem v-memo="[pluginDevtools.port]" title="端口号">
+      <SettingsCardItem v-memo="[pluginDevtools.port]" title="端口号" class-name="settings-card-item-plugin-devtools-port">
         <ElInputNumber v-model="pluginDevtools.port"
           @change="cur => pluginDevtools.port = Math.floor(isUndefined(cur) ? 6028 : cur)" size="small"
           :value-on-clear="6028" :min="0" :max="65535" :step="1" />
@@ -98,8 +98,8 @@ export default {
           <ElTooltip v-once effect="light" placement="bottom-start" content="更新" :show-after="1000">
             <ElButton circle size="small" type="success" :icon="IconUpdate" @click="updateChecked" />
           </ElTooltip>
-          <ElInput v-memo="[searchkey]" class="settings-card-item-plugin-search-input" v-model="searchkey"
-            clearable placeholder="请输入搜索关键字" :prefix-icon="IconSearch" />
+          <ElInput v-memo="[searchkey]" class="settings-card-item-plugin-search-input" v-model="searchkey" clearable
+            placeholder="请输入搜索关键字" :prefix-icon="IconSearch" />
         </div>
       </template>
       <ElTable v-memo="[showValue]" :data="showValue" height="260" @selection-change="handleSelectionChange"
@@ -151,7 +151,8 @@ export default {
         </ElTableColumn>
         <ElTableColumn label="操作" fixed="right">
           <template #default="{ row }">
-            <ElButton v-if="row.ttsEngineRequire && Object.keys(row.ttsEngineRequire).length > 0" link size="small" type="info" @click="">设置</ElButton>
+            <ElButton v-if="row.ttsEngineRequire && Object.keys(row.ttsEngineRequire).length > 0" link size="small"
+              type="info" @click="">设置</ElButton>
             <template v-if="!row.builtIn">
               <ElButton link size="small" type="danger" @click="deletePlugin(row)">删除</ElButton>
               <ElButton link size="small" type="success" @click="updatePlugin(row)">更新</ElButton>
@@ -159,8 +160,8 @@ export default {
           </template>
         </ElTableColumn>
       </ElTable>
-      <ElPagination v-memo="[totalPage, currentPage]" layout="prev, pager, next" :page-count="totalPage" :current-page="currentPage"
-        @current-change="currentPageChange" hide-on-single-page />
+      <ElPagination v-memo="[totalPage, currentPage]" layout="prev, pager, next" :page-count="totalPage"
+        :current-page="currentPage" @current-change="currentPageChange" hide-on-single-page />
     </SettingsCard>
     <Window width="400" height="400" center destroy-on-close :z-index="1000" @event="e => importErrorWindow = e">
       <p v-once style="margin: 5px 0;font-size: 12px; text-align: center; color: var(--rc-error-color)">插件导入失败列表</p>
@@ -217,15 +218,15 @@ export default {
 
 .settings-card-item-plugin-devtools-resource-path {
   width: 300px;
-
+  
   .el-input {
-    height: 25px;
-
+    height: 30px;
+    font-size: 14px;
     .el-input__wrapper {
       cursor: default;
 
       .el-input__inner {
-        height: 15px !important;
+        height: 20px !important;
       }
 
       * {
@@ -234,6 +235,24 @@ export default {
     }
   }
 
+}
+
+.settings-card-item-plugin-devtools-port {
+  .el-input {
+    height: 30px;
+    font-size: 14px;
+    .el-input__wrapper {
+      cursor: default;
+
+      .el-input__inner {
+        height: 20px !important;
+      }
+
+      * {
+        cursor: default;
+      }
+    }
+  }
 }
 </style>
 <style scoped lang="scss">
@@ -252,14 +271,17 @@ export default {
     .el-table__cell {
       padding: 5px 0;
     }
+
     .el-table__header-wrapper {
       .el-table-column--selection .cell {
         padding-left: 10px;
       }
+
       .cell {
         padding: 0 10px;
       }
     }
+
     td.el-table__cell div {
       display: flex;
       align-items: center;

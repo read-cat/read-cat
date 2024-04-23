@@ -66,7 +66,7 @@ export default {
 .settings-shortcut-key {
 
   :deep(.el-input) {
-    height: 25px;
+    height: 30px;
 
     &.register-error {
       .el-input__inner {
@@ -79,7 +79,7 @@ export default {
       cursor: default;
 
       .el-input__inner {
-        height: 15px !important;
+        height: 20px !important;
         text-align: center;
       }
 

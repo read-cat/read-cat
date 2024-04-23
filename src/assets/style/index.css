@@ -59,11 +59,13 @@ body,
   padding: 0;
   user-select: none;
   -webkit-user-drag: none;
-  outline: none;
+  outline-color: var(--rc-theme-color);
   font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'PingFang SC', Arial, Helvetica;
 
   &::selection {
-    background-color: rgba(127, 127, 127, 0.2);
+    /* background-color: rgba(127, 127, 127, 0.2); */
+    background-color: rgba(30, 119, 235, 0.6);
+    color: #1C1C1C;
   }
 }
 
