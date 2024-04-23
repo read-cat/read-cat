@@ -2,7 +2,6 @@ import { Logger } from './logger';
 import { EventCode } from '../../events';
 import { Plugins } from './plugins';
 import { Database } from './database';
-import { Font } from './font';
 import { IpcRenderer } from './ipc-renderer';
 import path from 'path';
 import metadata from '../../metadata.json';
@@ -18,7 +17,6 @@ export class Core {
   static ipc: IpcRenderer;
   static plugins: Plugins;
   static database: Database;
-  static font: Font;
   static userDataPath: string;
   static isDev: boolean;
   static updater: Updater;
@@ -26,26 +24,20 @@ export class Core {
   static async init(): Promise<Error[] | undefined> {
     const load = (<any>Module)._load;
     (<any>Module)._load = (requests: string, parent: any, isMain: boolean) => {
-      // const { stack } = newError();
-      if (
-        /* !stack ||
-        stack.includes('createPluginClassInstance') ||
-        stack.includes('runPluginScript') */
-        isPluginContext()
-      ) {
+      if (isPluginContext()) {
         throw newError(`Illegal function call require('${requests}')`);
       }
       return load(requests, parent, isMain);
     }
     Core.setValue(window, 'process', {
       platform: process.platform,
-      cwd: process.cwd
+      cwd: process.cwd,
+      versions: process.versions
     });
     Core.setValue(window, 'module', {});
     const error: Error[] = [];
     Core.setValue(window, 'METADATA', metadata);
     Core.initUpdater();
-    // Core.initIpcRenderer();
     Core.initLogger();
     await Core.initDatabase().catch(e => {
       error.push(e);
@@ -55,10 +47,7 @@ export class Core {
       error.push(e);
       return Promise.resolve();
     });
-    await Core.initFont().catch(e => {
-      error.push(e);
-      return Promise.resolve();
-    });
+
     GLOBAL_DB.store.bookshelfStore.read();
     Core.setValue(window, 'Core', Core);
     if (error.length > 0) {
@@ -117,11 +106,5 @@ export class Core {
     await db.open();
     Core.setValue(Core, 'database', db);
     Core.setValue(window, 'GLOBAL_DB', Core.database);
-  }
-
-  public static async initFont() {
-    Core.setValue(Core, 'font', new Font());
-    Core.setValue(window, 'GLOBAL_FONT', Core.font);
-    await Core.font.importPool();
   }
 }

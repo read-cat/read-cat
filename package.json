@@ -41,7 +41,7 @@
     "urlencode": "^2.0.0",
     "uuid": "^9.0.1",
     "vm2": "^3.9.19",
-    "vue": "^3.4.23",
+    "vue": "^3.4.24",
     "vue-router": "^4.3.2",
     "ws": "^8.16.0"
   },
@@ -64,7 +64,7 @@
     "vite-plugin-electron": "^0.28.6",
     "vite-plugin-electron-renderer": "^0.14.5",
     "vite-svg-loader": "^5.1.0",
-    "vue-tsc": "^2.0.13"
+    "vue-tsc": "^2.0.14"
   },
   "main": "dist-electron/main.js"
 }
