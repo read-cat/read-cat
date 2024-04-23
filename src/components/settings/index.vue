@@ -19,7 +19,7 @@ import SettingsPlugin from './components/plugin/index.vue';
 import SettingsProxy from './components/proxy/index.vue';
 import SettingsReadStyle from './components/read-style/index.vue';
 import SettingsShortcutKey from './components/shortcut-key/index.vue';
-import SettingsAbout from './components/about/index.vue';
+import SettingsHelp from './components/help/index.vue';
 import { WindowEvent } from '../window/index.vue';
 import { useSettingsStore } from '../../store/settings';
 
@@ -92,7 +92,7 @@ export default {
         <SettingsProxy v-else-if="navItemSelected === SettingsLabel.PROXY" />
         <SettingsReadStyle v-else-if="navItemSelected === SettingsLabel.READ_STYLE" />
         <SettingsShortcutKey v-else-if="navItemSelected === SettingsLabel.SHORTCUT_KEY" />
-        <SettingsAbout v-else-if="navItemSelected === SettingsLabel.ABOUT" />
+        <SettingsHelp v-else-if="navItemSelected === SettingsLabel.ABOUT" />
       </main>
     </section>
   </div>

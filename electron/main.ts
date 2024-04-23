@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron';
 import path from 'node:path';
 import { EventCode } from '../events';
 import { createPluginDevtoolsWindow } from './plugin-devtools';
@@ -48,6 +48,12 @@ function createWindow() {
     win.loadFile(path.join(process.env.DIST, 'index.html'));
   }
   Menu.setApplicationMenu(null);
+  win.webContents.setWindowOpenHandler(details => {
+    shell.openExternal(details.url);
+    return {
+      action: 'deny'
+    }
+  });
   /* win.on('ready-to-show', () => {
     VITE_DEV_SERVER_URL && win?.webContents.openDevTools();
   }); */
