@@ -2,6 +2,7 @@
   --rc-theme-color: #1e78eb;
   --rc-text-color-light: #2D2D2D;
   --rc-text-color: var(--rc-text-color-light);
+  --rc-button-hover-bgcolor-light: rgba(0, 0, 0, 0.08);
 
   --rc-window-box-bgcolor-light: #FFFFFF;
   --rc-main-color: #F6F6F6;
@@ -27,7 +28,7 @@
   --rc-scrollbar-thumb-bgcolor: rgba(0, 0, 0, 0.15);
   --rc-scrollbar-thumb-hover-bgcolor: rgba(0, 0, 0, 0.2);
 
-  --rc-button-hover-bgcolor: rgba(0, 0, 0, 0.08);
+  --rc-button-hover-bgcolor: var(--rc-button-hover-bgcolor-light);
 
   --rc-latest-chapter-color: #54CB39;
 

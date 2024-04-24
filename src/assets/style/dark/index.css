@@ -2,6 +2,7 @@
   --rc-window-box-bgcolor-dark: #1A1C1D;
   --rc-header-color-dark: #1D1E1F;
   --rc-text-color-dark: #AAAAB5;
+  --rc-button-hover-bgcolor-dark: rgba(255, 255, 255, 0.17);
 }
 :root.dark {
   --rc-text-color: var(--rc-text-color-dark);
@@ -26,7 +27,7 @@
   --rc-scrollbar-thumb-bgcolor: rgba(255, 255, 255, 0.15);
   --rc-scrollbar-thumb-hover-bgcolor: rgba(255, 255, 255, 0.2);
 
-  --rc-button-hover-bgcolor: rgba(255, 255, 255, 0.17);
+  --rc-button-hover-bgcolor: var(--rc-button-hover-bgcolor-dark);
 
   --rc-loading-mask-bgcolor: rgba(26, 26, 26, 0.9);
 

@@ -11,7 +11,6 @@ import { useWindowStore } from '../../store/window';
 import SearchBox from './components/search-box/index.vue';
 import ChapterBox from './components/chapter-box/index.vue';
 import { reactive, ref } from 'vue';
-// import { useSetSearchStyle } from './hooks/set-header-color';
 import { useHeaderStyle } from '../../hooks/header-style';
 
 
@@ -20,7 +19,6 @@ const { currentPath, searchBoxHeaderText } = storeToRefs(win);
 
 const searchKey = ref('');
 const searchProgress = ref(0);
-// const { searchStyle } = useSetSearchStyle(searchKey, searchProgress);
 const { searchStyle } = useHeaderStyle(searchKey, searchProgress);
 
 const { isRunningSearch } = storeToRefs(useSearchStore());
@@ -37,7 +35,6 @@ const winSize = reactive<WindowSize>({
   width: '400px',
   height: '500px'
 });
-
 </script>
 <script lang="ts">
 export default {
@@ -61,7 +58,7 @@ export default {
         <span>{{ searchBoxHeaderText }}</span>
       </div>
     </div>
-    <Window :to-body="false" :top="5" :width="winSize.width" :height="winSize.height" background-color="var(--rc-search-box-bgcolor)"
+    <Window :to-body="false" destroy-on-close :top="5" :width="winSize.width" :height="winSize.height" background-color="var(--rc-search-box-bgcolor)"
       @event="e => winEvent = e">
       <SearchBox v-if="currentPath !== PagePath.READ" v-model:search-key="searchKey" v-model:search-progress="searchProgress" :window-event="winEvent" :window-size="winSize" />
       <ChapterBox :window-event="winEvent" v-else />
