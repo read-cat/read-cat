@@ -35,19 +35,6 @@ export default {
           <td>{{ commit }}</td>
         </tr>
         <tr>
-          <td>官网</td>
-          <td><a href="https://read-cat.github.io" target="_blank">https://read-cat.github.io</a></td>
-        </tr>
-        <tr>
-          <td></td>
-          <td><a href="https://panda13.gitee.io" target="_blank">https://panda13.gitee.io</a></td>
-        </tr>
-        <tr>
-          <td>Github</td>
-          <td><a href="https://github.com/read-cat/read-cat" target="_blank">https://github.com/read-cat/read-cat</a>
-          </td>
-        </tr>
-        <tr>
           <td>Chrome</td>
           <td>{{ chrome }}</td>
         </tr>
@@ -65,9 +52,6 @@ export default {
         </tr>
       </table>
     </main>
-    <footer>
-      <p>Released under the GPL-3.0 License. Copyright © 2024-present ReadCat</p>
-    </footer>
   </div>
 </template>
 
@@ -125,24 +109,8 @@ export default {
         td:nth-child(2) {
           text-indent: 1em;
           user-select: text;
-
-          a {
-            color: currentColor;
-            user-select: text;
-          }
         }
       }
-    }
-  }
-
-  footer {
-    position: absolute;
-    bottom: 10px;
-    font-size: 13px;
-    color: #73767A;
-
-    p {
-      user-select: text;
     }
   }
 }
