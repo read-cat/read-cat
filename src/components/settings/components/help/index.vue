@@ -88,14 +88,15 @@ export default {
       border-radius: 35px;
     }
 
-    h4 {
+    h3 {
       margin-top: 5px;
+      color: var(--rc-theme-color);
     }
 
     p.desc {
       margin-top: 5px;
       font-size: 13px;
-      color: var(--rc-theme-color);
+      color: #A1A1A1;
     }
   }
 
