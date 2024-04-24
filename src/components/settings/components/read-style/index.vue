@@ -125,17 +125,17 @@ export default {
           </div>
           <p>{{ item.name }}</p>
         </li>
-        <li class="hide"></li>
-        <li class="hide"></li>
-        <li class="hide"></li>
-        <li class="hide"></li>
-        <li class="hide"></li>
-        <li class="hide"></li>
-        <li class="hide"></li>
-        <li class="hide"></li>
-        <li class="hide"></li>
-        <li class="hide"></li>
-        <li class="hide"></li>
+        <li v-once class="hide"></li>
+        <li v-once class="hide"></li>
+        <li v-once class="hide"></li>
+        <li v-once class="hide"></li>
+        <li v-once class="hide"></li>
+        <li v-once class="hide"></li>
+        <li v-once class="hide"></li>
+        <li v-once class="hide"></li>
+        <li v-once class="hide"></li>
+        <li v-once class="hide"></li>
+        <li v-once class="hide"></li>
       </ul>
       <Window
         class-name="read-color-window"
@@ -256,6 +256,11 @@ export default {
         <ElInputNumber v-model="readStyle.sectionSpacing"
           @change="cur => readStyle.sectionSpacing = isUndefined(cur) ? 13 : cur" size="small" :value-on-clear="13"
           :min="1" :max="30" :step="0.5" />
+      </SettingsCardItem>
+      <SettingsCardItem title="宽度">
+        <ElInputNumber v-model="readStyle.width"
+          @change="cur => readStyle.width = isUndefined(cur) ? 0.8 : cur" size="small" :value-on-clear="1"
+          :min="0.1" :max="1" :step="0.1" />
       </SettingsCardItem>
     </SettingsCard>
   </div>
