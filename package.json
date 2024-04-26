@@ -27,7 +27,7 @@
     "axios": "^1.6.8",
     "cheerio": "1.0.0-rc.12",
     "dompurify": "^3.1.0",
-    "element-plus": "^2.7.1",
+    "element-plus": "^2.7.2",
     "express": "^4.19.2",
     "form-data": "^4.0.0",
     "https-proxy-agent": "^7.0.4",
@@ -41,7 +41,7 @@
     "urlencode": "^2.0.0",
     "uuid": "^9.0.1",
     "vm2": "^3.9.19",
-    "vue": "^3.4.24",
+    "vue": "^3.4.25",
     "vue-router": "^4.3.2",
     "ws": "^8.16.0"
   },
