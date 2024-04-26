@@ -71,6 +71,7 @@ export const useSearchStore = defineStore('Search', {
           const p = [];
           for (const { props, instance } of bookSources) {
             const start = Date.now();
+            if (isNull(instance)) continue;
             p.push(instance.search(searchkey).then(vs => {
               const end = Date.now();
               this.searchResult.push(...vs.filter(v => {
@@ -91,7 +92,7 @@ export const useSearchStore = defineStore('Search', {
                 time: end - start
               })));
             }).catch((e: any) => {
-              GLOBAL_LOG.error(`Search ${searchkey} ID:${props.ID}, NAME:${props.NAME} ${errorHandler(e, true)}`);
+              GLOBAL_LOG.error(`Search ${searchkey} ID:${props.ID}, NAME:${props.NAME}`, e);
             }).finally(() => {
               searchProgress = Number(((++finish) / plugins.length).toFixed(2));
               callback && callback(searchProgress);

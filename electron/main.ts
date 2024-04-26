@@ -1,8 +1,9 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron';
 import path from 'node:path';
 import { EventCode } from '../events';
 import { createPluginDevtoolsWindow } from './plugin-devtools';
 import { PluginDevtoolsEventCode } from '../events/plugin-devtools';
+import { useShortcutKey } from './shortcut-key';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public');
@@ -10,12 +11,13 @@ process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
 app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
-app.commandLine.appendSwitch('enable-experimental-web-platform-features');
+// app.commandLine.appendSwitch('enable-experimental-web-platform-features');
 
 let win: BrowserWindow | null;
 let pluginDevtoolsWin: BrowserWindow | null = null;
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
-const icon = path.join(process.env.VITE_PUBLIC, 'favicon.ico');
+const icon = path.join(process.env.VITE_PUBLIC, 'icons/icon.ico');
+
 function createWindow() {
   win = new BrowserWindow({
     title: 'ReadCat',
@@ -23,31 +25,42 @@ function createWindow() {
     height: 650,
     minWidth: 950,
     minHeight: 650,
-    frame: false,
-    show: false,
+    frame: process.platform !== 'linux',
     icon,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#00000000',
+      symbolColor: '#FFFFFF',
+      height: 35
+    },
+    backgroundColor: '#2980B9',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
-      contextIsolation: false,
+      contextIsolation: false
     },
   });
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
+    win?.webContents.openDevTools();
   } else {
     win.loadFile(path.join(process.env.DIST, 'index.html'));
   }
-
-  win.on('ready-to-show', () => {
-    win?.show();
-    if (VITE_DEV_SERVER_URL) {
-      // win?.webContents.openDevTools();
+  Menu.setApplicationMenu(null);
+  win.webContents.setWindowOpenHandler(details => {
+    shell.openExternal(details.url);
+    return {
+      action: 'deny'
     }
   });
+  /* win.on('ready-to-show', () => {
+    VITE_DEV_SERVER_URL && win?.webContents.openDevTools();
+  }); */
   win.on('closed', () => {
     app.quit();
     win = null;
+    process.exit(0);
   });
   win.on('enter-full-screen', () => {
     win?.webContents.send(EventCode.ASYNC_WINDOW_IS_FULLSCREEN, true);
@@ -61,17 +74,30 @@ function createWindow() {
   win.on('unmaximize', () => {
     win?.webContents.send(EventCode.ASYNC_WINDOW_IS_MAXIMIZE, false);
   });
-  ipcMain.on(EventCode.ASYNC_CLOSE_WINDOW, () => {
-    app.quit();
-    win = null;
-    process.exit(0);
+
+  (process.platform === 'win32') && ipcMain.on(EventCode.ASYNC_SET_TITLE_BAR_STYLE, (_, bgcolor, textcolor) => {
+    win?.setTitleBarOverlay({
+      color: `${bgcolor}00`.slice(0, 9),
+      symbolColor: textcolor
+    });
   });
+  if (process.platform === 'linux') {
+    win.on('close', e => {
+      e.preventDefault();
+      win?.webContents.send(EventCode.ASYNC_CLOSE_WINDOW);
+    });
+    ipcMain.on(EventCode.ASYNC_CLOSE_WINDOW, () => {
+      app.quit();
+      win = null;
+      process.exit(0);
+    });
+  }
   ipcMain.on(EventCode.ASYNC_SET_WINDOW_MINIMIZE, () => {
     win?.minimize();
   });
   ipcMain.on(EventCode.ASYNC_SET_WINDOW_MAXIMIZE_OR_RESTORE, () => {
     if (!win) return;
-    win.isMaximized() ? win.restore() : win.maximize();
+    win.isMaximized() ? win.unmaximize() : win.maximize();
   });
   ipcMain.on(EventCode.SYNC_IS_DEV, e => {
     e.returnValue = VITE_DEV_SERVER_URL ? true : false;
@@ -82,6 +108,35 @@ function createWindow() {
   ipcMain.on(EventCode.ASYNC_WINDOW_SET_FULLSCREEN, (_, is) => {
     win?.setFullScreen(is);
   });
+  ipcMain.on(EventCode.ASYNC_OPEN_DEVTOOLS, () => {
+    if (win?.webContents.isDevToolsOpened()) {
+      return;
+    }
+    win?.webContents.openDevTools();
+  });
+  ipcMain.on(EventCode.ASYNC_ZOOM_WINDOW, (_, val) => {
+    if (win?.webContents.getZoomFactor() === val) {
+      return;
+    }
+    win?.webContents.setZoomFactor(val);
+  });
+
+  const { register, unregister } = useShortcutKey(win);
+  ipcMain.on(EventCode.ASYNC_REGISTER_SHORTCUT_KEY, (e, key, skey) => {
+    e.sender.send(EventCode.ASYNC_REGISTER_SHORTCUT_KEY, key, skey, register(key, skey));
+  });
+  ipcMain.on(EventCode.ASYNC_UNREGISTER_SHORTCUT_KEY, (_, skey) => {
+    unregister(skey);
+  });
+  ipcMain.once(EventCode.ASYNC_INIT_GLOBAL_SHORTCUT_KEY, (e, arr: [string, string][]) => {
+    const res: [string, string, boolean][] = [];
+    for (const [key, skey] of arr) {
+      res.push([key, skey, register(key, skey)]);
+    }
+    e.sender.send(EventCode.ASYNC_INIT_GLOBAL_SHORTCUT_KEY, res);
+  });
+
+
   ipcMain.on(PluginDevtoolsEventCode.ASYNC_CREATE_PLUGIN_DEVTOOLS_WINDOW, (_, url) => {
     pluginDevtoolsWin = createPluginDevtoolsWindow(url, icon);
     pluginDevtoolsWin.on('closed', () => {

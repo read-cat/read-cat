@@ -9,11 +9,10 @@ import 'animate.css/animate.min.css';
 import 'element-plus/theme-chalk/dark/css-vars.css';
 import './assets/style/index.css';
 import './assets/style/dark/index.css';
-import './assets/style/font/harmony-os-sans.css';
+import './assets/style/font/HarmonyOS_Sans_SC/index.css';
 import { isUndefined } from './core/is';
 import { useMessage } from './hooks/message';
 import { ElLoading } from 'element-plus';
-import metadata from '../metadata.json';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -33,11 +32,25 @@ const startListener = () => {
   });
 }
 
+const initHeaderColor = () => {
+  const win = useWindowStore();
+  win.inited = true;
+  let headerColor = win.isDark ? '#1D1E1F' : '#F2F6FC';
+  let headerTextColor = win.isDark ? '#AAAAB5' : '#2D2D2D';
+  const root = document.querySelector<HTMLElement>(':root');
+  if (root) {
+    headerColor = getComputedStyle(root).getPropertyValue(`--rc-header-color-${win.isDark ? 'dark' : 'light'}`);
+    headerTextColor = getComputedStyle(root).getPropertyValue(`--rc-text-color-${win.isDark ? 'dark' : 'light'}`);
+  }
+  GLOBAL_IPC.send(EventCode.ASYNC_SET_TITLE_BAR_STYLE, headerColor, headerTextColor);
+}
+
+Core.initIpcRenderer();
 app.mount('#app').$nextTick().then(() => {
   Core.init().catch(es => Promise.resolve(es)).then(es => {
     startListener();
-    GLOBAL_LOG.info(metadata);
     postMessage({ payload: 'removeLoading' }, '*');
+    (process.platform === 'win32') && initHeaderColor();
     if (!isUndefined(es)) {
       const message = useMessage();
       for (const e of es) {

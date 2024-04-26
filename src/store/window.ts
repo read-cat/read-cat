@@ -2,6 +2,7 @@ import { defineStore, storeToRefs } from 'pinia';
 import { useDark } from '@vueuse/core';
 import { PagePath } from '../core/window';
 import { useSettingsStore } from './settings';
+import { GlobalShortcutKey } from './defined/settings';
 
 export const useWindowStore = defineStore('Window', {
   state: () => {
@@ -38,6 +39,9 @@ export const useWindowStore = defineStore('Window', {
       searchBoxHeaderText: '搜索',
       disableShowSearchBox: new Map<PagePath, boolean>(),
       refreshEventMap: new Map<PagePath, () => void>(),
+      inited: false,
+      isSetShortcutKey: false,
+      globalShortcutKeyRegisterError: new Map<keyof GlobalShortcutKey, string>(),
     }
   },
   getters: {

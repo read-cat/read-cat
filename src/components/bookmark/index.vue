@@ -33,7 +33,7 @@ export default {
 <style scoped lang="scss">
 .container {
   :deep(.el-tree) {
-    --el-tree-node-hover-bg-color: var(--rc-button-hover-bgcolor);
+    --el-tree-node-hover-bg-color: var(--rc-button-hover-background-color);
     --el-fill-color-blank: none;
 
     &>.el-tree-node {

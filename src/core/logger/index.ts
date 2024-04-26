@@ -181,7 +181,7 @@ export class Logger {
    * @param quot arg为String时是否添加引号
    * @returns 
    */
-  public static toString(arg: any, space = 2, quot = false): string {
+  public static toString(arg: any, space = 2, quot = false, cache: any[] = []): string {
     if (isString(arg)) {
       arg = arg.trim();
     }
@@ -207,21 +207,25 @@ export class Logger {
       return (arg.name === '' || arg.name === 'anonymous') ? `[${funcType}(anonymous) (${argsStr})]` : `[${funcType}: ${arg.name}(${argsStr})]`;
     }
     if (isError(arg)) {
-      return arg.stack ? arg.stack : arg.message;
+      return arg.stack || arg.message;
     }
     if (isArray(arg)) {
       let str = '';
       Object.keys(arg).forEach((k: any, _) => {
         if (!isNaN(Number(k))) {
-          str += `${Logger.toString(arg[k], space, true)}, `;
+          str += `${Logger.toString(arg[k], space, true, cache)}, `;
         } else {
-          str += `${k}: ${Logger.toString(arg[k], space, true)}, `;
+          str += `${k}: ${Logger.toString(arg[k], space, true, cache)}, `;
         }
       });
       str = str.substring(0, arg.length > 0 ? str.length - 2 : 0);
       return str.length <= 0 ? '[]' : `[${str.startsWith('{') ? '' : ' '}${str}${str.endsWith('}') ? '' : ' '}]`;
     }
     if (isObject(arg)) {
+      if (cache.includes(arg)) {
+        return '-- ignore --';
+      }
+      cache.push(arg);
       const keys = Object.keys(arg);
       if (keys.length <= 0) {
         return '{}';
@@ -229,7 +233,7 @@ export class Logger {
       let str = '{\n';
       const a = arg as any;
       keys.forEach((k, i) => {
-        str += `${Logger.space(space)}${k}: ${Logger.toString(a[k], space + 2, true)}${i === keys.length - 1 ? '' : ','}\n`;
+        str += `${Logger.space(space)}${k}: ${Logger.toString(a[k], space + 2, true, cache)}${i === keys.length - 1 ? '' : ','}\n`;
       });
       return str + Logger.space(space - 2) + (str.endsWith('\n') ? '' : '\n') + '}';
     }

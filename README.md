@@ -1,18 +1,18 @@
 <p align="center">
   <a href="https://github.com/read-cat/read-cat/">
-    <img src="src/assets/logo.png" alt="Logo" width="80" height="80">
+    <img src="public/icons/512x512.png" alt="Logo" width="80" height="80">
   </a>
   <h3 align="center">ReadCat</h3>
   <p align="center">
     一款免费、开源、简洁、纯净、无广告的小说阅读器
   </p>
   <div align="center">
-    <a href="https://github.com/read-cat/read-cat/releases">
+    <!-- <a href="https://github.com/read-cat/read-cat/releases">
       <img src="https://img.shields.io/github/release/read-cat/read-cat" alt="releases" />
     </a>
     <a href="https://github.com/read-cat/read-cat/releases">
       <img src="https://img.shields.io/github/downloads/read-cat/read-cat/total" alt="downloads" />
-    </a>
+    </a> -->
     <a href="https://github.com/read-cat/read-cat/discussions">
       <img src="https://img.shields.io/github/discussions/read-cat/read-cat" alt="discussions" />
     </a>
@@ -27,8 +27,8 @@
 
 # 内测
 <p>由于诸多功能尚未实现，将暂时不在Github上发布Release版本</p>
-<p>若您想提前体验ReadCat，请加入内测交流群，您有任何问题、建议等等，可在该群交流</p>
-<p>欢迎您加入内测交流群</p>
+<p>若想提前体验ReadCat，请<a href="https://read-cat.github.io/insiders">下载内测版本</a></p>
+<p>欢迎您加入内测交流群，您有任何问题、建议等等，可在该群交流</p>
 <p>QQ群号：<strong>903473975</strong></p>
 
 ## 上手指南
@@ -37,6 +37,7 @@ ReadCat不携带插件，若您首次使用ReadCat且未导入书源插件，将
 
 ## 功能
 - 插件
+    - [x] 朗读
     - [x] 书源
     - [ ] 书城
 - [搜索](#搜索)

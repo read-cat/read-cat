@@ -14,6 +14,7 @@ export const useChapterPagination = (result: Ref<DetailPageResult | null>, pageS
     let page = currentPage.value - 1;
     page = page < 0 ? 0 : page;
     page = page >= totalPage.value ? totalPage.value - 1 : page;
+    currentPage.value = page + 1;
     return page;
   }
   const currentPageChange = (page: number) => {
@@ -34,6 +35,7 @@ export const useChapterPagination = (result: Ref<DetailPageResult | null>, pageS
       return;
     }
     currentPage.value = Math.ceil((currentReadIndex.value + 1) / pageSize);
+    
     if (currentReadIndex.value >= 0) {
       nextTick(() => {
         const list = document.querySelector<HTMLDivElement>('#detail-result-box .chapter .list');

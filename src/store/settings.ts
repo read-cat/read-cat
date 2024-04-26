@@ -1,9 +1,11 @@
 import { defineStore, storeToRefs } from 'pinia';
-import { DefaultReadColor, ReadColor } from '../core/window/read-style';
+import { DefaultReadColor, ReadColor } from '../core/window/default-read-style';
 import { Settings, SettingsTheme } from './defined/settings';
 import { nanoid } from 'nanoid';
 import { useWindowStore } from './window';
 import { useToggle } from '@vueuse/core';
+import { cloneByJSON, newError } from '../core/utils';
+import { Font, FontData } from '../core/font';
 
 export const useSettingsStore = defineStore('Settings', {
   state: (): Settings => {
@@ -12,18 +14,20 @@ export const useSettingsStore = defineStore('Settings', {
       options: {
         enableBlur: true,
         enableAutoTextColor: false,
-        enableProxy: true,
+        enableProxy: false,
         enableReadBacktop: true,
         enableShowTipCloseButton: false,
         enableBookmarkHighlight: true,
         enableAppStartedFindNewVersion: true,
         enableTransition: true,
+        enableAutoReadAloudNextChapter: false,
       },
       readStyle: {
         color: DefaultReadColor.GREEN_QINGCAO,
         fontSize: 17.5,
+        fontWeight: 'normal',
         letterSpacing: 1.5,
-        fontFamily: 'HarmonyOS Sans',
+        font: Font.default,
         sectionSpacing: 13,
         lineSpacing: 2,
         width: 0.8
@@ -31,7 +35,9 @@ export const useSettingsStore = defineStore('Settings', {
       proxy: {
         host: '127.0.0.1',
         port: 7890,
-        protocol: 'http'
+        protocol: 'http',
+        username: '',
+        password: ''
       },
       threadsNumber: 8,
       maxCacheChapterNumber: 10,
@@ -39,11 +45,18 @@ export const useSettingsStore = defineStore('Settings', {
         port: 5543
       },
       shortcutKey: {
-        nextChapter: 'ARROWRIGHT',
-        prevChapter: 'ARROWLEFT',
+        nextChapter: '→',
+        prevChapter: '←',
+        openDevTools: 'Ctrl+Shift+I',
+        zoomInWindow: 'Ctrl+=',
+        zoomOutWindow: 'Ctrl+-',
+        zoomRestWindow: 'Ctrl+\\',
+        fullScreen: 'F11',
+        globalBossKey: 'Alt+Q',
       },
       theme: 'os',
-
+      updateSource: 'Github',
+      zoomFactor: 1,
     }
   },
   getters: {
@@ -63,9 +76,16 @@ export const useSettingsStore = defineStore('Settings', {
     bookmarkColorOdd(): string {
       return this.readStyle.color.bookmarkColor.odd;
     },
+    /**阅读样式 正在朗读段落文本色 */
+    readAloudColor(): string {
+      return this.readStyle.color.readAloudColor;
+    },
     /**阅读样式 字体大小*/
     fontSize(): string {
       return this.readStyle.fontSize + 'px';
+    },
+    fontWeight(): string {
+      return this.readStyle.fontWeight;
     },
     /**阅读样式 字体间距*/
     letterSpacing(): string {
@@ -73,7 +93,11 @@ export const useSettingsStore = defineStore('Settings', {
     },
     /**阅读样式 字体样式*/
     fontFamily(): string {
-      return this.readStyle.fontFamily;
+      return this.readStyle.font.family;
+    },
+    /**阅读样式 字体名称*/
+    fontName(): string {
+      return this.readStyle.font.fullName;
     },
     /**阅读样式 段落间距*/
     sectionSpacing(): string {
@@ -91,32 +115,46 @@ export const useSettingsStore = defineStore('Settings', {
   actions: {
     setBackgroundColor(color: string) {
       if (!/#[a-fA-F0-9]{6}/.test(color)) {
-        throw `Not a hex color`;
+        throw newError('Not a hex color');
       }
       this.readStyle.color.backgroundColor = color;
     },
     setTextColor(color: string) {
       if (!/#[a-fA-F0-9]{6}/.test(color)) {
-        throw `Not a hex color`;
+        throw newError('Not a hex color');
       }
       this.readStyle.color.textColor = color;
     },
     setDefaultReadColorById(id: string) {
       const color = DefaultReadColor.get(id);
       if (!color) {
-        throw `Cannot set ReadColor, ID does not exist`
+        throw newError('Cannot set ReadColor, ID does not exist');
       }
-      this.setDefaultReadColor(color);
+      this.setReadColor(color);
     },
-    setDefaultReadColor(color: ReadColor) {
-      this.readStyle.color = color;
+    setReadColor(color: ReadColor) {
+      if (color.id === this.readStyle.color.id) {
+        return;
+      }
+      document.startViewTransition(() => {
+        this.readStyle.color = cloneByJSON(color);
+      }).ready.then(() => {
+        document.documentElement.animate(null, {
+          duration: 300,
+          easing: 'ease'
+        });
+      });
     },
-    handlerKeyboard(altKey: boolean, ctrlKey: boolean, shiftKey: boolean, key: string) {
+    setFont(font: FontData) {
+      this.readStyle.font = cloneByJSON(font);
+    },
+    handlerKeyboard(altKey: boolean, ctrlKey: boolean, shiftKey: boolean, metaKey: boolean, key: string) {
       const uc = key.toUpperCase();
-      if (['CONTROL', 'ALT', 'SHIFT'].includes(uc)) {
+      if (['CONTROL', 'ALT', 'SHIFT', 'META'].includes(uc)) {
         return '';
       }
       const keys = [];
+      metaKey && keys.push('Meta');
       ctrlKey && keys.push('Ctrl');
       shiftKey && keys.push('Shift');
       altKey && keys.push('Alt');
@@ -125,11 +163,34 @@ export const useSettingsStore = defineStore('Settings', {
         return '';
       }
       if (keys.length === 1) {
-        return ['ARROWUP', 'ARROWRIGHT', 'ARROWDOWN', 'ARROWLEFT'].includes(uc) ?
-        uc :
-        '';
+        if (/F\d{1,2}/.test(uc)) {
+          return uc;
+        }
+        switch (uc) {
+          case 'ARROWUP':
+            return '↑';
+          case 'ARROWRIGHT':
+            return '→';
+          case 'ARROWDOWN':
+            return '↓';
+          case 'ARROWLEFT':
+            return '←';
+          default:
+            return '';
+        }
       }
       return keys.join('+');
+    },
+    hasShortcutKey(key: string) {
+      if (!key) {
+        return false;
+      }
+      for (const k in this.shortcutKey) {
+        if ((<Record<string, string>>this.shortcutKey)[k] === key) {
+          return true;
+        }
+      }
+      return false;
     },
     setTheme(theme: SettingsTheme) {
       const { isDark } = storeToRefs(useWindowStore());

@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia';
-import { BookSource } from '../core/plugins/plugins';
 import { isNull, isNumber, isUndefined } from '../core/is';
 import { DetailEntity } from '../core/book/book';
 import { useWindowStore } from './window';
 import { PagePath } from '../core/window';
 import { useBookshelfStore } from './bookshelf';
+import { BookSource } from '../core/plugins/defined/booksource';
+import { newError } from '../core/utils';
 
 export interface DetailPageResult extends DetailEntity {
   pid: string,
@@ -54,6 +55,13 @@ export const useDetailStore = defineStore('Detail', {
         const plugin = GLOBAL_PLUGINS.getPluginById<BookSource>(pid);
         if (isUndefined(plugin)) {
           this.error = `无法获取插件, 插件ID:${pid}不存在`;
+          return;
+        }
+        if (isNull(plugin.instance)) {
+          throw newError(`插件未启用, 插件ID:${pid}`);
+        }
+        if (isUndefined(plugin.props.BASE_URL)) {
+          this.error = `无法获取插件请求链接`;
           return;
         }
         const book = await GLOBAL_DB.store.bookshelfStore.getByPidAndDetailPageUrl(pid, url);

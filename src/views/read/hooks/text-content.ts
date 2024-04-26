@@ -5,6 +5,7 @@ import { isNull } from '../../../core/is';
 import { useMessage } from '../../../hooks/message';
 import { useBookshelfStore } from '../../../store/bookshelf';
 import { useWindowStore } from '../../../store/window';
+import { errorHandler, newError } from '../../../core/utils';
 
 export const useTextContent = () => {
   const { detailResult, currentDetailUrl, currentPid } = storeToRefs(useDetailStore());
@@ -14,40 +15,38 @@ export const useTextContent = () => {
   const message = useMessage();
   const { exist, getBookshelfEntity, put } = useBookshelfStore();
   const { calcReadProgress } = useWindowStore();
-  const handler = (type: 'next' | 'prev') => {
-    if (isRunningGetTextContent.value) {
-      return;
-    }
-    if (isNull(detailResult.value) || detailResult.value.chapterList.length <= 0) {
-      message.error('无法获取章节列表');
-      return;
-    }
-    if (isNull(currentChapter.value)) {
-      message.error('无法获取当前章节信息');
-      return;
-    }
-    if (isNull(currentPid.value)) {
-      message.error('无法获取插件ID');
-      return;
-    }
-    let index;
-    if (type === 'next') {
-      index = currentChapter.value.index + 1;
-      if (index >= detailResult.value.chapterList.length) {
-        message.warning('当前已是最后一章');
-        return;
+  const handler = async (type: 'next' | 'prev') => {
+    try {
+      if (isRunningGetTextContent.value) {
+        throw newError('正在获取章节正文');
       }
-    } else if (type === 'prev') {
-      index = currentChapter.value.index - 1;
-      if (index < 0) {
-        message.warning('当前已是第一章');
-        return;
+      if (isNull(detailResult.value) || detailResult.value.chapterList.length <= 0) {
+        throw newError('无法获取章节列表');
       }
-    } else {
-      return;
-    }
-    const chapter = detailResult.value.chapterList[index];
-    getTextContent(currentPid.value, chapter).then(() => {
+      if (isNull(currentChapter.value)) {
+        throw newError('无法获取当前章节信息');
+      }
+      if (isNull(currentPid.value)) {
+        throw newError('无法获取插件ID');
+      }
+      let index;
+      if (type === 'next') {
+        index = currentChapter.value.index + 1;
+        if (index >= detailResult.value.chapterList.length) {
+          message.warning('当前已是最后一章');
+          throw null;
+        }
+      } else if (type === 'prev') {
+        index = currentChapter.value.index - 1;
+        if (index < 0) {
+          message.warning('当前已是第一章');
+          throw null;
+        }
+      } else {
+        throw newError('未知类型');
+      }
+      const chapter = detailResult.value.chapterList[index];
+      await getTextContent(currentPid.value, chapter);
       calcReadProgress();
       setCurrentReadIndex(index);
       if (isNull(currentPid.value) || isNull(currentDetailUrl.value) || isNull(detailResult.value)) {
@@ -66,17 +65,18 @@ export const useTextContent = () => {
           readIndex: chapter.index
         });
       });
-    }).catch(e => {
-      message.error(e.message);
-    });
+    } catch (e) {
+      e && message.error(errorHandler(e, true));
+      return e ? errorHandler(e) : Promise.reject();
+    }
   }
 
-  const nextChapter = () => {
-    handler('next');
+  const nextChapter = async (ignoreError = false) => {
+    await handler('next').catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
   }
 
-  const prevChapter = () => {
-    handler('prev');
+  const prevChapter = async (ignoreError = false) => {
+    await handler('prev').catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
   }
 
   return {

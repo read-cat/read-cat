@@ -1,8 +1,8 @@
 import { serialize, deserialize } from 'v8';
 import { isNull, isUndefined } from '../is';
 import { nanoid } from 'nanoid';
-import { errorHandler } from '../utils';
-import { CreatePluginStore, PluginStoreInterface } from './plugins';
+import { errorHandler, newError } from '../utils';
+import { CreatePluginStore, PluginStoreInterface } from './defined/plugins';
 
 export const createPluginStore: CreatePluginStore = (pid: string, maxByteLength: number) => {
   return new PluginStore(pid, maxByteLength);
@@ -43,7 +43,7 @@ class PluginStore implements PluginStoreInterface {
       const data = new Uint8Array(serialize(value));
       const csize = await this.currentSize();
       if (csize >= this.maxByteLength || (csize + data.byteLength) >= this.maxByteLength) {
-        throw `The current store size is ${csize} bytes, and the maximum support is ${this.maxByteLength} bytes`;
+        throw newError(`The current store size is ${csize} bytes, and the maximum support is ${this.maxByteLength} bytes`);
       }
       await GLOBAL_DB.store.pluginsStore.put({
         id: nanoid(),

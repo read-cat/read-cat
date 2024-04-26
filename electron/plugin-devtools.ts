@@ -9,17 +9,20 @@ export const createPluginDevtoolsWindow = (url: string, icon: string) => {
     minWidth: 1000,
     minHeight: 700,
     icon,
-    closable: false,
-    frame: false,
     show: false,
+    frame: process.platform !== 'linux',
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#3C3C3C00',
+      symbolColor: '#D4D4D4',
+      height: 30
+    },
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      /* nodeIntegration: true,
-      contextIsolation: false */
     }
   });
-  win.loadURL(`${url}?tag=devtools`);
-  // win.loadURL(`http://localhost:5173?tag=devtools`);
+  win.loadURL(`${url}?tag=devtools&platform=${process.platform}`);
+  // win.loadURL(`http://localhost:5173?tag=devtools&platform=${process.platform}`);
   win.webContents.setWindowOpenHandler(details => {
     shell.openExternal(details.url);
     return {
@@ -27,11 +30,24 @@ export const createPluginDevtoolsWindow = (url: string, icon: string) => {
     }
   });
   win.on('ready-to-show', () => win?.show());
+  win.on('enter-full-screen', () => {
+    win?.webContents.send(PluginDevtoolsEventCode.ASYNC_IS_FULLSCREEN_DEVTOOLS_WINDOW, true);
+  });
+  win.on('leave-full-screen', () => {
+    win?.webContents.send(PluginDevtoolsEventCode.ASYNC_IS_FULLSCREEN_DEVTOOLS_WINDOW, false);
+  });
   win.on('maximize', () => {
     win?.webContents.send(PluginDevtoolsEventCode.ASYNC_PLUGIN_DEVTOOLS_WINDOW_IS_MAXIMIZE, true);
   });
   win.on('unmaximize', () => {
     win?.webContents.send(PluginDevtoolsEventCode.ASYNC_PLUGIN_DEVTOOLS_WINDOW_IS_MAXIMIZE, false);
+  });
+  win.on('close', e => {
+    e.preventDefault();
+    win?.webContents.send(PluginDevtoolsEventCode.ASYNC_CLOSE_PLUGIN_DEVTOOLS_WINDOW);
+    if (process.platform === 'linux') {
+      win?.focus();
+    }
   });
   win.on('closed', () => {
     win = null;
@@ -40,7 +56,7 @@ export const createPluginDevtoolsWindow = (url: string, icon: string) => {
     win?.minimize();
   });
   ipcMain.on(PluginDevtoolsEventCode.ASYNC_SET_PLUGIN_DEVTOOLS_WINDOW_MAXIMIZE_OR_RESTORE, () => {
-    win?.isMaximized() ? win?.restore() : win?.maximize();
+    win?.isMaximized() ? win?.unmaximize() : win?.maximize();
   });
   ipcMain.on(PluginDevtoolsEventCode.ASYNC_CONSOLE_LOG, (_, err, type, args) => {
     win?.webContents.send(PluginDevtoolsEventCode.ASYNC_CONSOLE_LOG, err, type, args);

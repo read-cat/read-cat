@@ -1,13 +1,16 @@
 :root {
   --rc-theme-color: #1e78eb;
-  --rc-text-color: #2D2D2D;
+  --rc-text-color-light: #2D2D2D;
+  --rc-text-color: var(--rc-text-color-light);
+  --rc-button-hover-bgcolor-light: rgba(0, 0, 0, 0.08);
 
   --rc-window-box-bgcolor-light: #FFFFFF;
   --rc-main-color: #F6F6F6;
 
   --rc-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.1);
 
-  --rc-header-color: #F2F6FC;
+  --rc-header-color-light: #F2F6FC;
+  --rc-header-color: var(--rc-header-color-light);
   --rc-header-box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
 
   --rc-search-border-color: rgba(30, 120, 235, 0.3);
@@ -25,7 +28,7 @@
   --rc-scrollbar-thumb-bgcolor: rgba(0, 0, 0, 0.15);
   --rc-scrollbar-thumb-hover-bgcolor: rgba(0, 0, 0, 0.2);
 
-  --rc-button-hover-bgcolor: rgba(0, 0, 0, 0.08);
+  --rc-button-hover-bgcolor: var(--rc-button-hover-bgcolor-light);
 
   --rc-latest-chapter-color: #54CB39;
 
@@ -38,6 +41,9 @@
   --rc-card-bgcolor: #FFFFFF;
 
   --rc-settings-window-bgcolor: #F5F5F5;
+
+  --rc-menu-window-box-blur-bgcolor: rgba(255, 255, 255, 0.8);
+  --rc-menu-item-hover-bgcolor: rgba(30, 30, 30, 0.2);
 }
 
 html,
@@ -54,11 +60,13 @@ body,
   padding: 0;
   user-select: none;
   -webkit-user-drag: none;
-  outline: none;
-  font-family: 'HarmonyOS Sans', serif;
+  outline-color: var(--rc-theme-color);
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'PingFang SC', Arial, Helvetica;
 
   &::selection {
-    background-color: rgba(127, 127, 127, 0.2);
+    /* background-color: rgba(127, 127, 127, 0.2); */
+    background-color: rgba(30, 119, 235, 0.6);
+    color: #1C1C1C;
   }
 }
 
@@ -198,5 +206,22 @@ button {
   }
   th.el-table__cell {
     background-color: transparent !important;
+  }
+}
+
+.el-input__wrapper {
+  --el-input-focus-border-color: var(--rc-theme-color);
+}
+.el-select__wrapper.is-focused,
+.el-select-dropdown__item.is-selected {
+  --el-color-primary: var(--rc-theme-color);
+}
+
+.settings-help {
+  .el-popover__title {
+    font-size: 15px;
+  }
+  .help-content {
+    font-size: 13px;
   }
 }

@@ -5,9 +5,9 @@ import { useSettingsStore } from '../store/settings';
 type MessageType = 'error' | 'success' | 'warning' | 'info';
 export const useMessage = () => {
   const settings = useSettingsStore();
-  const offset = window.screen.height / 2 + 100;
   const grouping = true;
   const showMessage = (options: MessageOptionsWithType | string, type: MessageType) => {
+    const offset = window.innerHeight - 100;
     let opts: MessageOptionsWithType = {
       offset,
       grouping

@@ -18,9 +18,9 @@ import { useDetailStore } from '../../store/detail';
 import Menu from '../../components/menu/index.vue';
 import MenuItem from '../../components/menu/item/index.vue';
 import { useBookmarks } from './hooks/bookmarks';
-import { DefaultReadColor } from '../../core/window/read-style';
+import { DefaultReadColor } from '../../core/window/default-read-style';
 import { useTextContent } from './hooks/text-content';
-import { useShortcutKey } from './hooks/shortcut-key';
+
 const route = useRoute();
 
 const pid = String(route.query.pid);
@@ -29,8 +29,6 @@ const detailUrl = String(route.query.detailUrl);
 const { setDefaultReadColorById } = useSettingsStore();
 (<any>window).setBgColor = (index: number) => {
   const all = DefaultReadColor.getAll();
-  console.log(all[index]);
-  
   setDefaultReadColorById(all[index].id);
 }
 
@@ -45,11 +43,13 @@ const {
   width,
   fontFamily,
   fontSize,
+  fontWeight,
   letterSpacing,
   sectionSpacing,
   lineSpacing,
   bookmarkColorEven,
   bookmarkColorOdd,
+  readAloudColor,
 } = storeToRefs(useSettingsStore());
 onMounted(() => {
   setTimeout(() => calcReadProgress(mainElement), 500);
@@ -81,22 +81,25 @@ onRefresh(PagePath.READ, () => {
 });
 
 const { nextChapter, prevChapter } = useTextContent();
-useShortcutKey();
 </script>
 
 <template>
   <div :class="['container', isRunningGetTextContent ? 'loading' : '']" v-loading="isRunningGetTextContent" :style="{
-    fontFamily: `'${fontFamily === '' ? Font.DEFAULT_FONT : fontFamily}'`
+    '--font-family': `'${fontFamily === '' ? Font.default : fontFamily}'`
   }">
     <div id="text-content" v-show="!isRunningGetTextContent" v-html="contents" :style="{
+      width,
+      fontSize,
+      fontWeight,
+      '--rc-read-aloud-color': isDark ? '' : readAloudColor,
       '--rc-bookmark-odd-color': isDark ? '' : bookmarkColorOdd,
       '--rc-bookmark-even-color': isDark ? '' : bookmarkColorEven,
       '--rc-bookmark-odd-font-color': isDark ? options.enableBookmarkHighlight ? '' : 'none' : options.enableBookmarkHighlight ? bookmarkColorOdd : '',
       '--rc-bookmark-even-font-color': isDark ? options.enableBookmarkHighlight ? '' : 'none' : options.enableBookmarkHighlight ? bookmarkColorEven : '',
     }"></div>
     <Menu trigger="#main" class-name="read-menu" :disabled="isRunningGetTextContent">
-      <MenuItem label="上一章" @click="prevChapter" />
-      <MenuItem label="下一章" @click="nextChapter" />
+      <MenuItem label="上一章" @click="prevChapter(true)" />
+      <MenuItem label="下一章" @click="nextChapter(true)" />
       <ElDivider v-once />
       <MenuItem label="设置书签" @click="setBookmark" />
     </Menu>
@@ -130,26 +133,45 @@ useShortcutKey();
   }
 
   #text-content {
-    width: v-bind(width);
-    font-size: v-bind(fontSize);
+    * {
+      font-family: var(--font-family);
+    }
 
-    :deep(p) {
+    &>:deep(div[data-index]) {
       margin-bottom: v-bind(sectionSpacing);
       text-indent: 2em;
       letter-spacing: v-bind(letterSpacing);
       line-height: v-bind(lineSpacing);
       user-select: text;
       cursor: default;
+      transition: color 0.3s ease;
 
       .bookmark {
         border-bottom: 1.5px solid var(--rc-bookmark-odd-color);
         color: var(--rc-bookmark-odd-font-color);
         cursor: pointer;
         user-select: text;
+
         &.even {
           border-bottom: 1.5px solid var(--rc-bookmark-even-color);
           color: var(--rc-bookmark-even-font-color);
         }
+      }
+
+      &.current-read-aloud {
+        color: var(--rc-read-aloud-color);
+      }
+
+      &:first-child {
+        display: none;
+      }
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      * {
+        max-width: 100%;
       }
     }
   }

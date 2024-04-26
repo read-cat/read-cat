@@ -1,14 +1,17 @@
 :root {
   --rc-window-box-bgcolor-dark: #1A1C1D;
+  --rc-header-color-dark: #1D1E1F;
+  --rc-text-color-dark: #AAAAB5;
+  --rc-button-hover-bgcolor-dark: rgba(255, 255, 255, 0.17);
 }
 :root.dark {
-  --rc-text-color: #AAAAB5;
+  --rc-text-color: var(--rc-text-color-dark);
 
   --rc-main-color: var(--rc-window-box-bgcolor-dark);
 
   --rc-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.25);
 
-  --rc-header-color: #1D1E1F;
+  --rc-header-color: var(--rc-header-color-dark);
   --rc-header-box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.4);
 
   --rc-search-box-shadow: var(--rc-shadow);
@@ -24,7 +27,7 @@
   --rc-scrollbar-thumb-bgcolor: rgba(255, 255, 255, 0.15);
   --rc-scrollbar-thumb-hover-bgcolor: rgba(255, 255, 255, 0.2);
 
-  --rc-button-hover-bgcolor: rgba(255, 255, 255, 0.17);
+  --rc-button-hover-bgcolor: var(--rc-button-hover-bgcolor-dark);
 
   --rc-loading-mask-bgcolor: rgba(26, 26, 26, 0.9);
 
@@ -33,7 +36,12 @@
   --rc-bookmark-odd-font-color: #7B800A;
   --rc-bookmark-even-font-color: currentColor;
 
+  --rc-read-aloud-color: var(--rc-theme-color);
+
   --rc-card-bgcolor: #222526;
 
   --rc-settings-window-bgcolor: #1F2022;
+
+  --rc-menu-window-box-blur-bgcolor: rgba(34, 34, 34, 0.8);
+  --rc-menu-item-hover-bgcolor: rgba(255, 255, 255, 0.2);
 }

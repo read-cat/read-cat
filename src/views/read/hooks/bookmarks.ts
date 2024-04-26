@@ -3,7 +3,6 @@ import { isNull, isUndefined } from '../../../core/is';
 import { useMessage } from '../../../hooks/message';
 import { useTextContentStore } from '../../../store/text-content';
 import { h, markRaw, ref, VNode, watch } from 'vue';
-import { useWindowStore } from '../../../store/window';
 import { useBookmarkStore } from '../../../store/bookmark';
 import { nanoid } from 'nanoid';
 import { ElInput, ElMessageBox, ElNotification } from 'element-plus';
@@ -20,7 +19,6 @@ export const useBookmarks = () => {
   const { options } = useSettingsStore();
   const { textContent } = storeToRefs(useTextContentStore());
   const { currentChapter } = storeToRefs(useTextContentStore());
-  const { searchBoxHeaderText } = storeToRefs(useWindowStore());
   const { getBookmarkByChapterUrl, put, getBookmarkById } = useBookmarkStore();
   const { _bookmarks } = storeToRefs(useBookmarkStore());
   const { currentDetailUrl, currentPid } = storeToRefs(useDetailStore());
@@ -216,25 +214,21 @@ export const useBookmarks = () => {
     }
   }
 
-  const addPTag = (text: string, index: number) => {
-    return `<p data-index="${index}">${text}</p>`;
+  const addTag = (text: string, index: number) => {
+    return `<div data-index="${index}">${text}</div>`;
   }
+
   const handlerBookmarks = (text: string, index: number, bookmark?: BookmarkStoreEntity) => {
-    //去除text中的HTML标签
-    let div: HTMLElement | null = document.createElement('div');
-    div.innerHTML = text;
-    text = div.innerText;
-    div = null;
     if (isNull(currentChapter.value)) {
-      return addPTag(text, index);
+      return addTag(text, index);
     }
     isUndefined(bookmark) && (bookmark = getBookmarkByChapterUrl(currentChapter.value.url));
     if (isUndefined(bookmark)) {
-      return addPTag(text, index);
+      return addTag(text, index);
     }
     const ranges = bookmark.range.filter(v => v.index === index);
     if (ranges.length <= 0) {
-      return addPTag(text, index);
+      return addTag(text, index);
     }
     const arr: string[] = [];
     const sort = ranges.sort((a, b) => a.start - b.start);
@@ -247,20 +241,19 @@ export const useBookmarks = () => {
         const { start, end, id } = sort[index];
         const substr = text.slice(from, start);
         (substr.length > 0) && arr.push(substr);
-        arr.push(`<span id="${id}" class="bookmark${(index + 1) % 2 === 0 ? ' even' : ''}" ondblclick="window.showBookmark('${bookmark.id}','${id}')">${text.slice(start, end)}</span>`);
+        arr.push(`<span id="${id}" class="bookmark${(index + 1) % 2 === 0 ? ' even' : ''}" ondblclick="showBookmark('${bookmark.id}','${id}')">${text.slice(start, end)}</span>`);
         handler(end, index + 1);
       }
     }
     handler(0, 0);
-    return addPTag(arr.join(''), index);
+    return addTag(arr.join(''), index);
   }
 
   watch(() => textContent.value, (newVal) => {
-    if (currentChapter.value) {
-      searchBoxHeaderText.value = currentChapter.value.title;
-    }
-    if (!newVal || newVal.length <= 0) {
-      contents.value = addPTag('正文获取失败', 0);
+    if (isNull(newVal) || newVal.length <= 1) {
+      const err = isNull(newVal) ? ['无法获取章节标题'] : [...newVal];
+      err.push('正文获取失败');
+      contents.value = err.map(e => addTag(e, 1)).join('');
       return;
     }
     contents.value = newVal.map((text, index) => handlerBookmarks(text, index)).join('');

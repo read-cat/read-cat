@@ -1,6 +1,7 @@
 import { toRaw } from 'vue';
 import { isUndefined } from '../../is';
 import { DatabaseStoreInterface } from '../database';
+import { cloneByJSON } from '../../utils';
 
 export class BaseStoreDatabase<T> implements DatabaseStoreInterface<T> {
   public db: IDBDatabase;
@@ -13,6 +14,9 @@ export class BaseStoreDatabase<T> implements DatabaseStoreInterface<T> {
   }
   toRaw<R = any>(val: R): R {
     return toRaw(val);
+  }
+  revocationProxy<R = any>(obj: R): R {
+    return cloneByJSON(obj);
   }
   getById(id: string): Promise<T | null> {
     return new Promise<T | null>((reso, reje) => {
@@ -77,7 +81,7 @@ export class BaseStoreDatabase<T> implements DatabaseStoreInterface<T> {
           throw requ.error;
         }
       } catch (e) {
-        GLOBAL_LOG.error(this.tag, 'put', val, e);
+        GLOBAL_LOG.error(this.tag, 'put', e);
         return reje(e);
       }
     });
@@ -88,7 +92,7 @@ export class BaseStoreDatabase<T> implements DatabaseStoreInterface<T> {
         const requ = this.db
           .transaction([this.storeName], 'readwrite')
           .objectStore(this.storeName)
-          .delete(this.toRaw(id));
+          .delete(id);
         requ.onsuccess = () => {
           return reso();
         }

@@ -38,15 +38,15 @@ module.exports = () => {
   const pkg = require('./package.json');
   const { branch } = pkg;
   const commit = execSync('git log -1 --pretty=format:%H', { encoding: 'utf-8' }).trim();
-  console.log('metadata');
-  console.log('branch:', branch, 'commit:', commit);
+  console.log('branch:', branch, '\ncommit:', commit);
   const date = format(new Date(), 'yyMMdd');
-  const versionCode = Number(`${pkg.version.charAt(0)}.${`0${pkg.versionCode}`.slice(-2)}${date}`);
-
+  const vs = pkg.version.split('.');
+  const versionCode = Number(`${vs[0]}.${vs.slice(1).join('')}`);
   const b = getBranch(branch);
+  const version = `${pkg.version}${b === 'release' ? '' : '-' + b}`;
   return {
-    tag: `v${versionCode}${b === 'release' ? '' : '-' + b}`,
-    version: `${pkg.version}${b === 'release' ? '' : '-' + b}`,
+    tag: `v${version}`,
+    version,
     versionCode,
     branch,
     date,

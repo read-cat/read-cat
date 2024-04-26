@@ -3,7 +3,7 @@ import { existsSync } from 'fs';
 import { gunzipSync } from 'zlib';
 import { createHash } from 'crypto';
 import { isString, isUndefined } from '../../is';
-import { errorHandler } from '../../utils';
+import { errorHandler, newError } from '../../utils';
 import path from 'path';
 
 const RPDT_HEAD = [0x52, 0x50, 0x44, 0x54];
@@ -11,8 +11,9 @@ export type Metadata = {
   name: string,
   version: string,
   branch: string,
-  version_code: number,
+  versionCode: number,
   date: string,
+  commit: string,
   files: {
     file: string,
     sha256: string
@@ -42,15 +43,15 @@ export async function decompress(file: string | Buffer, target: string): Promise
     buf = file;
   }
   const { match, metadata } = await checkout(buf);
-  const newp = path.join(target, `${metadata.version}-${metadata.branch}`);
-  const backup = path.join(target, `backup_${metadata.version}-${metadata.branch}`);
+  const newp = path.join(target, `${metadata.version}`);
+  const backup = path.join(target, `backup_${metadata.version}`);
   const exist = existsSync(newp);
   if (exist) {
     await fs.rename(newp, backup);
   }
   for (const key in match) {
     const value = match[key];
-    const _filename = path.join(newp, key);
+    const _filename = path.join(newp, ...key.split('\\'));
     const dir = path.dirname(_filename);
     if (!existsSync(dir)) {
       await fs.mkdir(dir, {
@@ -77,23 +78,24 @@ const checkout = async (buf: Buffer) => {
       buf[2] !== RPDT_HEAD[2] ||
       buf[3] !== RPDT_HEAD[3]
     ) {
-      throw 'incorrect rpdt header check';
+      throw newError('incorrect rpdt header check');
     }
     const raw = JSON.parse(gunzipSync(buf.subarray(4)).toString('utf-8'));
     if (isUndefined(raw['metadata.json'])) {
-      throw 'Metadata not found';
+      throw newError('Metadata not found');
     }
     const metadata: Metadata = JSON.parse(raw['metadata.json']);
     if (
       isUndefined(metadata.name) ||
       isUndefined(metadata.version) ||
       isUndefined(metadata.branch) ||
-      isUndefined(metadata.version_code) ||
+      isUndefined(metadata.versionCode) ||
       isUndefined(metadata.date) ||
+      isUndefined(metadata.commit) ||
       isUndefined(metadata.files) ||
       metadata.files.length <= 0
     ) {
-      throw 'Non-standard metadata';
+      throw newError('Non-standard metadata');
     }
     const match: Record<string, Buffer> = {};
     for (const key in raw) {
@@ -107,10 +109,10 @@ const checkout = async (buf: Buffer) => {
       const hex = hash.digest('hex');
       const i = metadata.files.find(v => v.file === key);
       if (!i) {
-        throw new Error(`${key} not found`);
+        throw newError(`${key} not found`);
       }
       if (hex !== i.sha256) {
-        throw new Error('sha256 does not match');
+        throw newError('sha256 does not match');
       }
       match[key] = value;
     }

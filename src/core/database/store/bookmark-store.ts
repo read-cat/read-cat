@@ -5,9 +5,8 @@ import { BookmarkStoreEntity } from '../database';
 import { BaseStoreDatabase } from './base-store';
 
 export class BookmarkStoreDatabase extends BaseStoreDatabase<BookmarkStoreEntity> {
-
   constructor(db: IDBDatabase, storeName: string) {
-    super(db, storeName, BookmarkStoreDatabase.name);
+    super(db, storeName, 'BookmarkStoreDatabase');
     this.read();
   }
   private read() {

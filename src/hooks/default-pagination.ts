@@ -17,6 +17,7 @@ export const useDefaultPagination = <T>(val: Ref<T[]>, pageSize = 20, defaultPag
     let page = currentPage.value - 1;
     page = page < 0 ? 0 : page;
     page = page >= totalPage.value ? totalPage.value - 1 : page;
+    currentPage.value = page + 1;
     return page;
   }
   const currentPageChange = (page: number) => {

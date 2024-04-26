@@ -1,8 +1,8 @@
 import { defineStore, storeToRefs } from 'pinia';
 import { Chapter } from '../core/book/book';
-import { BookSource } from '../core/plugins/plugins';
-import { chunkArray, errorHandler } from '../core/utils';
-import { isUndefined } from '../core/is';
+import { BookSource } from '../core/plugins/defined/booksource';
+import { chunkArray, errorHandler, newError } from '../core/utils';
+import { isNull, isUndefined } from '../core/is';
 import { useSettingsStore } from './settings';
 import { nanoid } from 'nanoid';
 import { toRaw } from 'vue';
@@ -10,7 +10,6 @@ import { useDetailStore } from './detail';
 import { useMessage } from '../hooks/message';
 import { useWindowStore } from './window';
 import { PagePath } from '../core/window';
-
 
 export const useTextContentStore = defineStore('TextContent', {
   state: () => {
@@ -36,16 +35,28 @@ export const useTextContentStore = defineStore('TextContent', {
         win.disableShowSearchBox.set(PagePath.DETAIL, true);
         const booksource = GLOBAL_PLUGINS.getPluginInstanceById<BookSource>(pid);
         if (isUndefined(booksource)) {
-          throw `无法获取插件, 插件ID:${pid}不存在`;
+          throw newError(`无法获取插件, 插件ID:${pid}不存在`);
+        }
+        if (isNull(booksource)) {
+          throw newError(`插件未启用, 插件ID:${pid}`);
         }
         const dbTextContent = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
+        this.currentChapter = chapter;
         if (dbTextContent && !refresh) {
           const { chapter, textContent } = dbTextContent;
-          this.currentChapter = chapter;
-          this.textContent = textContent;
+          // this.currentChapter = chapter;
+          this.textContent = [chapter.title, ...textContent];
         } else {
-          this.textContent = (await booksource.getTextContent(chapter)).map(v => v.trim()).filter(v => v !== '');
-          this.currentChapter = chapter;
+          
+          const textContent = (await booksource.getTextContent(chapter));
+          this.textContent = [chapter.title, ...textContent];
+          const cache = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
+          if (!isNull(cache)) {
+            await GLOBAL_DB.store.textContentStore.put({
+              ...cache,
+              textContent: toRaw(this.textContent)
+            });
+          }
         }
         return;
       } catch (e) {
@@ -70,7 +81,7 @@ export const useTextContentStore = defineStore('TextContent', {
       }
       const booksource = GLOBAL_PLUGINS.getPluginInstanceById<BookSource>(pid);
       if (!booksource) {
-        GLOBAL_LOG.warn(`Text Content cache plugin: undefined, pid:${pid}`, cacheList);
+        GLOBAL_LOG.warn(`Text Content cache plugin: undefined, pid:${pid}`);
         return;
       }
       const arrs = chunkArray(cacheList, threadsNumber.value);
@@ -84,9 +95,9 @@ export const useTextContentStore = defineStore('TextContent', {
             }
             ps.push(new Promise<void>(async (reso, reje) => {
               try {
-                const textContent = (await booksource.getTextContent(chapter)).map(v => v.trim()).filter(v => v !== '');
+                const textContent = (await booksource.getTextContent(chapter));
                 if (textContent.length <= 0) {
-                  throw `text content length: 0`;
+                  throw newError('text content length: 0');
                 }
                 await GLOBAL_DB.store.textContentStore.put({
                   id: nanoid(),
@@ -97,12 +108,12 @@ export const useTextContentStore = defineStore('TextContent', {
                 });
                 return reso();
               } catch (e) {
-                GLOBAL_LOG.error(`Text Content cache pid:${pid}`, chapter, e);
+                GLOBAL_LOG.error(`Text Content cache pid:${pid}`, e);
                 return reje();
               }
             }));
           } catch (e) {
-            GLOBAL_LOG.error(`Text Content cache pid:${pid}`, chapter, e);
+            GLOBAL_LOG.error(`Text Content cache pid:${pid}`, e);
           }
         }
         await Promise.allSettled(ps);

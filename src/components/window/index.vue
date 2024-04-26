@@ -26,6 +26,7 @@ export type WindowProps = {
   zIndex?: number,
   destroyOnClose?: boolean,
   disableBlur?: boolean,
+  isLoading?: boolean,
 }
 
 const emits = defineEmits<{
@@ -44,6 +45,7 @@ const props = withDefaults(defineProps<WindowProps>(), {
   clickHide: true,
   zIndex: 999,
   disableBlur: false,
+  isLoading: false
 });
 const { options } = useSettingsStore();
 const {
@@ -78,7 +80,7 @@ export default {
   <Teleport to="body" :disabled="!_toBody">
     <Transition :enter-active-class="options.enableTransition ? 'animate__animated animate__bounceIn' : void 0"
       :leave-active-class="options.enableTransition ? 'animate__animated animate__zoomOutDown' : void 0">
-      <div v-show="showWindow" :id="id" :class="[
+      <div v-loading="isLoading" v-show="showWindow" :id="id" :class="[
         'window',
         'app-no-drag',
         _className,

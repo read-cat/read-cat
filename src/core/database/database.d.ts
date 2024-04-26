@@ -33,12 +33,6 @@ export interface PluginsStoreEntity {
   key: string;
   data: Uint8Array;
 }
-export interface FontsStoreEntity {
-  id: string,
-  name: string,
-  type: string,
-  data: Uint8Array
-}
 export interface HistoryStoreEntity {
 
 }

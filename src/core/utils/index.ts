@@ -1,4 +1,6 @@
-import { isError, isString } from '../is';
+import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import { isError, isObject, isString } from '../is';
+import DOMPurify from 'dompurify';
 
 export function errorHandler(error: any, toString?: false): Promise<never>;
 export function errorHandler(error: any, toString: true): string;
@@ -7,11 +9,18 @@ export function errorHandler(error: any, toString: any): Promise<never> | string
   if (isError(error)) {
     err = error;
   } else if (isString(error)) {
-    err = new Error(error);
+    err = newError(error);
   } else {
-    err = new Error(String(error));
+    err = newError(String(error));
   }
   return toString ? err.message : Promise.reject(err);
+}
+
+export const isHexColor = (color: string) => {
+  if (/^#[abcdef0-9]{3,6}$/i.test(color)) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -33,7 +42,7 @@ export const getColorRGB = (hexColor: string): [number, number, number] => {
     const b = hexColor.substring(3, 4);
     return [Number(`0x${r}${r}`), Number(`0x${g}${g}`), Number(`0x${b}${b}`)];
   }
-  throw `Not a hex color`;
+  throw newError('Not a hex color');
 }
 
 /**
@@ -72,7 +81,50 @@ export const chunkArray = <T>(array: T[], size = 1) => {
 export const replaceInvisibleStr = <T extends Record<string, any>>(obj: T): T => {
   let val: any = {};
   Object.keys(obj).forEach((key: string) => {
-    val[key] = isString(obj[key]) ? obj[key].trim() : obj[key];
+    val[key] = isString(obj[key]) ? obj[key].trim() : isObject(obj[key]) ? replaceInvisibleStr(obj[key]) : obj[key];
   });
   return val;
+}
+
+/**
+ * 对HTML字符串消毒
+ * @param removeTags 是否移除HTML标签
+ */
+export const sanitizeHTML = (() => {
+  const divContainer = document.createElement('div');
+  return (html: string, removeTags = false) => {
+    let str = DOMPurify.sanitize(html);
+    if (removeTags) {
+      divContainer.innerHTML = str;
+      str = divContainer.innerText;
+      divContainer.innerHTML = '';
+    }
+    return str.trim();
+  }
+})();
+
+
+export const newError = (message?: string) => new Error(message);
+export const newAxiosError = <T = any, D = any>(
+  message?: string,
+  code?: string,
+  config?: InternalAxiosRequestConfig<D>,
+  request?: any,
+  response?: AxiosResponse<T, D>
+) => new AxiosError(message, code, config, request, response);
+
+export const isPluginContext = () => {
+  const { stack } = new Error;
+  if (
+    !stack ||
+    stack.includes('createPluginClassInstance') ||
+    stack.includes('runPluginScript')
+  ) {
+    return true;
+  }
+  return false;
+}
+
+export const cloneByJSON = <T>(val: T): T => {
+  return JSON.parse(JSON.stringify(val));
 }

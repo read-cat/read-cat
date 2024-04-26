@@ -17,11 +17,13 @@ export type Plugin = {
   version: string
   updating: boolean
   searchIndex: string
+  builtIn: boolean
+  ttsEngineRequire?: Record<string, string>
 }
 
 export const usePlugin = () => {
   const handler = () => {
-    return GLOBAL_PLUGINS.getAllPlugins().map<Plugin>(({ enable, props }) => {
+    return GLOBAL_PLUGINS.getAllPlugins().map<Plugin>(({ enable, props, builtIn }) => {
       let typeLabel: string;
       switch (props.TYPE) {
         case PluginType.BOOK_SOURCE:
@@ -36,11 +38,13 @@ export const usePlugin = () => {
       }
       return {
         enable,
+        builtIn,
         id: props.ID,
         type: props.TYPE,
         group: props.GROUP,
         name: props.NAME,
         version: props.VERSION,
+        ttsEngineRequire: props.TTS_ENGINE_REQUIRE,
         updating: false,
         searchIndex: `${props.ID} ${typeLabel} ${props.GROUP.toLowerCase()} ${props.GROUP.toUpperCase()} ${props.NAME.toLowerCase()} ${props.NAME.toUpperCase()} ${enable ? '启用' : '禁用'}`
       }
@@ -127,7 +131,7 @@ export const usePlugin = () => {
         for (const item of items) {
           ps.push(GLOBAL_PLUGINS.delete(item).catch(e => {
             e.id = item;
-            return e;
+            return Promise.reject(e);
           }));
         }
         for (const item of await Promise.allSettled(ps)) {

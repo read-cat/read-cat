@@ -6,7 +6,7 @@ import { BaseStoreDatabase } from './base-store';
 export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStoreEntity> {
 
   constructor(db: IDBDatabase, storeName: string) {
-    super(db, storeName, TextContentStoreDatabase.name);
+    super(db, storeName, 'TextContentStoreDatabase');
   }
   getByPidAndDetailUrl(pid: string, detailUrl: string): Promise<TextContentStoreEntity[] | null> {
     return new Promise<TextContentStoreEntity[] | null>((reso, reje) => {
@@ -40,7 +40,7 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
           .transaction([this.storeName], 'readonly')
           .objectStore(this.storeName)
           .index('index_pid_chapterUrl')
-          .get(IDBKeyRange.only([super.toRaw(pid), chapterUrl]));
+          .get(IDBKeyRange.only([super.toRaw(pid), super.toRaw(chapterUrl)]));
         requ.onsuccess = () => {
           let result: TextContentStoreEntity | null = null;
           if (!isUndefined(requ.result)) {
@@ -84,7 +84,7 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
     });
   }
   async put(val: TextContentStoreEntity): Promise<void> {
-    const _val = super.toRaw(val);
+    const _val = super.revocationProxy(val);
     const raw = await this.getByPidAndChapterUrl(_val.pid, _val.chapter.url);
     if (!isNull(raw)) {
       _val.id = raw.id;
@@ -93,22 +93,6 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
       ..._val,
       id: isNull(raw) ? _val.id : raw.id
     });
-    /* return new Promise<void>(async (reso, reje) => {
-      try {
-        const _val = super.toRaw(val);
-        const raw = await this.getByPidAndChapterUrl(_val.pid, _val.chapter.url);
-        if (!isNull(raw)) {
-          _val.id = raw.id;
-        }
-        await super.put({
-          ..._val,
-          id: isNull(raw) ? _val.id : raw.id
-        });
-        return reso();
-      } catch (e) {
-        return reje(e);
-      }
-    }); */
   }
   async removeByPidAndChapter(pid: string, chapter: Chapter): Promise<void> {
     const val = await this.getByPidAndChapterUrl(super.toRaw(pid), super.toRaw(chapter).url);
@@ -116,19 +100,6 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
       return;
     }
     await this.remove(val.id);
-    /* return new Promise<void>(async (reso, reje) => {
-      try {
-        const val = await this.getByPidAndChapterUrl(super.toRaw(pid), super.toRaw(chapter).url);
-        if (isNull(val)) {
-          return reso();
-        }
-        await this.remove(val.id);
-        return reso();
-      } catch (e) {
-        GLOBAL_LOG.error(this.tag, `removeByPidAndChapter pid:${pid}, chapter:${chapter}`, e);
-        return reje(e);
-      }
-    }); */
   }
   async removeByPidAndDetailUrl(pid: string, detailUrl: string): Promise<void> {
     const entitys = await this.getByPidAndDetailUrl(pid, detailUrl);

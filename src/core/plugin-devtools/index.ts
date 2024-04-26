@@ -3,20 +3,20 @@ import fs from 'fs/promises';
 import { isNull, isUndefined } from '../is';
 import path from 'path';
 import { createServer, Server } from 'http';
-import { Express } from 'express';
+import _express, { Express } from 'express';
 import { createHash } from 'crypto';
 import { WebSocketServer, WebSocket } from 'ws';
 import { PluginDevtoolsEventCode } from '../../../events/plugin-devtools';
 import { EventCode } from '../../../events';
 import { runCompile, runGetDetail, runGetTextContent, runSearch, sendLog } from './event/handler';
 import { Plugins } from '../plugins';
-import { BasePluginStoreInterface } from '../plugins/plugins';
+import { BasePluginStoreInterface } from '../plugins/defined/plugins';
 import { Logger, LogType } from '../logger';
-import { errorHandler } from '../utils';
+import { errorHandler, newError } from '../utils';
 import { Metadata } from './rpdt';
 
 const WEB_SOCKET_SERVER = require('ws').Server;
-const express = require('express');
+const express: typeof _express = require('express');
 
 class TempPluginStore implements BasePluginStoreInterface {
   private store: Map<string, any>;
@@ -89,20 +89,20 @@ export class PluginDevtools {
           !existsSync(path.join(resourcePath, 'metadata.json')) ||
           !existsSync(path.join(resourcePath, 'index.html'))
         ) {
-          throw `Not a qualified plugin devtools resource path`;
+          throw newError('Not a qualified plugin devtools resource path');
         }
         const metadata: Metadata = JSON.parse(await fs.readFile(path.join(resourcePath, 'metadata.json'), 'utf-8'));
         for (const { file, sha256 } of metadata.files) {
           const hash = createHash('sha256');
-          const buf = await fs.readFile(path.join(resourcePath, file));
+          const buf = await fs.readFile(path.join(resourcePath, ...file.split('\\')));
           hash.update(buf);
           const hex = hash.digest('hex');
           if (sha256 === hex) {
             continue;
           }
-          throw `File "${file}" sha256 does not match`;
+          throw newError(`File "${file}" sha256 does not match`);
         }
-        this.app = <Express>express();
+        this.app = express();
         this.app.use(express.static(resourcePath));
         this.server = createServer(this.app);
         this.port = port;
@@ -137,13 +137,13 @@ export class PluginDevtools {
         });
         this.server.listen(port, 'localhost');
       } catch (e) {
-        return reje(new Error(errorHandler(e, true)));
+        return reje(newError(errorHandler(e, true)));
       }
     });
   }
   private isStart() {
     if (isNull(this.app) || isNull(this.server) || isNull(this.wss) || isNull(this.port)) {
-      throw new Error('Service not started');
+      throw newError('Service not started');
     }
   }
   public open() {

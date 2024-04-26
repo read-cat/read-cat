@@ -1,4 +1,3 @@
-import { ElMessageBox } from 'element-plus';
 import { EventCode } from '../../../../events';
 import { useWindowStore } from '../../../store/window';
 import { useSettingsStore } from '../../../store/settings';
@@ -14,14 +13,9 @@ export const useEvent = () => {
   }
 
   const close = () => {
-    ElMessageBox.confirm('是否退出本程序?', {
-      confirmButtonText: '退出',
-      cancelButtonText: '关闭',
-      type: 'info'
-    }).then(() => {
-      GLOBAL_IPC.send(EventCode.ASYNC_CLOSE_WINDOW);
-    }).catch(() => { });
+    GLOBAL_IPC.send(EventCode.ASYNC_CLOSE_WINDOW);
   }
+  GLOBAL_IPC.on(EventCode.ASYNC_CLOSE_WINDOW, close);
 
   const dark = () => {
     setTheme(win.isDark ? 'light' : 'dark');

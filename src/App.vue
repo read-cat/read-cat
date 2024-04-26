@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElContainer, ElHeader, ElMain, ElBacktop } from 'element-plus';
-import { Transition } from 'vue';
+import { Transition, onMounted, watchEffect } from 'vue';
 import Toolbar from './components/toolbar/index.vue';
 import { useRouter } from 'vue-router';
 import GoBack from './components/go-back/index.vue';
@@ -11,7 +11,11 @@ import Search from './components/search/index.vue';
 import { useWindowStore } from './store/window';
 import { PagePath } from './core/window';
 import { useSettingsStore } from './store/settings';
+import { useShortcutKey } from './hooks/shortcut-key';
+import { storeToRefs } from 'pinia';
+import { colorIsLight, getColorRGB } from './core/utils';
 
+useShortcutKey();
 const win = useWindowStore();
 const router = useRouter();
 router.afterEach((to, _, fail) => {
@@ -39,20 +43,34 @@ const setScrollTop = ({ target }: Event) => {
 }
 
 const { options } = useSettingsStore();
+const { platform } = process;
+
+onMounted(() => {
+  const { backgroundColor } = storeToRefs(useSettingsStore());
+  watchEffect(() => {
+    let val = 'var(--rc-button-hover-bgcolor)';
+    if (win.currentPath === PagePath.READ && !win.isDark) {
+      const [r, g, b] = getColorRGB(backgroundColor.value);
+      val = colorIsLight(r, g, b) ? 'var(--rc-button-hover-bgcolor-light)' : 'var(--rc-button-hover-bgcolor-dark)';
+    }
+    document.body.style.setProperty('--rc-button-hover-background-color', val);
+  });
+});
 </script>
 
 <template>
   <ElContainer id="container" :style="{
-    '--rc-header-color': win.backgroundColor
+    '--rc-header-color': win.backgroundColor,
   }">
-    <ElHeader id="header" class="app-drag" :style="{
-    '--rc-text-color': win.textColor
-  }">
+    <ElHeader id="header" :class="['app-drag', platform, win.isFullScreen ? 'fullscreen' : '']" :style="{
+      '--rc-text-color': win.textColor
+    }">
       <div class="left-box">
+        <div v-if="platform === 'darwin'" v-once class="window-controls-container app-no-darg"></div>
         <div v-show="win.currentPath !== PagePath.READ" id="logo">
-          <img class="app-drag" src="./assets/logo.png" alt="ReadCat">
+          <img class="app-drag" src="/icons/512x512.png" alt="ReadCat">
         </div>
-        <Navigation v-show="win.currentPath !== PagePath.READ" :path="win.currentPath" class="app-no-drag" />
+        <Navigation v-show="win.currentPath !== PagePath.READ" :path="win.currentPath" class="navigation app-no-drag" />
         <GoBack id="goback" class="app-no-drag" :style="{
           marginLeft: win.currentPath === PagePath.READ ? '0' : '10px'
         }" />
@@ -66,6 +84,8 @@ const { options } = useSettingsStore();
       </div>
       <div class="right-box">
         <Toolbar :path="win.currentPath" class="app-no-drag" />
+        <div v-if="platform === 'win32'"
+          :class="['window-controls-container', 'app-no-darg', platform, win.isFullScreen ? 'fullscreen' : '']"></div>
       </div>
     </ElHeader>
     <ElMain id="main" :class="['rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']"
@@ -102,10 +122,15 @@ const { options } = useSettingsStore();
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;
-  height: 35px;
+  height: calc(35px * var(--zoom-factor, 1));
+  min-height: calc(35px / var(--zoom-factor, 1));
   background-color: var(--rc-header-color);
   box-shadow: var(--rc-header-box-shadow);
   z-index: 999;
+
+  :deep(.rc-button:hover) {
+    background-color: var(--rc-button-hover-background-color);
+  }
 
   .left-box,
   .center-box,
@@ -115,15 +140,23 @@ const { options } = useSettingsStore();
     align-items: center;
   }
 
-  $left-right-box-width: 240px;
+  $left-right-box-width: 310px;
+
+  .left-box,
+  .right-box {
+    width: calc($left-right-box-width * var(--zoom-factor, 1));
+    min-width: calc($left-right-box-width / var(--zoom-factor, 1));
+  }
 
   .left-box {
-    width: $left-right-box-width;
     justify-content: flex-start;
   }
 
+  .center-box {
+    width: 280px;
+  }
+
   .right-box {
-    width: $left-right-box-width;
     justify-content: flex-end;
   }
 
@@ -149,6 +182,30 @@ const { options } = useSettingsStore();
     margin-left: 10px;
     font-size: 14px;
     color: var(--rc-text-color);
+  }
+
+
+}
+
+#header:is(.win32):not(.fullscreen) {
+  .right-box .window-controls-container {
+    width: calc(135px / var(--zoom-factor, 1));
+  }
+}
+
+#header:is(.darwin) {
+  &:not(.fullscreen) {
+    .left-box .window-controls-container {
+      width: calc(65px / var(--zoom-factor, 1));
+    }
+  }
+
+  .navigation {
+    margin-left: 0;
+  }
+
+  #logo {
+    display: none;
   }
 }
 

@@ -6,7 +6,6 @@ import { onMounted } from 'vue';
 import { useScrollTopStore } from '../../store/scrolltop';
 import { EventCode } from '../../../events';
 import { PagePath } from '../../core/window';
-
 const { pageScrollTop } = useScrollTopStore();
 onMounted(() => {
   pageScrollTop(PagePath.HOME);

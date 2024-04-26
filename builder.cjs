@@ -1,10 +1,12 @@
-const { version, date, branch } = require('./metadata.json');
-console.log('builder');
-console.log('version:', version, 'date:', date);
+const { version, commit } = require('./metadata.json');
+const { devDependencies } = require('./package.json');
 const builder = require('electron-builder');
 const fs = require('fs');
 const { join } = require('path');
 const { Platform, Arch } = builder;
+
+const electronVersion = /\d+\.\d+\.\d+/.exec(devDependencies.electron);
+
 /**
 * @type {import('electron-builder').Configuration}
 * @see https://www.electron.build/configuration/configuration
@@ -16,6 +18,7 @@ const config = {
   asarUnpack: [
     'node_modules'
   ],
+  electronVersion: electronVersion && electronVersion[0] ? electronVersion[0] : '29.2.0',
   compression: 'maximum',
   directories: {
     'output': `build`
@@ -24,27 +27,31 @@ const config = {
     'dist',
     'dist-electron',
     '!node_modules/**/*.map',
-    '!dist/favicon.icns'
+    '!node_modules/**/*.md',
+    '!node_modules/**/*.ts',
+    '!node_modules/**/*.scss',
+    '!dist/icons/icon.icns',
   ],
   win: {
-    icon: 'public/favicon.ico',
-    artifactName: '${productName}-windows-${arch}' + `-${version}${branch === 'dev' ? '.' + date : ''}` + '.${ext}',
+    icon: 'public/icons/icon.ico',
+    artifactName: '${productName}-win32-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
   },
   nsis: {
-    installerIcon: 'public/favicon.ico',
-    installerHeaderIcon: 'public/favicon.ico',
+    installerIcon: 'public/icons/icon.ico',
+    installerHeaderIcon: 'public/icons/icon.ico',
     oneClick: false,
     perMachine: false,
     allowToChangeInstallationDirectory: true,
-    deleteAppDataOnUninstall: true
+    deleteAppDataOnUninstall: false
   },
   mac: {
-    icon: 'public/favicon.icns',
-    artifactName: '${productName}-darwin-${arch}' + `-${version}${branch === 'dev' ? '.' + date : ''}` + '.${ext}',
+    icon: 'public/icons/icon.icns',
+    artifactName: '${productName}-darwin-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
     darkModeSupport: true
   },
   linux: {
-    artifactName: '${productName}-linux-${arch}' + `-${version}${branch === 'dev' ? '.' + date : ''}` + '.${ext}',
+    icon: 'public/icons',
+    artifactName: '${productName}-linux-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
   }
 }
 
@@ -80,19 +87,49 @@ platforms.forEach(a => {
   });
   if (platform === '--win32') {
     (archs.length <= 0) && (archs.push(Arch.x64, Arch.ia32));
-    targets = Platform.WINDOWS.createTarget(['nsis', 'tar.gz'], ...archs);
-  } else if (a === '--darwin') {
+    targets = Platform.WINDOWS.createTarget([
+      'nsis',
+      'tar.gz'
+    ], ...archs);
+  } else if (platform === '--darwin') {
     (archs.length <= 0) && (archs.push(Arch.x64, Arch.arm64));
-    targets = Platform.MAC.createTarget(['dmg', 'tar.gz'], ...archs);
-  } else if (a === '--linux') {
+    targets = Platform.MAC.createTarget([
+      'dmg',
+      'tar.gz'
+    ], ...archs);
+  } else if (platform === '--linux') {
     (archs.length <= 0) && (archs.push(Arch.x64, Arch.arm64));
-    targets = Platform.LINUX.createTarget(['AppImage', 'tar.gz'], ...archs);
+    targets = Platform.LINUX.createTarget([
+      'AppImage',
+      'tar.gz',
+      'deb'
+    ], ...archs);
   }
   targets && promises.push(builder.build({
     targets,
     config
   }));
 });
+
+const exts = [
+  '.exe',
+  '.tar.gz',
+  '.dmg',
+  '.appimage',
+  '.deb',
+];
+const pass = (filename) => {
+  if (typeof filename !== 'string') {
+    return false;
+  }
+  for (const e of exts) {
+    if (filename.toLowerCase().endsWith(e.toLowerCase())) {
+      return true;
+    }
+  }
+  return false;
+}
+
 Promise.allSettled(promises).then(res => {
   for (const item of res) {
     if (item.status === 'fulfilled') {
@@ -101,26 +138,18 @@ Promise.allSettled(promises).then(res => {
       console.error('build error', item.reason);
     }
   }
-}).catch(e => {
-  console.error(e);
-}).finally(() => {
   const buildDir = join(__dirname, 'build');
   const releaseDir = join(__dirname, 'release');
   fs.mkdirSync(releaseDir, {
     recursive: true
   });
-  fs.readdirSync(buildDir, { encoding: 'utf-8' }).forEach(file => {
+  fs.existsSync(buildDir) && fs.readdirSync(buildDir, { encoding: 'utf-8' }).forEach(file => {
     console.log(buildDir, file);
-    if (
-      file.toLowerCase().endsWith('.exe') ||
-      file.toLowerCase().endsWith('.tar.gz') ||
-      file.toLowerCase().endsWith('.dmg') ||
-      file.toLowerCase().endsWith('.appimage')
-    ) {
-      
-      
+    if (pass(file)) {
       console.log('file:', join(buildDir, file), join(releaseDir, file));
       fs.renameSync(join(buildDir, file), join(releaseDir, file));
     }
   });
+}).catch(e => {
+  console.error(e);
 });

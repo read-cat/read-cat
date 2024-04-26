@@ -6,7 +6,7 @@ import { useMessage } from '../../../hooks/message';
 
 export class SearchKeyStoreDatabase extends BaseStoreDatabase<SearchKeyStoreEntity> {
   constructor(db: IDBDatabase, storeName: string) {
-    super(db, storeName, SearchKeyStoreDatabase.name);
+    super(db, storeName, 'SearchKeyStoreDatabase');
     this.read();
   }
   private read() {
