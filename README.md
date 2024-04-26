@@ -7,12 +7,12 @@
     一款免费、开源、简洁、纯净、无广告的小说阅读器
   </p>
   <div align="center">
-    <a href="https://github.com/read-cat/read-cat/releases">
+    <!-- <a href="https://github.com/read-cat/read-cat/releases">
       <img src="https://img.shields.io/github/release/read-cat/read-cat" alt="releases" />
     </a>
     <a href="https://github.com/read-cat/read-cat/releases">
       <img src="https://img.shields.io/github/downloads/read-cat/read-cat/total" alt="downloads" />
-    </a>
+    </a> -->
     <a href="https://github.com/read-cat/read-cat/discussions">
       <img src="https://img.shields.io/github/discussions/read-cat/read-cat" alt="discussions" />
     </a>
