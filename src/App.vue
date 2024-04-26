@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElContainer, ElHeader, ElMain, ElBacktop } from 'element-plus';
-import { Transition, watchEffect } from 'vue';
+import { Transition, onMounted, watchEffect } from 'vue';
 import Toolbar from './components/toolbar/index.vue';
 import { useRouter } from 'vue-router';
 import GoBack from './components/go-back/index.vue';
@@ -45,21 +45,22 @@ const setScrollTop = ({ target }: Event) => {
 const { options } = useSettingsStore();
 const { platform } = process;
 
-const { backgroundColor } = storeToRefs(useSettingsStore());
-watchEffect(() => {
-  if (win.currentPath !== PagePath.READ || win.isDark) {
-    win.rcButtonHoverBackgroundColor = 'var(--rc-button-hover-bgcolor)';
-    return;
-  }
-  const [r, g, b] = getColorRGB(backgroundColor.value);
-  win.rcButtonHoverBackgroundColor = colorIsLight(r, g, b) ? 'var(--rc-button-hover-bgcolor-light)' : 'var(--rc-button-hover-bgcolor-dark)';
+onMounted(() => {
+  const { backgroundColor } = storeToRefs(useSettingsStore());
+  watchEffect(() => {
+    let val = 'var(--rc-button-hover-bgcolor)';
+    if (win.currentPath === PagePath.READ && !win.isDark) {
+      const [r, g, b] = getColorRGB(backgroundColor.value);
+      val = colorIsLight(r, g, b) ? 'var(--rc-button-hover-bgcolor-light)' : 'var(--rc-button-hover-bgcolor-dark)';
+    }
+    document.body.style.setProperty('--rc-button-hover-background-color', val);
+  });
 });
 </script>
 
 <template>
   <ElContainer id="container" :style="{
     '--rc-header-color': win.backgroundColor,
-    '--rc-button-hover-background-color': win.rcButtonHoverBackgroundColor
   }">
     <ElHeader id="header" :class="['app-drag', platform, win.isFullScreen ? 'fullscreen' : '']" :style="{
       '--rc-text-color': win.textColor

@@ -42,7 +42,6 @@ export const useWindowStore = defineStore('Window', {
       inited: false,
       isSetShortcutKey: false,
       globalShortcutKeyRegisterError: new Map<keyof GlobalShortcutKey, string>(),
-      rcButtonHoverBackgroundColor: 'var(--rc-button-hover-bgcolor)',
     }
   },
   getters: {
