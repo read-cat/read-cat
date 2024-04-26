@@ -18,7 +18,8 @@ const {
   zoomInWindowListener,
   zoomOutWindowListener,
   zoomRestWindowListener,
-  bossKeyListener
+  bossKeyListener,
+  fullScreenWindowListener,
 } = useListener();
 </script>
 <script lang="ts">
@@ -36,8 +37,8 @@ export default {
       <SettingsCardItem title="下一章" v-memo="[shortcutKey.nextChapter]">
         <ElInput v-model="shortcutKey.nextChapter" readonly @keydown="nextChapterListener" />
       </SettingsCardItem>
-      <SettingsCardItem title="打开控制台" v-memo="[shortcutKey.openDevTools]">
-        <ElInput v-model="shortcutKey.openDevTools" readonly @keydown="openDevToolsListener" />
+      <SettingsCardItem title="全屏" v-memo="[shortcutKey.fullScreen]">
+        <ElInput v-model="shortcutKey.fullScreen" readonly @keydown="fullScreenWindowListener" />
       </SettingsCardItem>
       <SettingsCardItem title="放大" v-memo="[shortcutKey.zoomInWindow]">
         <ElInput v-model="shortcutKey.zoomInWindow" readonly @keydown="zoomInWindowListener" />
@@ -47,6 +48,9 @@ export default {
       </SettingsCardItem>
       <SettingsCardItem title="重置缩放" v-memo="[shortcutKey.zoomRestWindow]">
         <ElInput v-model="shortcutKey.zoomRestWindow" readonly @keydown="zoomRestWindowListener" />
+      </SettingsCardItem>
+      <SettingsCardItem title="打开控制台" v-memo="[shortcutKey.openDevTools]">
+        <ElInput v-model="shortcutKey.openDevTools" readonly @keydown="openDevToolsListener" />
       </SettingsCardItem>
     </SettingsCard>
     <SettingsCard title="全局">

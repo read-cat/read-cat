@@ -51,6 +51,7 @@ export const useSettingsStore = defineStore('Settings', {
         zoomInWindow: 'Ctrl+=',
         zoomOutWindow: 'Ctrl+-',
         zoomRestWindow: 'Ctrl+\\',
+        fullScreen: 'F11',
         globalBossKey: 'Alt+Q',
       },
       theme: 'os',
@@ -162,6 +163,9 @@ export const useSettingsStore = defineStore('Settings', {
         return '';
       }
       if (keys.length === 1) {
+        if (/F\d{1,2}/.test(uc)) {
+          return uc;
+        }
         switch (uc) {
           case 'ARROWUP':
             return '↑';

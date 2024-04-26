@@ -60,6 +60,8 @@ export type ShortcutKey = {
   zoomOutWindow: string
   /**缩放重置 */
   zoomRestWindow: string
+  /**全屏 */
+  fullScreen: string
 } & GlobalShortcutKey
 export type GlobalShortcutKey = {
   /**老板键 */

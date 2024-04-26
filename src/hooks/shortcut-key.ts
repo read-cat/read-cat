@@ -42,6 +42,9 @@ export const useShortcutKey = () => {
         document.body.style.setProperty('--zoom-factor', `${zoomFactor.value}`);
         GLOBAL_IPC.send(EventCode.ASYNC_ZOOM_WINDOW, zoomFactor.value);
         break;
+      case shortcutKey.value.fullScreen:
+        GLOBAL_IPC.send(EventCode.ASYNC_WINDOW_SET_FULLSCREEN, !win.isFullScreen);
+        break;
       default:
         break;
     }

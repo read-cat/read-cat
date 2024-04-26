@@ -88,6 +88,7 @@ export const useListener = () => {
     zoomInWindowListener: handlerApplicationShortcutKey('zoomInWindow'),
     zoomOutWindowListener: handlerApplicationShortcutKey('zoomOutWindow'),
     zoomRestWindowListener: handlerApplicationShortcutKey('zoomRestWindow'),
+    fullScreenWindowListener: handlerApplicationShortcutKey('fullScreen'),
     bossKeyListener: handlerGlobalShortcutKey('globalBossKey'),
   }
 
