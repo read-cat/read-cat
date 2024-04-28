@@ -31,6 +31,10 @@ export default {
           </td>
         </tr>
         <tr>
+          <td>作者</td>
+          <td>Moomew</td>
+        </tr>
+        <tr>
           <td>提交</td>
           <td>{{ commit }}</td>
         </tr>
