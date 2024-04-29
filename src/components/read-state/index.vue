@@ -29,7 +29,7 @@ export default {
   <div class="read-state app-no-drag">
     <span v-memo="[date]">{{ date }}</span>
     <span v-memo="[readProgress]">已读:{{ readProgress }}</span>
-    <span v-memo="[textContent]">字数:{{ textContent?.length }}</span>
+    <span v-if="textContent" v-memo="[textContent]">字数:{{ textContent.length }}</span>
   </div>
 </template>
 
