@@ -17,8 +17,7 @@ import { useSettingsStore } from '../../../store/settings';
 export const useBookmarks = () => {
   const message = useMessage();
   const { options } = useSettingsStore();
-  const { textContent } = storeToRefs(useTextContentStore());
-  const { currentChapter } = storeToRefs(useTextContentStore());
+  const { currentChapter, textContent } = storeToRefs(useTextContentStore());
   const { getBookmarkByChapterUrl, put, getBookmarkById } = useBookmarkStore();
   const { _bookmarks } = storeToRefs(useBookmarkStore());
   const { currentDetailUrl, currentPid } = storeToRefs(useDetailStore());
@@ -250,13 +249,13 @@ export const useBookmarks = () => {
   }
 
   watch(() => textContent.value, (newVal) => {
-    if (isNull(newVal) || newVal.length <= 1) {
-      const err = isNull(newVal) ? ['无法获取章节标题'] : [...newVal];
+    if (isNull(newVal) || newVal.contents.length <= 1) {
+      const err = isNull(newVal) ? ['无法获取章节标题'] : [...newVal.contents];
       err.push('正文获取失败');
       contents.value = err.map(e => addTag(e, 1)).join('');
       return;
     }
-    contents.value = newVal.map((text, index) => handlerBookmarks(text, index)).join('');
+    contents.value = newVal.contents.map((text, index) => handlerBookmarks(text, index)).join('');
   }, {
     immediate: true
   });
@@ -269,7 +268,7 @@ export const useBookmarks = () => {
     if (isUndefined(bookmark)) {
       return;
     }
-    contents.value = textContent.value.map((text, index) => handlerBookmarks(text, index, bookmark)).join('');
+    contents.value = textContent.value.contents.map((text, index) => handlerBookmarks(text, index, bookmark)).join('');
   }, {
     deep: true
   });

@@ -11,10 +11,15 @@ import { useMessage } from '../hooks/message';
 import { useWindowStore } from './window';
 import { PagePath } from '../core/window';
 
+export type TextContent = {
+  contents: string[],
+  length: number
+}
+
 export const useTextContentStore = defineStore('TextContent', {
   state: () => {
     return {
-      textContent: null as string[] | null,
+      textContent: null as TextContent | null,
       isRunningGetTextContent: false,
       currentChapter: null as Chapter | null,
     }
@@ -44,17 +49,21 @@ export const useTextContentStore = defineStore('TextContent', {
         this.currentChapter = chapter;
         if (dbTextContent && !refresh) {
           const { chapter, textContent } = dbTextContent;
-          // this.currentChapter = chapter;
-          this.textContent = [chapter.title, ...textContent];
+          this.textContent = {
+            contents: [chapter.title, ...textContent],
+            length: textContent.map(t => t.length).reduce((prev, curr) => prev + curr)
+          };
         } else {
-          
           const textContent = (await booksource.getTextContent(chapter));
-          this.textContent = [chapter.title, ...textContent];
+          this.textContent = {
+            contents: [chapter.title, ...textContent],
+            length: textContent.map(t => t.length).reduce((prev, curr) => prev + curr)
+          };
           const cache = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
           if (!isNull(cache)) {
             await GLOBAL_DB.store.textContentStore.put({
               ...cache,
-              textContent: toRaw(this.textContent)
+              textContent: this.textContent.contents
             });
           }
         }

@@ -134,7 +134,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
       if (isNull(instance)) {
         throw newError(`插件未启用, 插件ID:${props.ID}`);
       }
-      await instance.transform(textContent.value, {
+      await instance.transform(textContent.value.contents, {
         start,
         signal: this.abortController.signal,
         rate: 0.1,
