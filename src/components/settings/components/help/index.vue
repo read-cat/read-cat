@@ -35,6 +35,12 @@ export default {
           <td>Moomew</td>
         </tr>
         <tr>
+          <td>官网</td>
+          <td>
+            <ElLink href="https://read-cat.github.io" target="_blank">https://read-cat.github.io</ElLink>
+          </td>
+        </tr>
+        <tr>
           <td>提交</td>
           <td>{{ commit }}</td>
         </tr>
@@ -106,13 +112,22 @@ export default {
 
         :deep(.el-link) {
           color: var(--rc-theme-color);
+
+          &+.el-link {
+            margin-left: 10px;
+          }
         }
       }
 
       tr {
-        td:nth-child(2) {
-          text-indent: 1em;
-          user-select: text;
+        td {
+          &:first-child {
+            padding-right: 20px;
+          }
+
+          &:last-child {
+            user-select: text;
+          }
         }
       }
     }

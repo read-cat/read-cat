@@ -161,7 +161,10 @@ export const usePlugin = () => {
           'text/javascript': ['.js'],
         }
       }],
-    }).catch(() => Promise.resolve(null)).then(async handles => {
+    }).catch(e => {
+      message.warning(e.message);
+      return Promise.resolve(null);
+    }).then(async handles => {
       if (isNull(handles)) {
         return;
       }

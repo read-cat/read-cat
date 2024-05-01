@@ -225,3 +225,7 @@ button {
     font-size: 13px;
   }
 }
+
+.el-link:hover {
+  --el-link-hover-text-color: var(--rc-theme-color);
+}
