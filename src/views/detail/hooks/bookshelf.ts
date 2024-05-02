@@ -14,7 +14,8 @@ export const useBookshelf = (pid: string, detailUrl: string, detailResult: Ref<D
   const bookmark = useBookmarkStore();
   const textContent = useTextContentStore();
   const message = useMessage();
-  const { currentReadIndex, currentReadScrollTop } = storeToRefs(useDetailStore());
+  const { currentReadIndex } = storeToRefs(useDetailStore());
+  const { currentReadScrollTop } = useDetailStore();
   const putAndRemoveBookshelf = () => {
     if (!detailResult.value) {
       return;
@@ -40,8 +41,8 @@ export const useBookshelf = (pid: string, detailUrl: string, detailResult: Ref<D
       id: nanoid(),
       detailPageUrl: detailUrl,
       ...toRaw(detailResult.value),
-      readIndex: currentReadIndex.value,
-      readScrollTop: currentReadScrollTop.value,
+      readIndex: currentReadScrollTop.chapterIndex,
+      readScrollTop: currentReadScrollTop.scrollTop,
       searchIndex: [detailResult.value.bookname, detailResult.value.author].join(' '),
       timestamp: Date.now()
     }).finally(() => {

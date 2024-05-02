@@ -29,8 +29,6 @@ export const useBookmark = (windowEvent?: WindowEvent) => {
   const {
     currentDetailUrl,
     detailResult,
-    currentReadIndex,
-    currentReadScrollTop,
     currentPid
   } = storeToRefs(useDetailStore());
   const { setCurrentReadIndex } = useDetailStore();
@@ -92,7 +90,6 @@ export const useBookmark = (windowEvent?: WindowEvent) => {
       return;
     }
     getTextContent(currentPid.value, chapter).then(() => {
-      (chapter.index !== currentReadIndex.value) && (currentReadScrollTop.value = 0);
       setCurrentReadIndex(isUndefined(chapter.index) ? -1 : chapter.index);
       currentChapter.value = chapter;
       if (currentPath.value !== PagePath.READ) {
