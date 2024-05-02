@@ -11,7 +11,6 @@ process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
 app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
-// app.commandLine.appendSwitch('enable-experimental-web-platform-features');
 
 let win: BrowserWindow | null;
 let pluginDevtoolsWin: BrowserWindow | null = null;
