@@ -13,7 +13,6 @@ export const useTextContent = (detailResult: Ref<DetailPageResult | null>, detai
   const { currentChapter } = storeToRefs(useTextContentStore());
   const router = useRouter();
   const message = useMessage();
-  const { currentReadIndex, currentReadScrollTop } = storeToRefs(useDetailStore());
   const { setCurrentReadIndex } = useDetailStore();
   const getChapterContent = (chapter: Chapter) => {
     if (!detailResult.value) {
@@ -21,7 +20,6 @@ export const useTextContent = (detailResult: Ref<DetailPageResult | null>, detai
     }
     const { pid, chapterList } = detailResult.value;
     getTextContent(pid, chapter).then(() => {
-      (chapter.index !== currentReadIndex.value) && (currentReadScrollTop.value = 0);
       if (isUndefined(chapter.index)) {
         setCurrentReadIndex(-1);
         GLOBAL_LOG.warn(`chapter index is undefined, pid:${pid}`, chapter);

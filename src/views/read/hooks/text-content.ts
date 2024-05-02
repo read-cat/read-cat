@@ -9,7 +9,7 @@ import { errorHandler, newError } from '../../../core/utils';
 
 export const useTextContent = () => {
   const { detailResult, currentDetailUrl, currentPid } = storeToRefs(useDetailStore());
-  const { setCurrentReadIndex } = useDetailStore();
+  const { setCurrentReadIndex, currentReadScrollTop } = useDetailStore();
   const { currentChapter, isRunningGetTextContent } = storeToRefs(useTextContentStore());
   const { getTextContent, cache } = useTextContentStore();
   const message = useMessage();
@@ -49,6 +49,8 @@ export const useTextContent = () => {
       await getTextContent(currentPid.value, chapter);
       calcReadProgress();
       setCurrentReadIndex(index);
+      currentReadScrollTop.chapterIndex = index;
+      currentReadScrollTop.scrollTop = 0;
       if (isNull(currentPid.value) || isNull(currentDetailUrl.value) || isNull(detailResult.value)) {
         return;
       }
@@ -62,7 +64,8 @@ export const useTextContent = () => {
         }
         put({
           ...entity,
-          readIndex: chapter.index
+          readIndex: chapter.index,
+          readScrollTop: 0
         });
       });
     } catch (e) {
