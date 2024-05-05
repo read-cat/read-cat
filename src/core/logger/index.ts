@@ -4,7 +4,9 @@ import {
   mkdirSync,
   openSync,
   writeSync,
+  readFileSync,
 } from 'node:fs';
+import { readdir, unlink } from 'fs/promises';
 import {
   getType,
   isArray,
@@ -18,7 +20,9 @@ import {
   isUint8Array,
   isUndefined,
 } from '../is';
-import { join } from 'node:path';
+import { join, basename } from 'node:path';
+import { errorHandler, newError } from '../utils';
+import { format } from '../utils/date';
 
 interface Property {
   savePath?: string,
@@ -35,7 +39,7 @@ interface LogHead {
 
 export class Logger {
   public static getHead(type: LogType): LogHead {
-    const date = Logger.format(Date.now(), 'yyyy-MM-dd HH:mm:ss.S');
+    const date = format(Date.now(), 'yyyy-MM-dd HH:mm:ss.S');
     let raw = '';
     let val = '';
     switch (type) {
@@ -77,22 +81,23 @@ export class Logger {
   private currentLength = 0;
   private readonly writeToFile: boolean;
   private _debug: boolean;
+  private static readonly LOG_EXPIRES = 7 * 24 * 60 * 60 * 1000;
 
   constructor(prop?: Property) {
     this.writeToFile = !!prop?.enableWriteToFile;
     this._debug = !!prop?.debug;
-    if (this.writeToFile) {
-      try {
-        const savePath = prop?.savePath;
-        if (!isUndefined(savePath)) {
-          this.savePath = savePath;
-        }
+    try {
+      const savePath = prop?.savePath;
+      if (!isUndefined(savePath)) {
+        this.savePath = savePath;
+      }
+      const maxBytesLength = prop?.maxBytesLength;
+      if (!isUndefined(maxBytesLength)) {
+        this.maxBytesLength = maxBytesLength;
+      }
+      if (this.writeToFile) {
         if (!existsSync(this.savePath)) {
           mkdirSync(this.savePath);
-        }
-        const maxBytesLength = prop?.maxBytesLength;
-        if (!isUndefined(maxBytesLength)) {
-          this.maxBytesLength = maxBytesLength;
         }
         const fd = this.open();
         if (isNumber(fd)) {
@@ -100,9 +105,21 @@ export class Logger {
         } else {
           throw fd;
         }
-      } catch (error) {
-        console.error(error);
       }
+      readdir(this.savePath).then(files => {
+        files.forEach(file => {
+          const reg = /(\d+\-\d+\-\d+)(\-\((\d+)\))?\.log$/.exec(file);
+          if (!reg) {
+            return;
+          }
+          const time = (new Date(reg[1])).getTime();
+          if (Date.now() - time >= Logger.LOG_EXPIRES) {
+            unlink(join(this.savePath, file));
+          }
+        });
+      }).catch(console.error);
+    } catch (e) {
+      console.error(e);
     }
   }
 
@@ -111,9 +128,35 @@ export class Logger {
     return this;
   }
 
+  public async getLogString(last = false) {
+    try {
+      const files = (await readdir(this.savePath))
+        .map(file => join(this.savePath, file))
+        .filter(file => {
+          if (!statSync(file).isFile()) {
+            return false;
+          }
+          return last ? file.includes(format(Date.now(), 'yyyy-MM-dd')) : true;
+        })
+      if (files.length < 1) {
+        throw newError('Log files not found');
+      }
+      let str = '';
+      for (const file of files) {
+        const base = basename(file);
+        str += `${base}--------------------\r\n\r\n`;
+        str += readFileSync(file, { encoding: 'utf8' }) + '\r\n\r\n';
+        str += `${Array(base.length).fill('-').join('')}--------------------\r\n\r\n`;
+      }
+      return str;
+    } catch (e) {
+      return errorHandler(e);
+    }
+  }
+
   private open(newfile?: boolean): number | Error {
     try {
-      const date = Logger.format(Date.now(), 'yyyy-MM-dd');
+      const date = format(Date.now(), 'yyyy-MM-dd');
       let num = 1;
       let filepath = join(this.savePath, `${date}.log`);
       let size = 0;
@@ -189,7 +232,7 @@ export class Logger {
       return `'${arg}'`;
     }
     if (isDate(arg)) {
-      return Logger.format(arg, 'yyyy-MM-dd HH:mm:ss');
+      return format(arg, 'yyyy-MM-dd HH:mm:ss');
     }
     if (isFunction(arg)) {
       const funcType = getType(arg);
@@ -273,37 +316,4 @@ export class Logger {
     }
     this.writeToFile && this.write([raw, ...args].join(' '));
   }
-
-  private static format(timestamp: number, format: string): string;
-  private static format(date: Date, format: string): string;
-  private static format(date: any, format: string): string {
-    let temp: Date = date;
-    if (!isDate(date)) {
-      temp = new Date(date);
-    }
-    const o: any = {
-      'M+': temp.getMonth() + 1,
-      'd+': temp.getDate(),
-      'H+': temp.getHours(),
-      'm+': temp.getMinutes(),
-      's+': temp.getSeconds(),
-      'q+': Math.floor((temp.getMonth() + 3) / 3),
-      'S': `00${temp.getMilliseconds()}`.slice(-3)
-    }
-
-    const match = /(y+)/.exec(format);
-    if (!isNull(match)) {
-      format = format.replace(match[1], (temp.getFullYear() + '').substring(4 - match[1].length));
-    }
-
-    for (const key in o) {
-      const match = new RegExp(`(${key})`).exec(format);
-      if (!isNull(match)) {
-        format = format.replace(match[1], (match[1].length == 1) ? (o[key]) : (('00' + o[key]).substring(`${o[key]}`.length)));
-      }
-    }
-    return format;
-  }
 }
-
-export default new Logger();

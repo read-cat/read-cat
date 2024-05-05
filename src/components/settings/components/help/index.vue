@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { ElLink } from 'element-plus';
 import { description } from '../../../../../package.json';
+import { useLog } from './hooks/log';
 
 const { version, branch, commit, date } = METADATA;
 const { chrome, electron, node, v8 } = process.versions;
+
+const { exportLog } = useLog();
+
 </script>
 <script lang="ts">
 export default {
@@ -27,6 +31,7 @@ export default {
             <div>
               <ElLink type="primary" :underline="false">检查更新</ElLink>
               <ElLink type="primary" :underline="false">更新日志</ElLink>
+              <ElLink type="primary" :underline="false" @click="exportLog">导出日志</ElLink>
             </div>
           </td>
         </tr>
@@ -106,15 +111,27 @@ export default {
         align-items: center;
         justify-content: space-between;
 
-        span {
+        &>span {
           user-select: text;
         }
-
+        &>div {
+          display: flex;
+          align-items: center;
+        }
         :deep(.el-link) {
           color: var(--rc-theme-color);
+          transition: scale 0.3s ease;
+
+          &:active {
+            transform: scale(0.95);
+          }
 
           &+.el-link {
             margin-left: 10px;
+          }
+
+          span {
+            font-size: 13px;
           }
         }
       }
