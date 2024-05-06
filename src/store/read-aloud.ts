@@ -141,6 +141,10 @@ export const useReadAloudStore = defineStore('ReadAloud', {
         volume: 0.5,
         voice: 'Microsoft Server Speech Text to Speech Voice (zh-CN, XiaoxiaoNeural)'
       }, (blob, index) => {
+        if (blob.size <= 0) {
+          GLOBAL_LOG.warn('readAloud transform content', textContent.value?.contents[index], index, 'blob size:', blob.size);
+          return;
+        }
         if (first) {
           this.audios = [];
           this.audios[index] = { blob, index };
