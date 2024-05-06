@@ -7,6 +7,7 @@ import { useScrollTopStore } from './scrolltop';
 import { useTextContent } from '../views/read/hooks/text-content';
 import { useSettingsStore } from './settings';
 import { newError } from '../core/utils';
+import MuteMP3 from '../assets/mute.mp3';
 
 
 export const useReadAloudStore = defineStore('ReadAloud', {
@@ -143,7 +144,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
       }, (blob, index) => {
         if (blob.size <= 0) {
           GLOBAL_LOG.warn('readAloud transform content', textContent.value?.contents[index], index, 'blob size:', blob.size);
-          return;
+          blob = new Blob([MuteMP3], { type: 'audio/mp3' });
         }
         if (first) {
           this.audios = [];
