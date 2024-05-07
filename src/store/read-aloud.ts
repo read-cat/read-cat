@@ -9,7 +9,6 @@ import { useSettingsStore } from './settings';
 import { newError } from '../core/utils';
 import MuteMP3 from '../assets/mute.mp3';
 
-
 export const useReadAloudStore = defineStore('ReadAloud', {
   state: () => {
     return {
@@ -40,12 +39,14 @@ export const useReadAloudStore = defineStore('ReadAloud', {
         textContent,
         currentChapter
       } = storeToRefs(useTextContentStore());
+      const { nextChapter } = useTextContent();
+      const { options } = useSettingsStore();
       const message = useMessage();
       if (isRunningGetTextContent.value) {
         message.warning('正在获取正文');
         return;
       }
-      if (isNull(textContent.value) || textContent.value.length <= 0) {
+      if (isNull(textContent.value) || textContent.value.contents.length <= 0) {
         message.error('无法获取正文');
         return;
       }
@@ -101,9 +102,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
       this.readAloudRef.onended = () => {
         this.isPlay = false;
         this.currentPlayIndex += 1;
-        if (!isNull(textContent.value) && this.currentPlayIndex >= textContent.value.length) {
-          const { nextChapter } = useTextContent();
-          const { options } = useSettingsStore();
+        if (!isNull(textContent.value) && this.currentPlayIndex >= textContent.value.contents.length) {
           this.currentPlayIndex = -1;
           first = true;
           this.audios = [];
