@@ -47,6 +47,8 @@ export const useSettingsStore = defineStore('Settings', {
       shortcutKey: {
         nextChapter: '→',
         prevChapter: '←',
+        scrollUp: '↑',
+        scrollDown: '↓',
         openDevTools: 'Ctrl+Shift+I',
         zoomInWindow: 'Ctrl+=',
         zoomOutWindow: 'Ctrl+-',
@@ -175,6 +177,12 @@ export const useSettingsStore = defineStore('Settings', {
             return '↓';
           case 'ARROWLEFT':
             return '←';
+          case ' ':
+            return 'Space';
+          case 'PAGEUP':
+            return 'PageUp';
+          case 'PAGEDOWN':
+            return 'PageDown';
           default:
             return '';
         }

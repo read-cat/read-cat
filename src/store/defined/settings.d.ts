@@ -52,6 +52,10 @@ export type ShortcutKey = {
   nextChapter: string
   /**上一章节 */
   prevChapter: string
+  /**向上滚动 */
+  scrollUp: string
+  /**向下滚动 */
+  scrollDown: string
   /**打开控制台 */
   openDevTools: string
   /**放大窗口 */

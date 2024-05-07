@@ -6,6 +6,7 @@ import { useWindowStore } from '../store/window';
 import { PagePath } from '../core/window';
 import { EventCode } from '../../events';
 import { GlobalShortcutKey } from '../store/defined/settings';
+import { useScrollTopStore } from '../store/scrolltop';
 
 export const useShortcutKey = () => {
   const { nextChapter, prevChapter } = useTextContent();
@@ -13,6 +14,7 @@ export const useShortcutKey = () => {
   const { handlerKeyboard } = useSettingsStore();
   const win = useWindowStore();
   const { isSetShortcutKey, globalShortcutKeyRegisterError } = storeToRefs(win);
+  const { mainElement } = storeToRefs(useScrollTopStore());
 
   const handler = debounce((key: string) => {
     switch (key) {
@@ -21,6 +23,12 @@ export const useShortcutKey = () => {
         break;
       case shortcutKey.value.prevChapter:
         win.currentPath === PagePath.READ && prevChapter();
+        break;
+      case shortcutKey.value.scrollUp:
+        mainElement.value.scrollTop -= 300;
+        break;
+      case shortcutKey.value.scrollDown:
+        mainElement.value.scrollTop += 300;
         break;
       case shortcutKey.value.openDevTools:
         GLOBAL_IPC.send(EventCode.ASYNC_OPEN_DEVTOOLS);
@@ -51,6 +59,9 @@ export const useShortcutKey = () => {
   }, 200);
 
   const onKeydown = (e: KeyboardEvent) => {
+    if (win.currentPath === PagePath.READ) {
+      e.preventDefault();
+    }
     if (isSetShortcutKey.value) {
       return;
     }
