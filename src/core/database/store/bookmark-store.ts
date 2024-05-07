@@ -29,7 +29,7 @@ export class BookmarkStoreDatabase extends BaseStoreDatabase<BookmarkStoreEntity
           .transaction([this.storeName], 'readonly')
           .objectStore(this.storeName)
           .index('index_chapterUrl')
-          .getAll(super.toRaw(chapterUrl));
+          .getAll(chapterUrl);
         requ.onsuccess = () => {
           let result: BookmarkStoreEntity[] | null = null;
           if (!isUndefined(requ.result)) {
@@ -53,7 +53,7 @@ export class BookmarkStoreDatabase extends BaseStoreDatabase<BookmarkStoreEntity
           .transaction([this.storeName], 'readonly')
           .objectStore(this.storeName)
           .index('index_detailUrl')
-          .getAll(IDBKeyRange.only([super.toRaw(detailUrl)]));
+          .getAll(IDBKeyRange.only([detailUrl]));
         requ.onsuccess = () => {
           let result: BookmarkStoreEntity[] | null = null;
           if (!isUndefined(requ.result)) {
@@ -71,7 +71,7 @@ export class BookmarkStoreDatabase extends BaseStoreDatabase<BookmarkStoreEntity
     });
   }
   async removeByDetailUrl(detailUrl: string): Promise<void> {
-    const entitys = await this.getByDetailUrl(super.toRaw(detailUrl));
+    const entitys = await this.getByDetailUrl(detailUrl);
     if (isNull(entitys) || entitys.length <= 0) {
       return;
     }

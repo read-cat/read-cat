@@ -44,7 +44,7 @@ export class SettingsStoreDatabase extends BaseStoreDatabase<SettingsEntity> {
       });
     }, 5 * 1000);
     useSettingsStore().$subscribe((_, state) => {
-      debo(super.toRaw(state));
+      debo(super.revocationProxy(state));
     }, {
       deep: true
     });

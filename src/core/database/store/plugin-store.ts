@@ -1,3 +1,4 @@
+import { toRaw } from 'vue';
 import { isNull, isUndefined } from '../../is';
 import { PluginsStoreEntity } from '../database';
 import { BaseStoreDatabase } from './base-store';
@@ -15,7 +16,7 @@ export class PluginsStoreDatabase extends BaseStoreDatabase<PluginsStoreEntity> 
           .transaction([this.storeName], 'readonly')
           .objectStore(this.storeName)
           .index('index_pid_key')
-          .get(IDBKeyRange.only([super.toRaw(pid), super.toRaw(key)]));
+          .get(IDBKeyRange.only([pid, key]));
         requ.onsuccess = () => {
           let result: PluginsStoreEntity | null = null;
           if (!isUndefined(requ.result)) {
@@ -36,7 +37,7 @@ export class PluginsStoreDatabase extends BaseStoreDatabase<PluginsStoreEntity> 
   put(val: PluginsStoreEntity): Promise<void> {
     return new Promise<void>(async (reso, reje) => {
       try {
-        const _val = super.toRaw(val);
+        const _val = toRaw(val);
         const raw = await this.getByPidAndKey(_val.pid, _val.key);
         await super.put({
           ..._val,

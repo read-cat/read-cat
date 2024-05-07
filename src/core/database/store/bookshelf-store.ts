@@ -63,7 +63,7 @@ export class BookshelfStoreDatabase extends BaseStoreDatabase<BookshelfStoreEnti
           .transaction([this.storeName], 'readonly')
           .objectStore(this.storeName)
           .index('index_pid_url')
-          .get(IDBKeyRange.only([super.toRaw(pid), super.toRaw(detailPageUrl)]));
+          .get(IDBKeyRange.only([pid, detailPageUrl]));
         requ.onsuccess = () => {
           let result: BookshelfStoreEntity | null = null;
           if (!isUndefined(requ.result)) {
@@ -96,7 +96,7 @@ export class BookshelfStoreDatabase extends BaseStoreDatabase<BookshelfStoreEnti
   removeByPidAndDetailPageUrl(pid: string, detailPageUrl: string): Promise<void> {
     return new Promise<void>(async (reso, reje) => {
       try {
-        const val = await this.getByPidAndDetailPageUrl(super.toRaw(pid), super.toRaw(detailPageUrl));
+        const val = await this.getByPidAndDetailPageUrl(pid, detailPageUrl);
         if (isNull(val)) {
           return reso();
         }

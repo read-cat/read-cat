@@ -11,6 +11,7 @@ import { PagePath } from '../../../core/window';
 import { useRouter } from 'vue-router';
 import { useScrollTopStore } from '../../../store/scrolltop';
 import { WindowEvent } from '../../window/index.vue';
+import { ElMessageBox, TreeInstance } from 'element-plus';
 
 export type BookmarkTreeChildren = {
   bid: string
@@ -25,7 +26,7 @@ export type BookmarkTree = {
 
 export const useBookmark = (windowEvent?: WindowEvent) => {
   const { bookmarks } = storeToRefs(useBookmarkStore());
-  const { getBookmarkById } = useBookmarkStore();
+  const { getBookmarkById, removeBookmarkRangeByBidAndId } = useBookmarkStore();
   const {
     currentDetailUrl,
     detailResult,
@@ -40,7 +41,7 @@ export const useBookmark = (windowEvent?: WindowEvent) => {
   const { scrollTop } = useScrollTopStore();
   const router = useRouter();
   const message = useMessage();
-
+  const bookmarkTreeRef = ref<TreeInstance>();
   const handler = (entitys: BookmarkStoreEntity[], detailUrl: string | null) => {
     bookmarkTree.value = entitys
       .filter(b => b.detailUrl === detailUrl)
@@ -114,9 +115,53 @@ export const useBookmark = (windowEvent?: WindowEvent) => {
       message.error(e.message);
     });
   }
+
+  const removeBookmarksChecked = async () => {
+    try {
+      const checkeds = bookmarkTreeRef.value?.getCheckedNodes()
+        .filter(v => v.bid && v.id);
+      if (!checkeds || checkeds.length < 1) {
+        message.warning('未选中书签');
+        return;
+      }
+      await ElMessageBox.confirm('是否删除已选书签?', '书签', {
+        type: 'info',
+        confirmButtonText: '删除',
+        cancelButtonText: '取消'
+      });
+      const error: {
+        bid: string,
+        id: string,
+        error: Error
+      }[] = [];
+      for (const item of (<BookmarkTreeChildren[]>checkeds)) {
+        await removeBookmarkRangeByBidAndId(item.bid, item.id).catch(e => {
+          error.push({
+            bid: item.bid,
+            id: item.id,
+            error: e
+          });
+        });
+      }
+      if (error.length > 0) {
+        message.info(`已删除:${checkeds.length - error.length}, 失败:${error.length}`);
+        GLOBAL_LOG.error('bookmarks remove', error);
+        return;
+      }
+      message.success('已删除选中书签');
+    } catch (e: any) {
+      if (e === 'cancel') {
+        return;
+      }
+      message.error(e.message);
+    }
+  }
+
   return {
     bookmarkTree,
     currentChapterBookmarkId,
     nodeClick,
+    bookmarkTreeRef,
+    removeBookmarksChecked,
   }
 }

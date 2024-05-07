@@ -265,9 +265,6 @@ export const useBookmarks = () => {
       return;
     }
     const bookmark = newVal.find(v => v.chapterUrl === currentChapter.value?.url);
-    if (isUndefined(bookmark)) {
-      return;
-    }
     contents.value = textContent.value.contents.map((text, index) => handlerBookmarks(text, index, bookmark)).join('');
   }, {
     deep: true

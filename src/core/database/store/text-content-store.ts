@@ -40,7 +40,7 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
           .transaction([this.storeName], 'readonly')
           .objectStore(this.storeName)
           .index('index_pid_chapterUrl')
-          .get(IDBKeyRange.only([super.toRaw(pid), super.toRaw(chapterUrl)]));
+          .get(IDBKeyRange.only([pid, chapterUrl]));
         requ.onsuccess = () => {
           let result: TextContentStoreEntity | null = null;
           if (!isUndefined(requ.result)) {
@@ -65,7 +65,7 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
           .transaction([this.storeName], 'readonly')
           .objectStore(this.storeName)
           .index('index_pid_chapterIndex')
-          .get(IDBKeyRange.only([super.toRaw(pid), super.toRaw(chapterIndex)]));
+          .get(IDBKeyRange.only([pid, chapterIndex]));
         requ.onsuccess = () => {
           let result: TextContentStoreEntity | null = null;
           if (!isUndefined(requ.result)) {
@@ -95,7 +95,7 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
     });
   }
   async removeByPidAndChapter(pid: string, chapter: Chapter): Promise<void> {
-    const val = await this.getByPidAndChapterUrl(super.toRaw(pid), super.toRaw(chapter).url);
+    const val = await this.getByPidAndChapterUrl(pid, chapter.url);
     if (isNull(val)) {
       return;
     }
