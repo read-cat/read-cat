@@ -102,7 +102,7 @@ export default {
             placeholder="请输入搜索关键字" :prefix-icon="IconSearch" />
         </div>
       </template>
-      <ElTable v-memo="[showValue]" :data="showValue" height="260" @selection-change="handleSelectionChange"
+      <ElTable v-memo="[showValue]" :data="showValue" height="245" @selection-change="handleSelectionChange"
         empty-text="暂无插件">
         <ElTableColumn type="selection" width="30" />
         <ElTableColumn label="ID" width="90">
