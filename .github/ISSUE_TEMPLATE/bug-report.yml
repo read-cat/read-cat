@@ -1,0 +1,43 @@
+name: Bug Report
+description: File a bug report.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您花时间填写这个bug报告!
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: 问题描述
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现
+      description: 请描述BUG产生过程或录制视频并填写视频链接
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 版本号
+      description: 可在设置/关于中复制
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: 提交
+      description: 可在设置/关于中复制
+    validations:
+      required: true
+  - type: input
+    id: logs
+    attributes:
+      label: 日志
+      description: 请填写日志文件链接，可在设置/关于/导出日志
+    validations:
+      required: true
