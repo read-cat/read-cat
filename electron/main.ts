@@ -4,6 +4,7 @@ import { EventCode } from '../events';
 import { createPluginDevtoolsWindow } from './plugin-devtools';
 import { PluginDevtoolsEventCode } from '../events/plugin-devtools';
 import { useShortcutKey } from './shortcut-key';
+import fs from 'fs/promises';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public');
@@ -16,12 +17,12 @@ let win: BrowserWindow | null;
 let pluginDevtoolsWin: BrowserWindow | null = null;
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
 const icon = path.join(process.env.VITE_PUBLIC, 'icons/icon.ico');
-
-function createWindow() {
+const windowSizeConfigPath = path.join(app.getPath('userData'), 'window_size');
+function createWindow(width?: number, height?: number) {
   win = new BrowserWindow({
     title: 'ReadCat',
-    width: 950,
-    height: 650,
+    width: (width === void 0 || width < 950) ? 950 : width,
+    height: (height === void 0 || height < 650) ? 650 : height,
     minWidth: 950,
     minHeight: 650,
     frame: process.platform !== 'linux',
@@ -53,9 +54,6 @@ function createWindow() {
       action: 'deny'
     }
   });
-  /* win.on('ready-to-show', () => {
-    VITE_DEV_SERVER_URL && win?.webContents.openDevTools();
-  }); */
   win.on('closed', () => {
     app.quit();
     win = null;
@@ -72,6 +70,14 @@ function createWindow() {
   });
   win.on('unmaximize', () => {
     win?.webContents.send(EventCode.ASYNC_WINDOW_IS_MAXIMIZE, false);
+  });
+  win.on('resized', () => {
+    if (!win) return;
+    const [width, height] = win.getSize();
+    fs.writeFile(windowSizeConfigPath, JSON.stringify({
+      width,
+      height
+    }), { encoding: 'utf-8' });
   });
 
   (process.platform === 'win32') && ipcMain.on(EventCode.ASYNC_SET_TITLE_BAR_STYLE, (_, bgcolor, textcolor) => {
@@ -99,7 +105,7 @@ function createWindow() {
     win.isMaximized() ? win.unmaximize() : win.maximize();
   });
   ipcMain.on(EventCode.SYNC_IS_DEV, e => {
-    e.returnValue = VITE_DEV_SERVER_URL ? true : false;
+    e.returnValue = !!VITE_DEV_SERVER_URL;
   });
   ipcMain.on(EventCode.SYNC_GET_USER_DATA_PATH, e => {
     e.returnValue = app.getPath('userData');
@@ -166,6 +172,26 @@ app.on('activate', () => {
   }
 });
 
-app.whenReady().then(() => {
-  createWindow();
-});
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (!win) {
+      return;
+    }
+    win.isMinimized() && win.restore();
+    win.focus();
+  });
+
+  app.whenReady().then(async () => {
+    try {
+      const config = await fs.readFile(windowSizeConfigPath, { encoding: 'utf-8' });
+      const { width, height } = JSON.parse(config);
+      createWindow(width, height);
+    } catch (e) {
+      createWindow();
+    }
+  });
+}
+
+
