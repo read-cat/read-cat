@@ -59,13 +59,17 @@ export const useShortcutKey = () => {
   }, 200);
 
   const onKeydown = (e: KeyboardEvent) => {
-    if (win.currentPath === PagePath.READ) {
-      e.preventDefault();
-    }
     if (isSetShortcutKey.value) {
       return;
     }
-    const { altKey, ctrlKey, shiftKey, metaKey, key } = e;
+    const { target, altKey, ctrlKey, shiftKey, metaKey, key } = e;
+    const tag = (<HTMLElement>target).tagName.toLowerCase();
+    if (![
+      'textarea',
+      'input'
+    ].includes(tag)) {
+      e.preventDefault();
+    }
     handler(handlerKeyboard(altKey, ctrlKey, shiftKey, metaKey, key));
   }
 
