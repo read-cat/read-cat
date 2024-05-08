@@ -19,6 +19,7 @@ onUnmounted(() => {
 
 const { readProgress } = storeToRefs(useWindowStore());
 const { textContent } = storeToRefs(useTextContentStore());
+const { platform } = process;
 </script>
 <script lang="ts">
 export default {
@@ -26,10 +27,10 @@ export default {
 }
 </script>
 <template>
-  <div class="read-state app-no-drag">
+  <div :class="['read-state', 'app-no-drag', platform]">
     <span v-memo="[date]">{{ date }}</span>
-    <span v-memo="[readProgress]">已读:{{ readProgress }}</span>
-    <span v-if="textContent" v-memo="[textContent]">字数:{{ textContent.length }}</span>
+    <span v-memo="[readProgress]">已读:<br v-if="platform === 'darwin'">{{ readProgress }}</span>
+    <span v-if="textContent" v-memo="[textContent]">字数:<br v-if="platform === 'darwin'">{{ textContent.length }}</span>
   </div>
 </template>
 
@@ -46,6 +47,18 @@ export default {
 
     &:last-child {
       margin-right: 0;
+    }
+
+
+  }
+
+  &:is(.darwin) {
+    span {
+
+      &:nth-child(2),
+      &:nth-child(3) {
+        font-size: 12px;
+      }
     }
   }
 }
