@@ -43,9 +43,10 @@ module.exports = () => {
   const vs = pkg.version.split('.');
   const versionCode = Number(`${vs[0]}.${vs.slice(1).join('')}`);
   const b = getBranch(branch);
-  const version = `${pkg.version}${b === 'release' ? '' : '-' + b}`;
+  const isDev = b === 'dev';
+  const version = `${pkg.version}${isDev ? '-' + b : ''}`;
   return {
-    tag: `v${version}`,
+    tag: `v${version}${isDev && (`.${date}`)}`,
     version,
     versionCode,
     branch,
