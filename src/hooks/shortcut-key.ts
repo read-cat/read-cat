@@ -7,6 +7,7 @@ import { PagePath } from '../core/window';
 import { EventCode } from '../../events';
 import { GlobalShortcutKey } from '../store/defined/settings';
 import { useScrollTopStore } from '../store/scrolltop';
+import { onMounted } from 'vue';
 
 export const useShortcutKey = () => {
   const { nextChapter, prevChapter } = useTextContent();
@@ -23,12 +24,6 @@ export const useShortcutKey = () => {
         break;
       case shortcutKey.value.prevChapter:
         win.currentPath === PagePath.READ && prevChapter();
-        break;
-      case shortcutKey.value.scrollUp:
-        mainElement.value.scrollTop -= scrollbarStepValue.value;
-        break;
-      case shortcutKey.value.scrollDown:
-        mainElement.value.scrollTop += scrollbarStepValue.value;
         break;
       case shortcutKey.value.openDevTools:
         GLOBAL_IPC.send(EventCode.ASYNC_OPEN_DEVTOOLS);
@@ -58,6 +53,33 @@ export const useShortcutKey = () => {
     }
   }, 200);
 
+  let scrollEnd = true;
+  const handlerScrollTop = (key: string) => {
+    const { scrollTop, scrollHeight, clientHeight } = mainElement.value;
+    if (scrollTop <= 0 || scrollTop >= (scrollHeight - clientHeight)) {
+      scrollEnd = true;
+    }
+    if (!scrollEnd) {
+      return;
+    }
+    scrollEnd = false;
+    switch (key) {
+      case shortcutKey.value.scrollUp:
+        mainElement.value.scrollTop -= scrollbarStepValue.value;
+        break;
+      case shortcutKey.value.scrollDown:
+        mainElement.value.scrollTop += scrollbarStepValue.value;
+        break;
+      default:
+        break;
+    }
+  }
+  onMounted(() => {
+    mainElement.value.addEventListener('scrollend', () => {
+      scrollEnd = true;
+    });
+  });
+
   const onKeydown = (e: KeyboardEvent) => {
     if (isSetShortcutKey.value) {
       return;
@@ -70,7 +92,15 @@ export const useShortcutKey = () => {
     ].includes(tag)) {
       e.preventDefault();
     }
-    handler(handlerKeyboard(altKey, ctrlKey, shiftKey, metaKey, key));
+    const skey = handlerKeyboard(altKey, ctrlKey, shiftKey, metaKey, key);
+    if ([
+      shortcutKey.value.scrollUp,
+      shortcutKey.value.scrollDown,
+    ].includes(skey)) {
+      handlerScrollTop(skey);
+    } else {
+      handler(skey);
+    }
   }
 
   window.addEventListener('keydown', onKeydown);
