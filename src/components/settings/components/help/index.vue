@@ -42,7 +42,7 @@ export default {
         <tr>
           <td>官网</td>
           <td>
-            <ElLink href="https://read-cat.github.io" target="_blank">https://read-cat.github.io</ElLink>
+            <ElLink href="https://read-cat.top" target="_blank">https://read-cat.top</ElLink>
           </td>
         </tr>
         <tr>
