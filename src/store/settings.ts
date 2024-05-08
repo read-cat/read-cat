@@ -59,6 +59,7 @@ export const useSettingsStore = defineStore('Settings', {
       theme: 'os',
       updateSource: 'Github',
       zoomFactor: 1,
+      scrollbarStepValue: 300
     }
   },
   getters: {

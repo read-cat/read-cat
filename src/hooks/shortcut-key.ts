@@ -10,7 +10,7 @@ import { useScrollTopStore } from '../store/scrolltop';
 
 export const useShortcutKey = () => {
   const { nextChapter, prevChapter } = useTextContent();
-  const { shortcutKey, zoomFactor } = storeToRefs(useSettingsStore());
+  const { shortcutKey, zoomFactor, scrollbarStepValue } = storeToRefs(useSettingsStore());
   const { handlerKeyboard } = useSettingsStore();
   const win = useWindowStore();
   const { isSetShortcutKey, globalShortcutKeyRegisterError } = storeToRefs(win);
@@ -25,10 +25,10 @@ export const useShortcutKey = () => {
         win.currentPath === PagePath.READ && prevChapter();
         break;
       case shortcutKey.value.scrollUp:
-        mainElement.value.scrollTop -= 300;
+        mainElement.value.scrollTop -= scrollbarStepValue.value;
         break;
       case shortcutKey.value.scrollDown:
-        mainElement.value.scrollTop += 300;
+        mainElement.value.scrollTop += scrollbarStepValue.value;
         break;
       case shortcutKey.value.openDevTools:
         GLOBAL_IPC.send(EventCode.ASYNC_OPEN_DEVTOOLS);

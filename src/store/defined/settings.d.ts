@@ -97,5 +97,7 @@ export type Settings = {
   updateSource: UpdateSource
   /**缩放系数 */
   zoomFactor: number
+  /**快捷键滚动步进值 */
+  scrollbarStepValue: number
 }
 

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import {
   ElSwitch,
-  ElInputNumber
+  ElInputNumber,
+  ElDivider
 } from 'element-plus';
 import SettingsCard from '../card/index.vue';
 import SettingsCardItem from '../card/item/index.vue';
@@ -12,7 +13,12 @@ import ThemeItem from './components/theme-item/index.vue';
 import { SettingsTheme } from '../../../../store/defined/settings';
 
 const { options, setTheme } = useSettingsStore();
-const { threadsNumber, maxCacheChapterNumber, theme } = storeToRefs(useSettingsStore());
+const {
+  threadsNumber,
+  maxCacheChapterNumber,
+  theme,
+  scrollbarStepValue
+} = storeToRefs(useSettingsStore());
 
 const themeChange = (val: SettingsTheme) => {
   setTheme(val);
@@ -62,6 +68,11 @@ export default {
       </SettingsCardItem>
       <SettingsCardItem v-memo="[options.enableAutoTextColor]" title="文本颜色自适应" help="仅阅读界面生效">
         <ElSwitch :validate-event="false" v-model="options.enableAutoTextColor" />
+      </SettingsCardItem>
+      <ElDivider />
+      <SettingsCardItem v-memo="[scrollbarStepValue]" title="快捷键滚动步进值" help="仅快捷键向上/下滚动时生效">
+        <ElInputNumber v-model="scrollbarStepValue" @change="cur => scrollbarStepValue = Math.floor(isUndefined(cur) ? 300 : cur)"
+          size="small" :value-on-clear="300" :min="50" :max="5000" :step="50" />
       </SettingsCardItem>
     </SettingsCard>
     <SettingsCard title="任务">
