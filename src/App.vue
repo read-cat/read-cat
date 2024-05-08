@@ -4,7 +4,7 @@ import { Transition, onMounted, watchEffect } from 'vue';
 import Toolbar from './components/toolbar/index.vue';
 import { useRouter } from 'vue-router';
 import GoBack from './components/go-back/index.vue';
-import Timer from './components/timer/index.vue';
+import ReadState from './components/read-state/index.vue';
 import Navigation from './components/navigation/index.vue';
 import { useScrollTopStore } from './store/scrolltop';
 import Search from './components/search/index.vue';
@@ -74,10 +74,7 @@ onMounted(() => {
         <GoBack id="goback" class="app-no-drag" :style="{
           marginLeft: win.currentPath === PagePath.READ ? '0' : '10px'
         }" />
-        <Timer id="timer" v-if="win.currentPath === PagePath.READ" class="app-no-drag" />
-        <div id="read-progress" class="app-no-drag" v-show="win.currentPath === PagePath.READ">
-          <span>已读:{{ win.readProgress }}</span>
-        </div>
+        <ReadState id="read-state" v-if="win.currentPath === PagePath.READ" />
       </div>
       <div class="center-box">
         <Search :path="win.currentPath" class="app-no-drag" />

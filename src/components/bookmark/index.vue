@@ -1,12 +1,19 @@
 <script setup lang="ts">
-import { ElTree } from 'element-plus';
+import { ElButton, ElTree } from 'element-plus';
 import { WindowEvent } from '../window/index.vue';
 import { useBookmark } from './hooks/bookmark';
+import IconDelete from '../../assets/svg/icon-delete.svg';
 
 const props = defineProps<{
   windowEvent?: WindowEvent
 }>();
-const { bookmarkTree, currentChapterBookmarkId, nodeClick } = useBookmark(props.windowEvent);
+const {
+  bookmarkTree,
+  currentChapterBookmarkId,
+  nodeClick,
+  bookmarkTreeRef,
+  removeBookmarksChecked
+} = useBookmark(props.windowEvent);
 
 </script>
 <script lang="ts">
@@ -17,7 +24,11 @@ export default {
 
 <template>
   <div class="container">
+    <div class="bookmark-toolbar">
+      <ElButton type="danger" circle @click="removeBookmarksChecked" :icon="IconDelete" />
+    </div>
     <ElTree
+      ref="bookmarkTreeRef"
       v-memo="[bookmarkTree]"
       :data="bookmarkTree"
       :props="{ children: 'children', label: 'label' }"
@@ -25,6 +36,7 @@ export default {
       empty-text="暂无书签"
       :default-expanded-keys="currentChapterBookmarkId ? [currentChapterBookmarkId] : void 0"
       @node-click="nodeClick"
+      show-checkbox
     >
     </ElTree>
   </div>
@@ -32,6 +44,16 @@ export default {
 
 <style scoped lang="scss">
 .container {
+  .bookmark-toolbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    
+    :deep(.el-button *) {
+      color: #FFFFFF;
+    }
+  }
   :deep(.el-tree) {
     --el-tree-node-hover-bg-color: var(--rc-button-hover-background-color);
     --el-fill-color-blank: none;
@@ -81,6 +103,10 @@ export default {
       }
     }
 
+
+    span.el-checkbox__inner {
+      --el-checkbox-input-border: 1px solid currentColor;
+    }
   }
 }
 </style>

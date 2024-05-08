@@ -115,8 +115,17 @@ export const newAxiosError = <T = any, D = any>(
 
 export const isPluginContext = () => {
   const { stack } = new Error;
+  if (!stack) {
+    return true;
+  }
   if (
-    !stack ||
+    stack.includes('setStoreValue') ||
+    stack.includes('getStoreValue') ||
+    stack.includes('removeStoreValue')
+  ) {
+    return false;
+  }
+  if (
     stack.includes('createPluginClassInstance') ||
     stack.includes('runPluginScript')
   ) {

@@ -2,7 +2,7 @@
 import {
   ElDivider
 } from 'element-plus';
-import { onMounted } from 'vue';
+import { nextTick, onMounted } from 'vue';
 import { useScrollTopStore } from '../../store/scrolltop';
 import { useWindowStore } from '../../store/window';
 import { useSettingsStore } from '../../store/settings';
@@ -10,7 +10,7 @@ import { Font } from '../../core/font';
 import { useTextContentStore } from '../../store/text-content';
 import { storeToRefs } from 'pinia';
 import { useRoute } from 'vue-router';
-import { useBookshelf } from './hooks/bookshelf';
+import { useScrollTop } from './hooks/scrolltop';
 import { PagePath } from '../../core/window';
 import { useMessage } from '../../hooks/message';
 import { isNull, isUndefined } from '../../core/is';
@@ -18,19 +18,12 @@ import { useDetailStore } from '../../store/detail';
 import Menu from '../../components/menu/index.vue';
 import MenuItem from '../../components/menu/item/index.vue';
 import { useBookmarks } from './hooks/bookmarks';
-import { DefaultReadColor } from '../../core/window/default-read-style';
 import { useTextContent } from './hooks/text-content';
 
 const route = useRoute();
 
 const pid = String(route.query.pid);
 const detailUrl = String(route.query.detailUrl);
-
-const { setDefaultReadColorById } = useSettingsStore();
-(<any>window).setBgColor = (index: number) => {
-  const all = DefaultReadColor.getAll();
-  setDefaultReadColorById(all[index].id);
-}
 
 const { currentChapter } = storeToRefs(useTextContentStore());
 const { mainElement } = useScrollTopStore();
@@ -52,13 +45,12 @@ const {
   readAloudColor,
 } = storeToRefs(useSettingsStore());
 onMounted(() => {
-  setTimeout(() => calcReadProgress(mainElement), 500);
-  // pageScrollTop(PagePath.READ);
+  nextTick(() => calcReadProgress(mainElement));
 });
 const { isRunningGetTextContent } = storeToRefs(useTextContentStore());
 const { getTextContent } = useTextContentStore();
 
-useBookshelf(pid, detailUrl);
+useScrollTop(pid, detailUrl);
 
 const message = useMessage();
 const { onRefresh } = useWindowStore();

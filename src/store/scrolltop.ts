@@ -18,8 +18,8 @@ export const useScrollTopStore = defineStore('ScrollTop', {
     }
   },
   getters: {
-    mainElement(): HTMLElement | null {
-      return document.getElementById('main');
+    mainElement(): HTMLElement {
+      return <HTMLElement>document.getElementById('main');
     }
   },
   actions: {
@@ -27,10 +27,10 @@ export const useScrollTopStore = defineStore('ScrollTop', {
       this.value[path] = value;
     },
     scrollTop(value: number) {
-      this.mainElement && (this.mainElement.scrollTop = value);
+      this.mainElement.scrollTop = value;
     },
     pageScrollTop(path: PagePath) {
-      this.mainElement && (this.mainElement.scrollTop = this.value[path]);
+      this.mainElement.scrollTop = this.value[path];
     }
   }
 });

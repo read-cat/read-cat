@@ -22,7 +22,10 @@ export const useDetailStore = defineStore('Detail', {
       currentDetailUrl: null as string | null,
       currentPage: 1,
       currentReadIndex: -1,
-      currentReadScrollTop: 0,
+      currentReadScrollTop: {
+        chapterIndex: 0,
+        scrollTop: 0
+      },
       cacheIndexs: [] as number[],
       currentPid: null as string | null,
     }
@@ -75,7 +78,10 @@ export const useDetailStore = defineStore('Detail', {
             }
             this.detailResult = book;
             this.setCurrentReadIndex(book.readIndex);
-            this.currentReadScrollTop = book.readScrollTop;
+            this.currentReadScrollTop = {
+              chapterIndex: book.readIndex,
+              scrollTop: book.readScrollTop
+            };
             this.currentDetailUrl = url;
             this.currentPid = pid;
             return;
@@ -112,7 +118,10 @@ export const useDetailStore = defineStore('Detail', {
         } else {
           this.currentPage = 1;
           this.setCurrentReadIndex(-1);
-          this.currentReadScrollTop = 0;
+          this.currentReadScrollTop = {
+            chapterIndex: -1,
+            scrollTop: 0
+          };
         }
         this.detailResult = obj;
         this.currentDetailUrl = url;

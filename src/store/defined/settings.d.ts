@@ -52,6 +52,10 @@ export type ShortcutKey = {
   nextChapter: string
   /**上一章节 */
   prevChapter: string
+  /**向上滚动 */
+  scrollUp: string
+  /**向下滚动 */
+  scrollDown: string
   /**打开控制台 */
   openDevTools: string
   /**放大窗口 */
@@ -93,5 +97,7 @@ export type Settings = {
   updateSource: UpdateSource
   /**缩放系数 */
   zoomFactor: number
+  /**快捷键滚动步进值 */
+  scrollbarStepValue: number
 }
 

@@ -7,7 +7,7 @@ import { useScrollTopStore } from './scrolltop';
 import { useTextContent } from '../views/read/hooks/text-content';
 import { useSettingsStore } from './settings';
 import { newError } from '../core/utils';
-
+import MuteMP3 from '../assets/mute.mp3';
 
 export const useReadAloudStore = defineStore('ReadAloud', {
   state: () => {
@@ -39,12 +39,14 @@ export const useReadAloudStore = defineStore('ReadAloud', {
         textContent,
         currentChapter
       } = storeToRefs(useTextContentStore());
+      const { nextChapter } = useTextContent();
+      const { options } = useSettingsStore();
       const message = useMessage();
       if (isRunningGetTextContent.value) {
         message.warning('正在获取正文');
         return;
       }
-      if (isNull(textContent.value) || textContent.value.length <= 0) {
+      if (isNull(textContent.value) || textContent.value.contents.length <= 0) {
         message.error('无法获取正文');
         return;
       }
@@ -100,9 +102,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
       this.readAloudRef.onended = () => {
         this.isPlay = false;
         this.currentPlayIndex += 1;
-        if (!isNull(textContent.value) && this.currentPlayIndex >= textContent.value.length) {
-          const { nextChapter } = useTextContent();
-          const { options } = useSettingsStore();
+        if (!isNull(textContent.value) && this.currentPlayIndex >= textContent.value.contents.length) {
           this.currentPlayIndex = -1;
           first = true;
           this.audios = [];
@@ -134,13 +134,17 @@ export const useReadAloudStore = defineStore('ReadAloud', {
       if (isNull(instance)) {
         throw newError(`插件未启用, 插件ID:${props.ID}`);
       }
-      await instance.transform(textContent.value, {
+      await instance.transform(textContent.value.contents, {
         start,
         signal: this.abortController.signal,
         rate: 0.1,
         volume: 0.5,
         voice: 'Microsoft Server Speech Text to Speech Voice (zh-CN, XiaoxiaoNeural)'
       }, (blob, index) => {
+        if (blob.size <= 0) {
+          GLOBAL_LOG.warn('readAloud transform content', textContent.value?.contents[index], index, 'blob size:', blob.size);
+          blob = new Blob([MuteMP3], { type: 'audio/mp3' });
+        }
         if (first) {
           this.audios = [];
           this.audios[index] = { blob, index };

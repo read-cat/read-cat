@@ -1,7 +1,7 @@
 import { serialize, deserialize } from 'v8';
 import { isNull, isUndefined } from '../is';
 import { nanoid } from 'nanoid';
-import { errorHandler, newError } from '../utils';
+import { cloneByJSON, errorHandler, newError } from '../utils';
 import { CreatePluginStore, PluginStoreInterface } from './defined/plugins';
 
 export const createPluginStore: CreatePluginStore = (pid: string, maxByteLength: number) => {
@@ -40,7 +40,7 @@ class PluginStore implements PluginStoreInterface {
   }
   async setStoreValue<V = any>(key: string, value: V): Promise<void> {
     try {
-      const data = new Uint8Array(serialize(value));
+      const data = new Uint8Array(serialize(cloneByJSON(value)));
       const csize = await this.currentSize();
       if (csize >= this.maxByteLength || (csize + data.byteLength) >= this.maxByteLength) {
         throw newError(`The current store size is ${csize} bytes, and the maximum support is ${this.maxByteLength} bytes`);

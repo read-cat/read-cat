@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { BookmarkStoreEntity } from '../core/database/database';
 import { useMessage } from '../hooks/message';
-import { errorHandler } from '../core/utils';
+import { cloneByJSON, errorHandler } from '../core/utils';
 
 export const useBookmarkStore = defineStore('Bookmark', {
   state: () => {
@@ -31,6 +31,21 @@ export const useBookmarkStore = defineStore('Bookmark', {
         this._bookmarks[i] = bookmark;
       } else {
         this._bookmarks.push(bookmark);
+      }
+    },
+    async removeBookmarkRangeByBidAndId(bid: string, rid: string) {
+      const bi = this._bookmarks.findIndex(b => b.id === bid);
+      if (bi < 0) {
+        return;
+      }
+      const range = this._bookmarks[bi].range.filter(r => r.id !== rid);
+      if (range.length > 0) {
+        const clone = cloneByJSON(this._bookmarks[bi]);
+        clone.range = range;
+        await this.put(clone);
+      } else {
+        await GLOBAL_DB.store.bookmarkStore.remove(bid);
+        this._bookmarks.splice(bi, 1)
       }
     },
     async removeBookmarksByDetailUrl(detailUrl: string): Promise<void> {

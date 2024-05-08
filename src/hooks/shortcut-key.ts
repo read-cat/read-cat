@@ -6,13 +6,15 @@ import { useWindowStore } from '../store/window';
 import { PagePath } from '../core/window';
 import { EventCode } from '../../events';
 import { GlobalShortcutKey } from '../store/defined/settings';
+import { useScrollTopStore } from '../store/scrolltop';
 
 export const useShortcutKey = () => {
   const { nextChapter, prevChapter } = useTextContent();
-  const { shortcutKey, zoomFactor } = storeToRefs(useSettingsStore());
+  const { shortcutKey, zoomFactor, scrollbarStepValue } = storeToRefs(useSettingsStore());
   const { handlerKeyboard } = useSettingsStore();
   const win = useWindowStore();
   const { isSetShortcutKey, globalShortcutKeyRegisterError } = storeToRefs(win);
+  const { mainElement } = storeToRefs(useScrollTopStore());
 
   const handler = debounce((key: string) => {
     switch (key) {
@@ -21,6 +23,12 @@ export const useShortcutKey = () => {
         break;
       case shortcutKey.value.prevChapter:
         win.currentPath === PagePath.READ && prevChapter();
+        break;
+      case shortcutKey.value.scrollUp:
+        mainElement.value.scrollTop -= scrollbarStepValue.value;
+        break;
+      case shortcutKey.value.scrollDown:
+        mainElement.value.scrollTop += scrollbarStepValue.value;
         break;
       case shortcutKey.value.openDevTools:
         GLOBAL_IPC.send(EventCode.ASYNC_OPEN_DEVTOOLS);
@@ -54,7 +62,14 @@ export const useShortcutKey = () => {
     if (isSetShortcutKey.value) {
       return;
     }
-    const { altKey, ctrlKey, shiftKey, metaKey, key } = e;
+    const { target, altKey, ctrlKey, shiftKey, metaKey, key } = e;
+    const tag = (<HTMLElement>target).tagName.toLowerCase();
+    if (![
+      'textarea',
+      'input'
+    ].includes(tag)) {
+      e.preventDefault();
+    }
     handler(handlerKeyboard(altKey, ctrlKey, shiftKey, metaKey, key));
   }
 

@@ -84,6 +84,8 @@ export const useListener = () => {
   const listeners = {
     prevChapterListener: handlerApplicationShortcutKey('prevChapter'),
     nextChapterListener: handlerApplicationShortcutKey('nextChapter'),
+    scrollUpListener: handlerApplicationShortcutKey('scrollUp'),
+    scrollDownListener: handlerApplicationShortcutKey('scrollDown'),
     openDevToolsListener: handlerApplicationShortcutKey('openDevTools'),
     zoomInWindowListener: handlerApplicationShortcutKey('zoomInWindow'),
     zoomOutWindowListener: handlerApplicationShortcutKey('zoomOutWindow'),

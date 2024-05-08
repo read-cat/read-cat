@@ -2,12 +2,13 @@ import { PluginDevtools } from '..';
 import { PluginDevtoolsEventCode } from '../../../../events/plugin-devtools';
 import { Chapter } from '../../book/book';
 import { isUndefined } from '../../is';
+import { Logger } from '../../logger';
 import { Plugins } from '../../plugins';
 import { BookSource } from '../../plugins/defined/booksource';
 import { errorHandler } from '../../utils';
 
 export const sendLog = (type: string, args: any[]) => {
-  GLOBAL_IPC.send(PluginDevtoolsEventCode.ASYNC_CONSOLE_LOG, void 0, type, args);
+  GLOBAL_IPC.send(PluginDevtoolsEventCode.ASYNC_CONSOLE_LOG, void 0, type, args.map(a => Logger.toString(a)));
 }
 
 export const runSearch = (event: PluginDevtools, code: string, searchkey: string, jscode: string) => {

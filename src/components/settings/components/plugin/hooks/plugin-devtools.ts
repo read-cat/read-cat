@@ -20,7 +20,10 @@ export const usePluginDevtools = () => {
           'application/gzip': ['.rpdt']
         }
       }]
-    }).catch(() => Promise.resolve(null)).then(async (handle) => {
+    }).catch(e => {
+      message.warning(e.message);
+      return Promise.resolve(null);
+    }).then(async (handle) => {
       if (isNull(handle)) {
         return;
       }

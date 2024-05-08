@@ -419,7 +419,6 @@ export class Plugins {
       if (!options || options.minify) {
         const { error, code } = Plugins.UGLIFY_JS.minify(jscode, {
           compress: {
-            drop_console: !options?.debug,
             drop_debugger: !options?.debug
           }
         });

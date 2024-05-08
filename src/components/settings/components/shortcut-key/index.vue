@@ -14,6 +14,8 @@ const { globalShortcutKeyRegisterError } = storeToRefs(useWindowStore());
 const {
   prevChapterListener,
   nextChapterListener,
+  scrollUpListener,
+  scrollDownListener,
   openDevToolsListener,
   zoomInWindowListener,
   zoomOutWindowListener,
@@ -36,6 +38,12 @@ export default {
       </SettingsCardItem>
       <SettingsCardItem title="下一章" v-memo="[shortcutKey.nextChapter]">
         <ElInput v-model="shortcutKey.nextChapter" readonly @keydown="nextChapterListener" />
+      </SettingsCardItem>
+      <SettingsCardItem title="向上滚动" v-memo="[shortcutKey.scrollUp]">
+        <ElInput v-model="shortcutKey.scrollUp" readonly @keydown="scrollUpListener" />
+      </SettingsCardItem>
+      <SettingsCardItem title="向下滚动" v-memo="[shortcutKey.scrollDown]">
+        <ElInput v-model="shortcutKey.scrollDown" readonly @keydown="scrollDownListener" />
       </SettingsCardItem>
       <SettingsCardItem title="全屏" v-memo="[shortcutKey.fullScreen]">
         <ElInput v-model="shortcutKey.fullScreen" readonly @keydown="fullScreenWindowListener" />
