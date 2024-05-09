@@ -145,7 +145,7 @@ onMounted(() => {
     align-items: center;
   }
 
-  $left-right-box-width: 310px;
+  $left-right-box-width: 320px;
 
   .left-box,
   .right-box {
