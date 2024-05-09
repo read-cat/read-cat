@@ -169,6 +169,8 @@ export const useBookmarks = () => {
               (<HTMLElement>e.firstElementChild).style.maxHeight = '300px';
               (<HTMLElement>e.parentElement?.parentElement).style.width = '100%';
               (<HTMLElement>e.parentElement?.parentElement?.parentElement).style.alignItems = 'flex-start';
+              const textarea = e.querySelector('textarea');
+              textarea && setTimeout(() => textarea.focus(), 300);
             },
             modelValue: input.value,
             placeholder: '请输入书签内容',
