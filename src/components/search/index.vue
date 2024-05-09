@@ -48,14 +48,14 @@ export default {
     '--rc-theme-color': searchStyle.color,
     '--rc-search-box-bgcolor': searchStyle.boxBackgroundColor,
   }">
-    <div id="search" @click="showSearchBox" v-memo="[currentPath, isRunningSearch, searchBoxHeaderText]">
+    <div id="search" @click="showSearchBox">
       <div class="title">
         <IconOpenBook v-if="currentPath === PagePath.READ" />
         <ElIcon v-else-if="isRunningSearch && currentPath === PagePath.SEARCH" class="is-loading">
           <IconLoading />
         </ElIcon>
         <IconSearch v-else />
-        <span>{{ searchBoxHeaderText }}</span>
+        <span v-memo="[searchBoxHeaderText]">{{ searchBoxHeaderText }}</span>
       </div>
     </div>
     <Window :to-body="false" destroy-on-close :top="5" :width="winSize.width" :height="winSize.height" background-color="var(--rc-search-box-bgcolor)"

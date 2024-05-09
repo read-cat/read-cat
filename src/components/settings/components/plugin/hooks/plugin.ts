@@ -32,6 +32,9 @@ export const usePlugin = () => {
         case PluginType.BOOK_STORE:
           typeLabel = '书城';
           break;
+        case PluginType.TTS_ENGINE:
+          typeLabel = 'TTS';
+          break;
         default:
           typeLabel = '';
           break;
@@ -46,7 +49,7 @@ export const usePlugin = () => {
         version: props.VERSION,
         ttsEngineRequire: props.TTS_ENGINE_REQUIRE,
         updating: false,
-        searchIndex: `${props.ID} ${typeLabel} ${props.GROUP.toLowerCase()} ${props.GROUP.toUpperCase()} ${props.NAME.toLowerCase()} ${props.NAME.toUpperCase()} ${enable ? '启用' : '禁用'}`
+        searchIndex: `${props.ID} ${typeLabel} ${props.GROUP} ${props.NAME} ${enable ? '启用' : '禁用'}`
       }
     });
   }
@@ -54,7 +57,7 @@ export const usePlugin = () => {
   const plugins = ref<Plugin[]>(handler());
   const checked = ref<string[]>([]);
   const { threadsNumber } = storeToRefs(useSettingsStore());
-  const importErrorList = ref<{ name: string, error: string}[]>();
+  const importErrorList = ref<{ name: string, error: string }[]>();
   const importErrorWindow = ref<WindowEvent>();
   const refresh = () => {
     plugins.value = handler();
@@ -96,7 +99,7 @@ export const usePlugin = () => {
       }).finally(() => {
         refresh();
       });
-    }).catch(() => {});
+    }).catch(() => { });
   }
   const updatePlugin = (val: Plugin) => {
     const { id } = val;
@@ -111,7 +114,7 @@ export const usePlugin = () => {
 
   const updateChecked = () => {
     // console.log(checked.value);
-    
+
   }
   const deleteChecked = async () => {
     if (checked.value.length <= 0) {
@@ -124,7 +127,7 @@ export const usePlugin = () => {
         confirmButtonText: '删除',
         type: 'info'
       });
-      
+
       let error = 0;
       for (const items of chunkArray(checked.value, threadsNumber.value)) {
         const ps = [];
@@ -146,7 +149,7 @@ export const usePlugin = () => {
       } else {
         message.info(`已删除 ${checked.value.length - error} 个插件, ${error} 个插件删除失败`);
       }
-    } catch (e) {} finally {
+    } catch (e) { } finally {
       refresh();
     }
   }

@@ -7,7 +7,7 @@ export const useSearch = (plugins: Ref<Plugin[]>) => {
   const searchResult = ref<Plugin[]>([]);
 
   const filter = (values: Plugin[], key: string) => {
-    searchResult.value = values.filter(v => v.searchIndex.includes(key));
+    searchResult.value = values.filter(v => v.searchIndex.toLowerCase().includes(key.toLowerCase()));
   }
 
   watch(() => plugins.value, newVal => {

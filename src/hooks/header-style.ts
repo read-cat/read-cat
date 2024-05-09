@@ -113,7 +113,7 @@ export const useHeaderStyle = (searchkey: Ref<string>, progress: Ref<number>) =>
     }
     if (isRunningSearch.value) {
       progress.value = progress.value >= 1 ? 0 : progress.value;
-      win.searchBoxHeaderText = `正在搜索(${progress.value * 100}%) ${key.value}`;
+      win.searchBoxHeaderText = `正在搜索(${Math.ceil(progress.value * 100)}%) ${key.value}`;
       return;
     }
     win.searchBoxHeaderText = key.value;
