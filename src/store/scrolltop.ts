@@ -7,7 +7,6 @@ export const useScrollTopStore = defineStore('ScrollTop', {
   state: () => {
     return {
       value: {
-        '/home': 0,
         '/bookshelf': 0,
         '/bookstore': 0,
         '/read': 0,

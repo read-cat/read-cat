@@ -3,12 +3,7 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router';
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/home'
-  },
-  {
-    name: 'home',
-    path: '/home',
-    component: () => import('../views/home/index.vue')
+    redirect: '/bookstore'
   },
   {
     name: 'bookshelf',

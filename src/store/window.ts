@@ -7,7 +7,7 @@ import { GlobalShortcutKey } from './defined/settings';
 export const useWindowStore = defineStore('Window', {
   state: () => {
     return {
-      currentPath: PagePath.HOME,
+      currentPath: PagePath.BOOKSTORE,
       backgroundColor: '',
       textColor: '',
       isMaximize: false,
