@@ -15,6 +15,10 @@ export const useListener = () => {
   const message = useMessage();
   const { isSetShortcutKey, globalShortcutKeyRegisterError } = storeToRefs(useWindowStore());
 
+  const disableShortcutKey = [
+    process.platform === 'darwin' ? 'Meta+C' : 'Ctrl+C',
+  ];
+
   const createKeyDownListener = (call: (raw: string, key: string) => void): Listener => {
     const debo = debounce((raw: string, key: string) => call(raw, key), 200);
     return (e: KeyboardEvent | Event) => {
@@ -30,6 +34,11 @@ export const useListener = () => {
   const handlerApplicationShortcutKey = (prop: keyof ShortcutKey) => createKeyDownListener((raw: string, key: string) => {
     if (raw === 'Backspace') {
       shortcutKey[prop] = '';
+      isSetShortcutKey.value = false;
+      return;
+    }
+    if (disableShortcutKey.includes(key)) {
+      message.error(`不允许将${key}设置为快捷键`);
       isSetShortcutKey.value = false;
       return;
     }
@@ -49,6 +58,11 @@ export const useListener = () => {
     if (raw === 'Backspace') {
       unregister(prop, shortcutKey[prop]);
       shortcutKey[prop] = '';
+      isSetShortcutKey.value = false;
+      return;
+    }
+    if (disableShortcutKey.includes(key)) {
+      message.error(`不允许将${key}设置为快捷键`);
       isSetShortcutKey.value = false;
       return;
     }
