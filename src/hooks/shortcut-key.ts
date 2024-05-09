@@ -85,14 +85,17 @@ export const useShortcutKey = () => {
       return;
     }
     const { target, altKey, ctrlKey, shiftKey, metaKey, key } = e;
+    const skey = handlerKeyboard(altKey, ctrlKey, shiftKey, metaKey, key);
     const tag = (<HTMLElement>target).tagName.toLowerCase();
-    if (![
-      'textarea',
-      'input'
-    ].includes(tag)) {
+    const allow = [
+      process.platform === 'darwin' ? 'Meta+C' : 'Ctrl+C',
+    ];
+    if (
+      !['textarea', 'input'].includes(tag) &&
+      !allow.includes(skey)
+    ) {
       e.preventDefault();
     }
-    const skey = handlerKeyboard(altKey, ctrlKey, shiftKey, metaKey, key);
     if ([
       shortcutKey.value.scrollUp,
       shortcutKey.value.scrollDown,
