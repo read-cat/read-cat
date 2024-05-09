@@ -44,9 +44,8 @@ const setScrollTop = ({ target }: Event) => {
 
 const { options } = useSettingsStore();
 const { platform } = process;
-
+const { backgroundColor, texture } = storeToRefs(useSettingsStore());
 onMounted(() => {
-  const { backgroundColor } = storeToRefs(useSettingsStore());
   watchEffect(() => {
     let val = 'var(--rc-button-hover-bgcolor)';
     if (win.currentPath === PagePath.READ && !win.isDark) {
@@ -62,7 +61,11 @@ onMounted(() => {
   <ElContainer id="container" :style="{
     '--rc-header-color': win.backgroundColor,
   }">
-    <ElHeader id="header" :class="['app-drag', platform, win.isFullScreen ? 'fullscreen' : '']" :style="{
+    <ElHeader id="header" :class="[
+      'app-drag',
+      platform, win.isFullScreen ? 'fullscreen' : '',
+      win.currentPath === PagePath.READ ? texture : '',
+    ]" :style="{
       '--rc-text-color': win.textColor
     }">
       <div class="left-box">
@@ -85,7 +88,12 @@ onMounted(() => {
           :class="['window-controls-container', 'app-no-darg', platform, win.isFullScreen ? 'fullscreen' : '']"></div>
       </div>
     </ElHeader>
-    <ElMain id="main" :class="['rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']"
+    <ElMain id="main"
+      :class="[
+        'rc-scrollbar',
+        options.enableTransition ? 'rc-scrollbar-behavior' : '',
+        win.currentPath === PagePath.READ ? texture : '',
+      ]"
       @scroll="(e: any) => setScrollTop(e)" :style="{
         '--rc-main-color': win.backgroundColor,
         '--rc-text-color': win.textColor

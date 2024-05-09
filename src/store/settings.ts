@@ -30,7 +30,8 @@ export const useSettingsStore = defineStore('Settings', {
         font: Font.default,
         sectionSpacing: 13,
         lineSpacing: 2,
-        width: 0.8
+        width: 0.8,
+        texture: 'none'
       },
       proxy: {
         host: '127.0.0.1',
@@ -114,6 +115,10 @@ export const useSettingsStore = defineStore('Settings', {
     width(): string {
       return (this.readStyle.width * 100) + '%';
     },
+    /**阅读样式 纹理 */
+    texture(): string {
+      return this.readStyle.texture === 'none' ? '' : this.readStyle.texture;
+    }
   },
   actions: {
     setBackgroundColor(color: string) {

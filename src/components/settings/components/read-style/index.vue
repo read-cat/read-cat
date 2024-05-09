@@ -11,7 +11,7 @@ import {
   ElSelect,
   ElOption,
   ElTooltip,
-  ElColorPicker
+  ElColorPicker,
 } from 'element-plus';
 import { useFonts } from './hooks/fonts';
 import Window, { WindowEvent } from '../../../window/index.vue';
@@ -33,7 +33,8 @@ const {
   fontWeight,
   bookmarkColorOdd,
   bookmarkColorEven,
-  readAloudColor
+  readAloudColor,
+  texture,
 } = storeToRefs(useSettingsStore());
 const { readStyle, setReadColor } = useSettingsStore();
 
@@ -74,8 +75,11 @@ export default {
   <div class="settings-read-style">
     <div class="preview">
       <div
-        v-memo="[isDark, textColor, backgroundColor, bookmarkColorOdd, bookmarkColorEven, readAloudColor, fontWeight, fontFamily]"
-        class="preview-box" :style="{
+        v-memo="[isDark, textColor, backgroundColor, bookmarkColorOdd, bookmarkColorEven, readAloudColor, fontWeight, fontFamily, texture]"
+        :class="[
+          'preview-box',
+          texture,
+        ]" :style="{
           color: isDark ? 'var(--rc-text-color)' : textColor,
           backgroundColor: isDark ? 'var(--rc-main-color)' : backgroundColor,
           fontWeight,
@@ -213,6 +217,16 @@ export default {
           </footer>
         </section>
       </Window>
+    </SettingsCard>
+    <SettingsCard title="背景">
+      <SettingsCardItem title="纹理">
+        <ElSelect v-model="readStyle.texture">
+          <ElOption value="none" label="无" />
+          <ElOption value="matte-texture" label="磨砂纹理" />
+          <ElOption value="white-texture" label="白色纹理" />
+          <ElOption value="wood-texture" label="木材纹理" />
+        </ElSelect>
+      </SettingsCardItem>
     </SettingsCard>
     <SettingsCard title="文本">
       <SettingsCardItem title="字体">
@@ -412,11 +426,15 @@ export default {
     }
   }
 
-  :deep(.el-select__wrapper) {
-    font-size: 14px;
-    height: 30px;
-    line-height: 30px;
+  :deep(.el-select) {
+    min-width: 100px;
+    .el-select__wrapper {
+      font-size: 14px;
+      height: 30px;
+      line-height: 30px;
+    }
   }
+  
 
   .preview {
     margin: 10px 0 20px 0;

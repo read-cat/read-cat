@@ -3,6 +3,13 @@ import { RequestProxy } from '../../core/request/defined/request';
 import { UpdateSource } from '../../core/updater/updater';
 import { FontData } from '../../core/font';
 
+export type Texture =
+  'none' |
+  'matte-texture' |
+  'white-texture' |
+  'wood-texture'
+  ;
+
 export type SettingsOptions = {
   /**开启模糊效果 */
   enableBlur: boolean
@@ -28,6 +35,7 @@ export type SettingsReadStyle = {
   color: ReadColor
   /**字体大小 */
   fontSize: number
+  /**字体粗细 */
   fontWeight: 'normal' | 'bold'
   /**文本间距 */
   letterSpacing: number
@@ -39,6 +47,8 @@ export type SettingsReadStyle = {
   lineSpacing: number
   /**宽度 */
   width: number
+  /**纹理 */
+  texture: Texture
 }
 export type SettingsPluginDevtools = {
   /**插件开发工具包资源路径 */
