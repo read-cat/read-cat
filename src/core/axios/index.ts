@@ -124,8 +124,9 @@ customAxios.interceptors.response.use(resp => {
     return Promise.resolve(resp);
   }
   return Promise.reject(newError(
-    `status:${resp.status}, ${resp.statusText}\n` +
-    `headers: ${Logger.toString(resp.headers, 2, true)}\n` +
+    `Status:${resp.status}, ${resp.statusText}\n\n` +
+    `RequestHeaders: \n${Logger.toString(resp.config.headers, 2, true)}\n\n` +
+    `ResponseHeaders: \n${Logger.toString(resp.headers, 2, true)}\n\n` +
     resp.data.toString()
   ));
 }, err => {
