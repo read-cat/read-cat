@@ -7,6 +7,7 @@ import { WindowEvent } from '../../../../window/index.vue';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../../../../../store/settings';
 import { chunkArray } from '../../../../../core/utils';
+import { readFile } from 'fs/promises';
 
 export type Plugin = {
   enable: boolean
@@ -154,6 +155,39 @@ export const usePlugin = () => {
     }
   }
 
+  const imports = async (files: [string, Promise<string>][]) => {
+    const ps: Promise<void>[] = [];
+    for (const file of files) {
+      ps.push(new Promise<void>(async (reso, reje) => {
+        try {
+          await GLOBAL_PLUGINS.importJSCode(await file[1], {
+            minify: true,
+            enable: true,
+            force: true
+          });
+          return reso();
+        } catch (e: any) {
+          e.name = file[0];
+          return reje(e);
+        }
+      }));
+    }
+    const list: { name: string, error: string }[] = [];
+    for (const item of await Promise.allSettled(ps)) {
+      if (item.status === 'rejected') {
+        const { name, message } = item.reason;
+        list.push({
+          name,
+          error: message
+        });
+      }
+    }
+    importErrorList.value = list;
+    if (importErrorList.value.length > 0) {
+      importErrorWindow.value?.show();
+    }
+  }
+
   const importPlugin = () => {
     showOpenFilePicker({
       multiple: true,
@@ -171,37 +205,19 @@ export const usePlugin = () => {
       if (isNull(handles)) {
         return;
       }
-      const ps: Promise<void>[] = [];
-      for (const handle of handles) {
-        ps.push(new Promise<void>(async (reso, reje) => {
-          try {
-            const jscode = await (await handle.getFile()).text();
-            await GLOBAL_PLUGINS.importJSCode(jscode, {
-              minify: true,
-              enable: true
-            });
-            return reso();
-          } catch (e: any) {
-            e.name = handle.name;
-            return reje(e);
-          }
-        }));
-      }
-      const list: { name: string, error: string }[] = [];
-      for (const item of await Promise.allSettled(ps)) {
-        if (item.status === 'rejected') {
-          const { name, message } = item.reason;
-          list.push({
-            name,
-            error: message
-          });
-        }
-      }
-      importErrorList.value = list;
-      if (importErrorList.value.length > 0) {
-        importErrorWindow.value?.show();
-      }
+      await imports(handles.map(h => ([h.name, h.getFile().then(f => f.text())])));
     }).finally(() => {
+      refresh();
+    });
+  }
+
+  const importPluginsFileDragChange = (files: File[]) => {
+    files = files.filter(f => f.name.endsWith('.js'));
+    if (files.length < 1) {
+      message.warning('拖入文件未包含插件文件');
+      return;
+    }
+    imports(files.map(f => ([f.name, readFile(f.path, { encoding: 'utf-8' })]))).finally(() => {
       refresh();
     });
   }
@@ -218,5 +234,6 @@ export const usePlugin = () => {
     importPlugin,
     importErrorList,
     importErrorWindow,
+    importPluginsFileDragChange
   }
 }

@@ -28,6 +28,7 @@ import IconUpdate from '../../../../assets/svg/icon-update.svg';
 import IconSearch from '../../../../assets/svg/icon-search.svg';
 import Window from '../../../../components/window/index.vue';
 import { usePluginDevtools } from './hooks/plugin-devtools';
+import FileDrag from '../../../file-drag/index.vue';
 
 const { pluginDevtools } = useSettingsStore();
 const {
@@ -42,6 +43,7 @@ const {
   importPlugin,
   importErrorList,
   importErrorWindow,
+  importPluginsFileDragChange,
 } = usePlugin();
 const { searchkey, searchResult } = useSearch(plugins);
 const {
@@ -82,7 +84,7 @@ export default {
         <ElButton size="small" type="primary" @click="start">启动</ElButton>
       </SettingsCardItem>
     </SettingsCard>
-    <SettingsCard>
+    <SettingsCard class="plugins-manage-card">
       <template #header>
         <span v-once class="title">管理</span>
         <div style="display: flex; align-items: center;">
@@ -102,64 +104,66 @@ export default {
             placeholder="请输入搜索关键字" :prefix-icon="IconSearch" />
         </div>
       </template>
-      <ElTable v-memo="[showValue]" :data="showValue" height="245" @selection-change="handleSelectionChange"
-        empty-text="暂无插件">
-        <ElTableColumn type="selection" width="30" />
-        <ElTableColumn label="ID" width="90">
-          <template #default="{ row }">
-            <ElTooltip effect="light" placement="bottom-start" :content="row.id">
-              <span class="settings-card-item-plugin-label">{{ row.id }}</span>
-            </ElTooltip>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn label="类型" width="70">
-          <template #default="{ row }">
-            <ElTag v-if="row.type === PluginType.BOOK_SOURCE">书源</ElTag>
-            <ElTag v-else-if="row.type === PluginType.BOOK_STORE">书城</ElTag>
-            <ElTag v-else-if="row.type === PluginType.TTS_ENGINE">TTS</ElTag>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn label="分组" width="80">
-          <template #default="{ row }">
-            <ElTooltip effect="light" placement="bottom-start" :content="row.group">
-              <span class="settings-card-item-plugin-label">{{ row.group }}</span>
-            </ElTooltip>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn label="名称" width="90">
-          <template #default="{ row }">
-            <ElTooltip effect="light" placement="bottom-start" :content="row.name">
-              <span class="settings-card-item-plugin-label">{{ row.name }}</span>
-            </ElTooltip>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn label="状态" width="70">
-          <template #default="{ row }">
-            <ElCheckTag class="settings-card-item-plugin-state-check-tag" :checked="row.enable" type="primary"
-              @click="toggleState(row)">{{ row.enable ? '启用' : '禁用' }}</ElCheckTag>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn label="版本号" width="70">
-          <template #default="{ row }">
-            <ElIcon class="is-loading" v-if="row.updating">
-              <IconLoading />
-            </ElIcon>
-            <ElTooltip v-else effect="light" placement="bottom-start" :content="row.version">
-              <span class="settings-card-item-plugin-label">{{ row.version }}</span>
-            </ElTooltip>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn label="操作" fixed="right">
-          <template #default="{ row }">
-            <ElButton v-if="row.ttsEngineRequire && Object.keys(row.ttsEngineRequire).length > 0" link size="small"
-              type="info" @click="">设置</ElButton>
-            <template v-if="!row.builtIn">
-              <ElButton link size="small" type="danger" @click="deletePlugin(row)">删除</ElButton>
-              <ElButton link size="small" type="success" @click="updatePlugin(row)">更新</ElButton>
+      <FileDrag tip="导入插件" :z-index="1000" :to-body="false" width="100%" height="100%" @change="importPluginsFileDragChange">
+        <ElTable v-memo="[showValue]" :data="showValue" height="245" @selection-change="handleSelectionChange"
+          empty-text="暂无插件">
+          <ElTableColumn type="selection" width="30" />
+          <ElTableColumn label="ID" width="90">
+            <template #default="{ row }">
+              <ElTooltip effect="light" placement="bottom-start" :content="row.id">
+                <span class="settings-card-item-plugin-label">{{ row.id }}</span>
+              </ElTooltip>
             </template>
-          </template>
-        </ElTableColumn>
-      </ElTable>
+          </ElTableColumn>
+          <ElTableColumn label="类型" width="70">
+            <template #default="{ row }">
+              <ElTag v-if="row.type === PluginType.BOOK_SOURCE">书源</ElTag>
+              <ElTag v-else-if="row.type === PluginType.BOOK_STORE">书城</ElTag>
+              <ElTag v-else-if="row.type === PluginType.TTS_ENGINE">TTS</ElTag>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn label="分组" width="80">
+            <template #default="{ row }">
+              <ElTooltip effect="light" placement="bottom-start" :content="row.group">
+                <span class="settings-card-item-plugin-label">{{ row.group }}</span>
+              </ElTooltip>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn label="名称" width="90">
+            <template #default="{ row }">
+              <ElTooltip effect="light" placement="bottom-start" :content="row.name">
+                <span class="settings-card-item-plugin-label">{{ row.name }}</span>
+              </ElTooltip>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn label="状态" width="70">
+            <template #default="{ row }">
+              <ElCheckTag class="settings-card-item-plugin-state-check-tag" :checked="row.enable" type="primary"
+                @click="toggleState(row)">{{ row.enable ? '启用' : '禁用' }}</ElCheckTag>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn label="版本号" width="70">
+            <template #default="{ row }">
+              <ElIcon class="is-loading" v-if="row.updating">
+                <IconLoading />
+              </ElIcon>
+              <ElTooltip v-else effect="light" placement="bottom-start" :content="row.version">
+                <span class="settings-card-item-plugin-label">{{ row.version }}</span>
+              </ElTooltip>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn label="操作" fixed="right">
+            <template #default="{ row }">
+              <ElButton v-if="row.ttsEngineRequire && Object.keys(row.ttsEngineRequire).length > 0" link size="small"
+                type="info" @click="">设置</ElButton>
+              <template v-if="!row.builtIn">
+                <ElButton link size="small" type="danger" @click="deletePlugin(row)">删除</ElButton>
+                <ElButton link size="small" type="success" @click="updatePlugin(row)">更新</ElButton>
+              </template>
+            </template>
+          </ElTableColumn>
+        </ElTable>
+      </FileDrag>
       <ElPagination v-memo="[totalPage, currentPage]" layout="prev, pager, next" :page-count="totalPage"
         :current-page="currentPage" @current-change="currentPageChange" hide-on-single-page />
     </SettingsCard>
@@ -218,10 +222,11 @@ export default {
 
 .settings-card-item-plugin-devtools-resource-path {
   width: 300px;
-  
+
   .el-input {
     height: 30px;
     font-size: 14px;
+
     .el-input__wrapper {
       cursor: default;
 
@@ -241,6 +246,7 @@ export default {
   .el-input {
     height: 30px;
     font-size: 14px;
+
     .el-input__wrapper {
       cursor: default;
 
@@ -252,6 +258,11 @@ export default {
         cursor: default;
       }
     }
+  }
+}
+.plugins-manage-card {
+  main {
+    position: relative;
   }
 }
 </style>
