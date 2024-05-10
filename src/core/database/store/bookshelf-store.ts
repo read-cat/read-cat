@@ -72,7 +72,8 @@ export class BookshelfStoreDatabase extends BaseStoreDatabase<BookshelfStoreEnti
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByPidAndDetailPageUrl pid:${pid}, detailPageUrl:${detailPageUrl}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByPidAndDetailPageUrl pid:${pid}, detailPageUrl:${detailPageUrl}`, e);

@@ -24,7 +24,8 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByPidAndDetailUrl pid:${pid}, detailUrl:${detailUrl}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByPidAndDetailUrl pid:${pid}, detailUrl:${detailUrl}`, e);
@@ -49,7 +50,8 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByPidAndChapterUrl pid:${pid}, chapterUrl:${chapterUrl}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByPidAndChapterUrl pid:${pid}, chapterUrl:${chapterUrl}`, e);
@@ -74,7 +76,8 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByPidAndChapterIndex pid:${pid}, chapterIndex:${chapterIndex}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByPidAndChapterIndex pid:${pid}, chapterIndex:${chapterIndex}`, e);

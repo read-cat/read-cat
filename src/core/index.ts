@@ -47,11 +47,11 @@ export class Core {
       error.push(e);
       return Promise.resolve();
     });
-
-    GLOBAL_DB.store.bookshelfStore.read();
+    
+    GLOBAL_DB?.store.bookshelfStore.read();
     Core.setValue(window, 'Core', Core);
     if (error.length > 0) {
-      return Promise.reject(error);
+      return Promise.resolve(error);
     }
   }
 

@@ -25,7 +25,8 @@ export class PluginsStoreDatabase extends BaseStoreDatabase<PluginsStoreEntity> 
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByIdAndKey pid:${pid}, key:${key}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByIdAndKey pid:${pid}, key:${key}`, e);

@@ -21,6 +21,12 @@ app.use(router);
 app.use(pinia);
 app.directive('loading', ElLoading.directive);
 
+(<any>window).GLOBAL_DB = void 0;
+(<any>window).GLOBAL_IPC = void 0;
+(<any>window).GLOBAL_LOG = void 0;
+(<any>window).GLOBAL_PLUGINS = void 0;
+(<any>window).GLOBAL_UPDATER = void 0;
+
 const startListener = () => {
   const win = useWindowStore();
   GLOBAL_IPC.on(EventCode.ASYNC_WINDOW_IS_FULLSCREEN, (_, is: boolean) => {
@@ -47,7 +53,7 @@ const initHeaderColor = () => {
 
 Core.initIpcRenderer();
 app.mount('#app').$nextTick().then(() => {
-  Core.init().catch(es => Promise.resolve(es)).then(es => {
+  Core.init().then(es => {
     startListener();
     postMessage({ payload: 'removeLoading' }, '*');
     (process.platform === 'win32') && initHeaderColor();

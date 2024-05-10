@@ -84,7 +84,8 @@ export class Database {
           return reso();
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error('Database open', requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error('Database open', e);
@@ -119,7 +120,8 @@ export class Database {
           return reso();
         }
         store.transaction.onerror = () => {
-          throw store.transaction.error;
+          GLOBAL_LOG.error(`Database createStore ${storeName}`, store.transaction.error);
+          return reje(store.transaction.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(`Database createStore ${storeName}`, e);

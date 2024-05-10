@@ -30,7 +30,8 @@ export class BaseStoreDatabase<T> implements DatabaseStoreInterface<T> {
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, 'getById', id, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, 'getById', id, e);
@@ -54,7 +55,8 @@ export class BaseStoreDatabase<T> implements DatabaseStoreInterface<T> {
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, 'getAll', requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, 'getAll', e);
@@ -74,7 +76,8 @@ export class BaseStoreDatabase<T> implements DatabaseStoreInterface<T> {
           return reso();
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, 'put', requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, 'put', e);
@@ -93,7 +96,8 @@ export class BaseStoreDatabase<T> implements DatabaseStoreInterface<T> {
           return reso();
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, 'remove', id, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, 'remove', id, e);

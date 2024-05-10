@@ -38,7 +38,8 @@ export class BookmarkStoreDatabase extends BaseStoreDatabase<BookmarkStoreEntity
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByChapterUrl chapterUrl:${chapterUrl}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByChapterUrl chapterUrl:${chapterUrl}`, e);
@@ -62,7 +63,8 @@ export class BookmarkStoreDatabase extends BaseStoreDatabase<BookmarkStoreEntity
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByDetailUrl detailUrl:${detailUrl}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByDetailUrl detailUrl:${detailUrl}`, e);
