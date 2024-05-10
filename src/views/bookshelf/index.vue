@@ -28,6 +28,8 @@ import { Book } from '../../store/bookshelf';
 import { useRouter } from 'vue-router';
 import { useWindowStore } from '../../store/window';
 import { useBookshelfCheckbox } from './hooks/bookshelf-checkbox';
+import { useImportBooks } from './hooks/import-books';
+import FileDrag from '../../components/file-drag/index.vue';
 
 const router = useRouter();
 const { options } = useSettingsStore();
@@ -61,114 +63,123 @@ const {
   handleCheckAllChange,
   handleCheckedCitiesChange
 } = useBookshelfCheckbox();
+
+const {
+  fileDragChange
+} = useImportBooks();
+
 </script>
 
 <template>
-  <div class="container">
-    <div class="no-result" v-if="refreshValues.length <= 0">
-      <ElResult icon="info" title="暂无书本">
-        <template #extra>
-          <ElButton size="small" :icon="IconBack" @click="router.back()">返回</ElButton>
-        </template>
-      </ElResult>
-    </div>
-    <div class="result" v-else>
-      <div :class="['toolbar', options.enableBlur ? 'app-blur' : '']">
-        <div class="left">
-          <ElCheckbox v-memo="[checkAll, isIndeterminate]" v-model="checkAll" label="全选"
-            :indeterminate="isIndeterminate" @change="handleCheckAllChange" />
-          <ElPagination v-memo="[totalPage, currentPage]" layout="prev, pager, next" small hide-on-single-page
-            :page-count="totalPage" :current-page="currentPage" @current-change="currentPageChange" />
-        </div>
-        <div class="right">
-          <ElInput v-memo="[searchkey]" v-model="searchkey" @keyup="search(searchkey)" placeholder="请输入书名、作者" clearable>
-            <template #prefix>
-              <ElIcon>
-                <IconSearch />
-              </ElIcon>
-            </template>
-          </ElInput>
-        </div>
+  <FileDrag class="container" tip="导入书籍" @change="fileDragChange">
+    <div class="bookshelf-container">
+      <div class="no-result" v-if="refreshValues.length <= 0">
+        <ElResult icon="info" title="暂无书本">
+          <template #extra>
+            <ElButton size="small" :icon="IconBack" @click="router.back()">返回</ElButton>
+          </template>
+        </ElResult>
       </div>
-      <ElCheckboxGroup class="list" v-model="checkedCities" @change="handleCheckedCitiesChange">
-        <ElCard shadow="hover" v-for="item in showValue" :key="item.id" @click="goDetailPage(item)">
-          <div class="cover" v-memo="[item.coverImageUrl]">
-            <img :src="item.coverImageUrl" @error="e => (<HTMLImageElement>e.target).src = CoverImage" />
+      <div class="result" v-else>
+        <div :class="['toolbar', options.enableBlur ? 'app-blur' : '']">
+          <div class="left">
+            <ElCheckbox v-memo="[checkAll, isIndeterminate]" v-model="checkAll" label="全选"
+              :indeterminate="isIndeterminate" @change="handleCheckAllChange" />
+            <ElPagination v-memo="[totalPage, currentPage]" layout="prev, pager, next" small hide-on-single-page
+              :page-count="totalPage" :current-page="currentPage" @current-change="currentPageChange" />
           </div>
-          <div class="info">
-            <div>
-              <p class="bookname" v-if="item.bookname">
-                <ElTooltip v-memo="[item.bookname]" effect="light" :content="item.bookname" placement="bottom"
-                  :show-after="1500">
-                  <span>{{ item.bookname }}</span>
-                </ElTooltip>
-                <ElIcon class="is-loading" v-if="item.isRunningRefresh">
-                  <IconLoading style="width: 12px;height: 12px;" />
+          <div class="right">
+            <ElInput v-memo="[searchkey]" v-model="searchkey" @keyup="search(searchkey)" placeholder="请输入书名、作者"
+              clearable>
+              <template #prefix>
+                <ElIcon>
+                  <IconSearch />
                 </ElIcon>
-                <ElTooltip v-else-if="item.error" effect="light" placement="bottom" :show-after="1500">
-                  <template #content>
-                    <span class="rc-error-color">错误 {{ item.error }}</span>
-                  </template>
-                  <IconDot class="rc-error-color" style="width: 14px;height: 14px;" />
-                </ElTooltip>
-              </p>
-              <p v-if="item.author">
-                <ElTooltip v-once effect="light" content="作者" placement="bottom" :show-after="1500">
-                  <IconUser style="margin-right: 4px;width: 12px;height: 12px;" />
-                </ElTooltip>
-                <ElTooltip v-memo="[item.author]" effect="light" :content="'作者 ' + item.author" placement="bottom" :show-after="1500">
-                  <span>{{ item.author }}</span>
-                </ElTooltip>
-              </p>
-              <p>
-                <ElTooltip v-once effect="light" content="插件" placement="bottom" :show-after="1500">
-                  <IconPlugin style="margin-right: 4px;width: 12px;height: 12px;" />
-                </ElTooltip>
-                <ElTooltip v-memo="[item.group, item.pluginName]" effect="light" :content="`插件 ${item.group}-${item.pluginName}`" placement="bottom" :show-after="1500">
-                  <span>{{ `${item.group}-${item.pluginName}` }}</span>
-                </ElTooltip>
-              </p>
-            </div>
-            <div>
-              <p v-if="item.readChapterTitle">
-                <ElTooltip v-once effect="light" content="已读" placement="bottom" :show-after="1500">
-                  <IconDot style="color: var(--rc-theme-color);" />
-                </ElTooltip>
-                <ElTooltip v-memo="[item.readChapterTitle]" effect="light" :content="'已读 ' + item.readChapterTitle"
-                  placement="bottom" :show-after="1500">
-                  <span>{{ item.readChapterTitle }}</span>
-                </ElTooltip>
-              </p>
-              <p v-if="item.latestChapterTitle">
-              <div>
-                <ElTooltip v-once effect="light" content="最新章节" placement="bottom" :show-after="1500">
-                  <IconDot style="color: var(--rc-latest-chapter-color);" />
-                </ElTooltip>
-                <ElTooltip v-memo="[item.latestChapterTitle]" effect="light" :content="'最新章节 ' + item.latestChapterTitle" placement="bottom"
-                  :show-after="1500">
-                  <span>{{ item.latestChapterTitle }}</span>
-                </ElTooltip>
-              </div>
-              <ElCheckbox v-memo="[item.id]" :key="`checkbox-${item.id}`" :value="item.id"
-                @click="(e: MouseEvent) => e.stopPropagation()" />
-              </p>
-            </div>
+              </template>
+            </ElInput>
           </div>
-        </ElCard>
-        <i v-once class="hide" />
-        <i v-once class="hide" />
-        <i v-once class="hide" />
-        <i v-once class="hide" />
-        <i v-once class="hide" />
-        <i v-once class="hide" />
-      </ElCheckboxGroup>
-
+        </div>
+        <ElCheckboxGroup class="list" v-model="checkedCities" @change="handleCheckedCitiesChange">
+          <ElCard shadow="hover" v-for="item in showValue" :key="item.id" @click="goDetailPage(item)">
+            <div class="cover" v-memo="[item.coverImageUrl]">
+              <img :src="item.coverImageUrl" @error="e => (<HTMLImageElement>e.target).src = CoverImage" />
+            </div>
+            <div class="info">
+              <div>
+                <p class="bookname" v-if="item.bookname">
+                  <ElTooltip v-memo="[item.bookname]" effect="light" :content="item.bookname" placement="bottom"
+                    :show-after="1500">
+                    <span>{{ item.bookname }}</span>
+                  </ElTooltip>
+                  <ElIcon class="is-loading" v-if="item.isRunningRefresh">
+                    <IconLoading style="width: 12px;height: 12px;" />
+                  </ElIcon>
+                  <ElTooltip v-else-if="item.error" effect="light" placement="bottom" :show-after="1500">
+                    <template #content>
+                      <span class="rc-error-color">错误 {{ item.error }}</span>
+                    </template>
+                    <IconDot class="rc-error-color" style="width: 14px;height: 14px;" />
+                  </ElTooltip>
+                </p>
+                <p v-if="item.author">
+                  <ElTooltip v-once effect="light" content="作者" placement="bottom" :show-after="1500">
+                    <IconUser style="margin-right: 4px;width: 12px;height: 12px;" />
+                  </ElTooltip>
+                  <ElTooltip v-memo="[item.author]" effect="light" :content="'作者 ' + item.author" placement="bottom"
+                    :show-after="1500">
+                    <span>{{ item.author }}</span>
+                  </ElTooltip>
+                </p>
+                <p>
+                  <ElTooltip v-once effect="light" content="插件" placement="bottom" :show-after="1500">
+                    <IconPlugin style="margin-right: 4px;width: 12px;height: 12px;" />
+                  </ElTooltip>
+                  <ElTooltip v-memo="[item.group, item.pluginName]" effect="light"
+                    :content="`插件 ${item.group}-${item.pluginName}`" placement="bottom" :show-after="1500">
+                    <span>{{ `${item.group}-${item.pluginName}` }}</span>
+                  </ElTooltip>
+                </p>
+              </div>
+              <div>
+                <p v-if="item.readChapterTitle">
+                  <ElTooltip v-once effect="light" content="已读" placement="bottom" :show-after="1500">
+                    <IconDot style="color: var(--rc-theme-color);" />
+                  </ElTooltip>
+                  <ElTooltip v-memo="[item.readChapterTitle]" effect="light" :content="'已读 ' + item.readChapterTitle"
+                    placement="bottom" :show-after="1500">
+                    <span>{{ item.readChapterTitle }}</span>
+                  </ElTooltip>
+                </p>
+                <p v-if="item.latestChapterTitle">
+                <div>
+                  <ElTooltip v-once effect="light" content="最新章节" placement="bottom" :show-after="1500">
+                    <IconDot style="color: var(--rc-latest-chapter-color);" />
+                  </ElTooltip>
+                  <ElTooltip v-memo="[item.latestChapterTitle]" effect="light"
+                    :content="'最新章节 ' + item.latestChapterTitle" placement="bottom" :show-after="1500">
+                    <span>{{ item.latestChapterTitle }}</span>
+                  </ElTooltip>
+                </div>
+                <ElCheckbox v-memo="[item.id]" :key="`checkbox-${item.id}`" :value="item.id"
+                  @click="(e: MouseEvent) => e.stopPropagation()" />
+                </p>
+              </div>
+            </div>
+          </ElCard>
+          <i v-once class="hide" />
+          <i v-once class="hide" />
+          <i v-once class="hide" />
+          <i v-once class="hide" />
+          <i v-once class="hide" />
+          <i v-once class="hide" />
+        </ElCheckboxGroup>
+      </div>
     </div>
-  </div>
+  </FileDrag>
 </template>
 
 <style scoped lang="scss">
-.container {
+.bookshelf-container {
   .app-blur {
     background-color: var(--rc-window-box-blur-bgcolor) !important;
   }

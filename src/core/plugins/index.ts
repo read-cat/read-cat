@@ -278,7 +278,6 @@ export class Plugins {
   private createPluginClassInstance(cls: PluginInterface) {
     const store = this.getPluginStore(cls.ID);
     const settings = useSettingsStore();
-    // (<any>cls.prototype.constructor).__proto__ = null;
     return new cls({
       request: {
         async get(url: string, config?: PluginRequestConfig) {
