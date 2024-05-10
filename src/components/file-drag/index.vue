@@ -30,9 +30,11 @@ const dragover = (e: DragEvent) => {
   e.preventDefault();
 }
 const dragenter = () => {
+  if (isDrag.value) return;
   isDrag.value = true;
 }
 const dragleave = () => {
+  if (!isDrag.value) return;
   isDrag.value = false;
 }
 const { options } = useSettingsStore();
@@ -48,7 +50,7 @@ export default {
   <div class="file-drag" @dragenter="dragenter">
     <slot />
     <Teleport to="body" :disabled="!toBody">
-      <div class="file-drag-container" v-show="isDrag" @drop="drop" @dragover="dragover" @dragleave="dragleave">
+      <div class="file-drag-container" v-memo="[isDrag]" v-show="isDrag" @drop="drop" @dragover="dragover" @dragleave="dragleave">
         <Transition :enter-active-class="options.enableTransition ? 'animate__animated animate__fadeIn' : void 0">
           <div v-show="isDrag" :class="[
             'tip',
