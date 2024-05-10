@@ -146,11 +146,13 @@ onMounted(() => {
   }
 
   $left-right-box-width: 320px;
+  $left-right-box-zoom-width: calc($left-right-box-width * var(--zoom-factor, 1));
+  $left-right-box-zoom-min-width: calc($left-right-box-width / var(--zoom-factor, 1));
 
   .left-box,
   .right-box {
-    width: calc($left-right-box-width * var(--zoom-factor, 1));
-    min-width: calc($left-right-box-width / var(--zoom-factor, 1));
+    width: $left-right-box-zoom-width;
+    min-width: $left-right-box-zoom-min-width;
   }
 
   .left-box {
@@ -158,7 +160,8 @@ onMounted(() => {
   }
 
   .center-box {
-    width: 280px;
+    width: calc(100% - $left-right-box-zoom-width * 2 - 11px);
+    min-width: calc(100% - $left-right-box-zoom-min-width * 2 - 11px);
   }
 
   .right-box {
