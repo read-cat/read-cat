@@ -2,7 +2,9 @@
 import {
   ElSwitch,
   ElInputNumber,
-  ElDivider
+  ElDivider,
+  ElInput,
+  ElButton
 } from 'element-plus';
 import SettingsCard from '../card/index.vue';
 import SettingsCardItem from '../card/item/index.vue';
@@ -11,6 +13,8 @@ import { storeToRefs } from 'pinia';
 import { isUndefined } from '../../../../core/is';
 import ThemeItem from './components/theme-item/index.vue';
 import { SettingsTheme } from '../../../../store/defined/settings';
+import { useCache } from './hooks/cache';
+import IconDelete from '../../../../assets/svg/icon-delete.svg';
 
 const { options, setTheme } = useSettingsStore();
 const {
@@ -23,6 +27,11 @@ const {
 const themeChange = (val: SettingsTheme) => {
   setTheme(val);
 }
+
+const {
+  cacheSize,
+  clearCache
+} = useCache();
 
 </script>
 <script lang="ts">
@@ -71,8 +80,9 @@ export default {
       </SettingsCardItem>
       <ElDivider />
       <SettingsCardItem v-memo="[scrollbarStepValue]" title="快捷键滚动步进值" help="仅快捷键向上/下滚动时生效">
-        <ElInputNumber v-model="scrollbarStepValue" @change="cur => scrollbarStepValue = Math.floor(isUndefined(cur) ? 300 : cur)"
-          size="small" :value-on-clear="300" :min="50" :max="5000" :step="50" />
+        <ElInputNumber v-model="scrollbarStepValue"
+          @change="cur => scrollbarStepValue = Math.floor(isUndefined(cur) ? 300 : cur)" size="small"
+          :value-on-clear="300" :min="50" :max="5000" :step="50" />
       </SettingsCardItem>
     </SettingsCard>
     <SettingsCard title="任务">
@@ -87,6 +97,15 @@ export default {
           :value-on-clear="10" :min="0" :max="100" :step="1" />
       </SettingsCardItem>
     </SettingsCard>
+    <SettingsCard>
+      <template #header>
+        <span v-once class="title">缓存</span>
+        <ElButton circle type="danger" size="small" :icon="IconDelete" @click="clearCache" />
+      </template>
+      <SettingsCardItem v-memo="[cacheSize]" title="当前缓存大小">
+        <ElInput v-model="cacheSize" readonly :formatter="(size: number) => (size / 1024 / 1024).toFixed(2) + ' MB'" />
+      </SettingsCardItem>
+    </SettingsCard>
   </div>
 </template>
 
@@ -96,10 +115,32 @@ export default {
 
   &>div {
     margin-right: 10px;
+
     &:last-child {
       margin-right: 0;
     }
   }
-  
+
+}
+
+.settings-config {
+  :deep(.el-input) {
+    height: 30px;
+
+    .el-input__wrapper {
+      cursor: default;
+
+      .el-input__inner {
+        height: 20px !important;
+        text-align: center;
+
+        &[type="number"] {
+          font-size: 14px;
+        }
+      }
+
+
+    }
+  }
 }
 </style>

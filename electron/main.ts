@@ -3,8 +3,9 @@ import path from 'node:path';
 import { EventCode } from '../events';
 import { createPluginDevtoolsWindow } from './plugin-devtools';
 import { PluginDevtoolsEventCode } from '../events/plugin-devtools';
-import { useShortcutKey } from './shortcut-key';
+import { useShortcutKey } from './hooks/shortcut-key';
 import fs from 'fs/promises';
+import { useCache } from './hooks/cache';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public');
@@ -80,6 +81,8 @@ function createWindow(width?: number, height?: number) {
     }), { encoding: 'utf-8' });
   });
 
+  useCache();
+
   (process.platform === 'win32') && ipcMain.on(EventCode.ASYNC_SET_TITLE_BAR_STYLE, (_, bgcolor, textcolor) => {
     win?.setTitleBarOverlay({
       color: `${bgcolor}00`.slice(0, 9),
@@ -124,6 +127,10 @@ function createWindow(width?: number, height?: number) {
       return;
     }
     win?.webContents.setZoomFactor(val);
+  });
+  ipcMain.on(EventCode.ASYNC_REBOOT_APPLICATION, () => {
+    app.relaunch();
+    app.exit();
   });
 
   const { register, unregister } = useShortcutKey(win);

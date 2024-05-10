@@ -39,6 +39,13 @@ export class EventCode {
   /**插件开发窗口被关闭 */
   static ASYNC_PLUGIN_WINDOW_CLOSED: string
 
+  /**获取缓存大小 */
+  static ASYNC_GET_CACHE_SIZE: string
+  /**清除缓存 */
+  static ASYNC_CLEAR_CACHE: string
+
+  /**重新启动程序 */
+  static ASYNC_REBOOT_APPLICATION: string
 
   /**
    * 开发环境

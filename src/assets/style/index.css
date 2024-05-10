@@ -211,9 +211,19 @@ button {
   }
 }
 
-.el-input__wrapper {
-  --el-input-focus-border-color: var(--rc-theme-color);
+.el-input {
+
+  .el-input__wrapper {
+    --el-input-focus-border-color: var(--rc-theme-color);
+    cursor: default;
+
+    .el-input__inner[readonly],
+    .el-input__inner[readonly="true"] {
+      cursor: default;
+    }
+  }
 }
+
 .el-select__wrapper.is-focused,
 .el-select-dropdown__item.is-selected {
   --el-color-primary: var(--rc-theme-color);
