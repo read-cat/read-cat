@@ -55,7 +55,7 @@
     "@types/uuid": "^9.0.8",
     "@types/ws": "^8.5.10",
     "@vitejs/plugin-vue": "^5.0.4",
-    "electron": "^30.0.2",
+    "electron": "^30.0.3",
     "electron-builder": "^24.13.3",
     "sass": "^1.77.0",
     "typescript": "^5.4.5",
