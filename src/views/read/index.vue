@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import {
-  ElDivider
+  ElDivider,
+  ElIcon
 } from 'element-plus';
-import { nextTick, onMounted } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import { useScrollTopStore } from '../../store/scrolltop';
 import { useWindowStore } from '../../store/window';
 import { useSettingsStore } from '../../store/settings';
@@ -19,6 +20,9 @@ import Menu from '../../components/menu/index.vue';
 import MenuItem from '../../components/menu/item/index.vue';
 import { useBookmarks } from './hooks/bookmarks';
 import { useTextContent } from './hooks/text-content';
+import SendBackward from '../../assets/svg/icon-send-backward.svg';
+import { debounce } from '../../core/utils/timer';
+import { useReadAloudStore } from '../../store/read-aloud';
 
 const route = useRoute();
 
@@ -26,9 +30,9 @@ const pid = String(route.query.pid);
 const detailUrl = String(route.query.detailUrl);
 
 const { currentChapter } = storeToRefs(useTextContentStore());
-const { mainElement } = useScrollTopStore();
-const { calcReadProgress } = useWindowStore();
-const { isDark } = storeToRefs(useWindowStore());
+const { mainElement } = storeToRefs(useScrollTopStore());
+const { calcReadProgress, onRefresh } = useWindowStore();
+const { isDark, currentPath } = storeToRefs(useWindowStore());
 const { setBookmark, contents } = useBookmarks();
 const { options } = useSettingsStore();
 
@@ -45,7 +49,7 @@ const {
   readAloudColor,
 } = storeToRefs(useSettingsStore());
 onMounted(() => {
-  nextTick(() => calcReadProgress(mainElement));
+  nextTick(() => calcReadProgress(mainElement.value));
 });
 const { isRunningGetTextContent } = storeToRefs(useTextContentStore());
 const { getTextContent } = useTextContentStore();
@@ -53,12 +57,13 @@ const { getTextContent } = useTextContentStore();
 useScrollTop(pid, detailUrl);
 
 const message = useMessage();
-const { onRefresh } = useWindowStore();
 const { setCurrentReadIndex } = useDetailStore();
+const { stop: readAloudStop } = useReadAloudStore();
 onRefresh(PagePath.READ, () => {
   if (isNull(currentChapter.value)) {
     return;
   }
+  readAloudStop();
   getTextContent(pid, currentChapter.value, true).then(() => {
     if (isNull(currentChapter.value) || isUndefined(currentChapter.value.index)) {
       setCurrentReadIndex(-1);
@@ -67,12 +72,41 @@ onRefresh(PagePath.READ, () => {
     } else {
       setCurrentReadIndex(currentChapter.value.index);
     }
+    mainElement.value.scrollTop = 0;
   }).catch(e => {
     message.error(e.message);
   });
 });
 
 const { nextChapter, prevChapter } = useTextContent();
+
+const deboNextChapter = debounce(() => {
+  nextChapter().catch(e => message.error(e.message));
+}, 200);
+const scrollBottomToNextChapterListener = () => {
+  const { scrollTop, clientHeight, scrollHeight } = mainElement.value;
+  if (scrollTop >= scrollHeight - clientHeight) {
+    deboNextChapter();
+  }
+}
+watchEffect(() => {
+  if (options.enableScrollBottomToNextChapter && currentPath.value === PagePath.READ) {
+    mainElement.value.addEventListener('scrollend', scrollBottomToNextChapterListener);
+  } else {
+    mainElement.value.removeEventListener('scrollend', scrollBottomToNextChapterListener);
+  }
+});
+onUnmounted(() => {
+  mainElement.value.removeEventListener('scrollend', scrollBottomToNextChapterListener);
+});
+const pageHeight = ref('500px');
+watch(() => mainElement.value.clientHeight, (height) => {
+  if (height > 500) {
+    pageHeight.value = `${height - 10}px`;
+  } else {
+    pageHeight.value = '500px';
+  }
+}, { immediate: true });
 </script>
 
 <template>
@@ -89,6 +123,12 @@ const { nextChapter, prevChapter } = useTextContent();
       '--rc-bookmark-odd-font-color': isDark ? options.enableBookmarkHighlight ? '' : 'none' : options.enableBookmarkHighlight ? bookmarkColorOdd : '',
       '--rc-bookmark-even-font-color': isDark ? options.enableBookmarkHighlight ? '' : 'none' : options.enableBookmarkHighlight ? bookmarkColorEven : '',
     }"></div>
+    <div v-if="options.enableScrollBottomToNextChapter" class="scroll-bottom-to-next-chapter">
+      <ElIcon size="60">
+        <SendBackward />
+      </ElIcon>
+      <p>向下滚动切换下一章节</p>
+    </div>
     <Menu trigger="#main" class-name="read-menu" :disabled="isRunningGetTextContent">
       <MenuItem label="上一章" @click="prevChapter(true)" />
       <MenuItem label="下一章" @click="nextChapter(true)" />
@@ -116,7 +156,8 @@ const { nextChapter, prevChapter } = useTextContent();
 
 .container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   color: var(--rc-text-color);
 
   :deep(.el-loading-mask) {
@@ -166,6 +207,14 @@ const { nextChapter, prevChapter } = useTextContent();
         max-width: 100%;
       }
     }
+  }
+
+  .scroll-bottom-to-next-chapter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+    height: v-bind(pageHeight);
   }
 }
 </style>

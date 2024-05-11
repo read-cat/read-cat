@@ -24,6 +24,7 @@ import IconCache from '../../../../assets/svg/icon-cache.svg';
 import Bookmark from '../../../bookmark/index.vue';
 import { useSettingsStore } from '../../../../store/settings';
 import { useWindowStore } from '../../../../store/window';
+import { useScrollTopStore } from '../../../../store/scrolltop';
 
 const props = defineProps<{
   windowEvent?: WindowEvent
@@ -49,13 +50,14 @@ const {
   currentChapterTitle,
   currentChapterPage
 } = usePagination(13);
-
+const { mainElement } = storeToRefs(useScrollTopStore());
 const directoryItemClick = (chapter: Chapter) => {
   if (currentChapterTitle.value === chapter.title) {
     return;
   }
   props.windowEvent?.hide();
   getTextContent(pid.value, chapter).then(() => {
+    mainElement.value.scrollTop = 0;
     if (isUndefined(chapter.index)) {
       setCurrentReadIndex(-1);
       GLOBAL_LOG.warn(`chapter index is undefined, pid:${pid}`, chapter);

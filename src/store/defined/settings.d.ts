@@ -29,6 +29,8 @@ export type SettingsOptions = {
   enableTransition: boolean,
   /**当前章节朗读结束时，自动朗读下一章节 */
   enableAutoReadAloudNextChapter: boolean
+  /**滚动至底部切换下一章节 */
+  enableScrollBottomToNextChapter: boolean
 }
 export type SettingsReadStyle = {
   /**阅读颜色 */
@@ -66,6 +68,10 @@ export type ShortcutKey = {
   scrollUp: string
   /**向下滚动 */
   scrollDown: string
+  /**上一页 */
+  prevPage: string
+  /**下一页 */
+  nextPage: string
   /**打开控制台 */
   openDevTools: string
   /**放大窗口 */

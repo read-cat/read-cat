@@ -78,6 +78,9 @@ export default {
       <SettingsCardItem v-memo="[options.enableAutoTextColor]" title="文本颜色自适应" help="仅阅读界面生效">
         <ElSwitch :validate-event="false" v-model="options.enableAutoTextColor" />
       </SettingsCardItem>
+      <SettingsCardItem v-memo="[options.enableScrollBottomToNextChapter]" title="滚动至底部切换下一章节" help="仅阅读界面生效">
+        <ElSwitch :validate-event="false" v-model="options.enableScrollBottomToNextChapter" />
+      </SettingsCardItem>
       <ElDivider />
       <SettingsCardItem v-memo="[scrollbarStepValue]" title="快捷键滚动步进值" help="仅快捷键向上/下滚动时生效">
         <ElInputNumber v-model="scrollbarStepValue"
@@ -94,7 +97,7 @@ export default {
         help="仅支持已加入书架的书本<br>向下缓存章节, 如当前阅读至第10章, 则后台自动缓存第10章至第(10 + N)章<br>若N为0, 则只缓存第10章">
         <ElInputNumber v-model="maxCacheChapterNumber"
           @change="cur => maxCacheChapterNumber = Math.floor(isUndefined(cur) ? 10 : cur)" size="small"
-          :value-on-clear="10" :min="0" :max="100" :step="1" />
+          :value-on-clear="10" :min="0" :max="5000" :step="1" />
       </SettingsCardItem>
     </SettingsCard>
     <SettingsCard>

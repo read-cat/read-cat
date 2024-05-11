@@ -21,6 +21,7 @@ export const useSettingsStore = defineStore('Settings', {
         enableAppStartedFindNewVersion: true,
         enableTransition: true,
         enableAutoReadAloudNextChapter: false,
+        enableScrollBottomToNextChapter: false,
       },
       readStyle: {
         color: DefaultReadColor.GREEN_QINGCAO,
@@ -50,6 +51,8 @@ export const useSettingsStore = defineStore('Settings', {
         prevChapter: '←',
         scrollUp: '↑',
         scrollDown: '↓',
+        prevPage: 'PageUp',
+        nextPage: 'PageDown',
         openDevTools: 'Ctrl+Shift+I',
         zoomInWindow: 'Ctrl+=',
         zoomOutWindow: 'Ctrl+-',

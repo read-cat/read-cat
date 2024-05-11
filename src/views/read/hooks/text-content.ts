@@ -6,6 +6,7 @@ import { useMessage } from '../../../hooks/message';
 import { useBookshelfStore } from '../../../store/bookshelf';
 import { useWindowStore } from '../../../store/window';
 import { errorHandler, newError } from '../../../core/utils';
+import { useScrollTopStore } from '../../../store/scrolltop';
 
 export const useTextContent = () => {
   const { detailResult, currentDetailUrl, currentPid } = storeToRefs(useDetailStore());
@@ -15,6 +16,8 @@ export const useTextContent = () => {
   const message = useMessage();
   const { exist, getBookshelfEntity, put } = useBookshelfStore();
   const { calcReadProgress } = useWindowStore();
+  const { mainElement } = storeToRefs(useScrollTopStore());
+  
   const handler = async (type: 'next' | 'prev') => {
     try {
       if (isRunningGetTextContent.value) {
@@ -75,11 +78,17 @@ export const useTextContent = () => {
   }
 
   const nextChapter = async (ignoreError = false) => {
-    await handler('next').catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
+    await handler('next').then(() => {
+      mainElement.value.scrollTop = 0;
+    }).catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
+    
   }
 
   const prevChapter = async (ignoreError = false) => {
-    await handler('prev').catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
+    await handler('prev').then(() => {
+      mainElement.value.scrollTop = 0;
+    }).catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
+    
   }
 
   return {
