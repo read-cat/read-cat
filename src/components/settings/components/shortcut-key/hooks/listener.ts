@@ -98,6 +98,8 @@ export const useListener = () => {
   const listeners = {
     prevChapterListener: handlerApplicationShortcutKey('prevChapter'),
     nextChapterListener: handlerApplicationShortcutKey('nextChapter'),
+    prevPageListener: handlerApplicationShortcutKey('prevPage'),
+    nextPageListener: handlerApplicationShortcutKey('nextPage'),
     scrollUpListener: handlerApplicationShortcutKey('scrollUp'),
     scrollDownListener: handlerApplicationShortcutKey('scrollDown'),
     openDevToolsListener: handlerApplicationShortcutKey('openDevTools'),

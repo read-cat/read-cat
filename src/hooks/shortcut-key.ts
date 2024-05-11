@@ -7,7 +7,7 @@ import { PagePath } from '../core/window';
 import { EventCode } from '../../events';
 import { GlobalShortcutKey } from '../store/defined/settings';
 import { useScrollTopStore } from '../store/scrolltop';
-import { onMounted } from 'vue';
+import { nextTick, onMounted } from 'vue';
 
 export const useShortcutKey = () => {
   const { nextChapter, prevChapter } = useTextContent();
@@ -48,6 +48,12 @@ export const useShortcutKey = () => {
       case shortcutKey.value.fullScreen:
         GLOBAL_IPC.send(EventCode.ASYNC_WINDOW_SET_FULLSCREEN, !win.isFullScreen);
         break;
+      case shortcutKey.value.prevPage:
+        win.currentPath === PagePath.READ && (mainElement.value.scrollTop -= mainElement.value.clientHeight - 10);
+        break;
+      case shortcutKey.value.nextPage:
+        win.currentPath === PagePath.READ && (mainElement.value.scrollTop += mainElement.value.clientHeight - 10);
+        break;
       default:
         break;
     }
@@ -75,8 +81,10 @@ export const useShortcutKey = () => {
     }
   }
   onMounted(() => {
-    mainElement.value.addEventListener('scrollend', () => {
-      scrollEnd = true;
+    nextTick(() => {
+      mainElement.value.addEventListener('scrollend', () => {
+        scrollEnd = true;
+      });
     });
   });
 

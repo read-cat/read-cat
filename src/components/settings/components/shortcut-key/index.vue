@@ -14,6 +14,8 @@ const { globalShortcutKeyRegisterError } = storeToRefs(useWindowStore());
 const {
   prevChapterListener,
   nextChapterListener,
+  prevPageListener,
+  nextPageListener,
   scrollUpListener,
   scrollDownListener,
   openDevToolsListener,
@@ -33,11 +35,17 @@ export default {
 <template>
   <div class="settings-shortcut-key">
     <SettingsCard title="应用" help="应用快捷键只在应用窗口获得焦点时生效">
-      <SettingsCardItem title="上一章" v-memo="[shortcutKey.prevChapter]">
+      <SettingsCardItem title="上一章" help="仅阅读界面有效" v-memo="[shortcutKey.prevChapter]">
         <ElInput v-model="shortcutKey.prevChapter" readonly @keydown="prevChapterListener" />
       </SettingsCardItem>
-      <SettingsCardItem title="下一章" v-memo="[shortcutKey.nextChapter]">
+      <SettingsCardItem title="下一章" help="仅阅读界面有效" v-memo="[shortcutKey.nextChapter]">
         <ElInput v-model="shortcutKey.nextChapter" readonly @keydown="nextChapterListener" />
+      </SettingsCardItem>
+      <SettingsCardItem title="上一页" help="仅阅读界面有效" v-memo="[shortcutKey.prevPage]">
+        <ElInput v-model="shortcutKey.prevPage" readonly @keydown="prevPageListener" />
+      </SettingsCardItem>
+      <SettingsCardItem title="下一页" help="仅阅读界面有效" v-memo="[shortcutKey.nextPage]">
+        <ElInput v-model="shortcutKey.nextPage" readonly @keydown="nextPageListener" />
       </SettingsCardItem>
       <SettingsCardItem title="向上滚动" v-memo="[shortcutKey.scrollUp]">
         <ElInput v-model="shortcutKey.scrollUp" readonly @keydown="scrollUpListener" />
