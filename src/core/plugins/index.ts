@@ -5,7 +5,6 @@ import { load } from 'cheerio';
 import { usePluginsStore } from '../../store/plugins';
 import { timeout, interval } from '../utils/timer';
 import { nanoid as _nanoid } from 'nanoid';
-import { v4 as _uuid } from 'uuid';
 import { storeToRefs } from 'pinia';
 import { createPluginStore } from './store';
 import { useSettingsStore } from '../../store/settings';
@@ -32,10 +31,11 @@ import { TextToSpeechEngine } from './defined/ttsengine';
 import { EdgeTTSEngine } from './built-in/tts/edge';
 import { Chapter } from '../book/book';
 import type { VM } from 'vm2';
+import NodeCrypto from 'crypto';
 
 const { WebSocket: WebSocketClient } = require('ws');
 const nanoid = () => _nanoid();
-const uuid = () => _uuid().replaceAll('-', '').toUpperCase();
+const uuid = () => window.crypto.randomUUID().replaceAll('-', '').toUpperCase();
 
 export enum PluginType {
   BOOK_SOURCE,
@@ -70,7 +70,6 @@ export class Plugins {
   private storeCreateFunction: CreatePluginStore;
   private consoleImplement: Console;
   private VM: typeof VM = require('vm2').VM;
-  // private VMScript = require('vm2').VMScript;
 
   constructor(options?: PluginsOptions) {
     const defaultOptions = {
@@ -567,6 +566,8 @@ export class Plugins {
     }
   }
 
+  
+
   private runPluginScript(script: string) {
     const sandbox = {
       plugin: {
@@ -598,6 +599,11 @@ export class Plugins {
       URLSearchParams,
       WebSocketClient,
       Uint8Array,
+      NodeCrypto,
+      DOMParser,
+      XPathResult,
+      XPathEvaluator,
+      XPathExpression
     };
     
     new this.VM({
