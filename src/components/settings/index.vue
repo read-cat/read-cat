@@ -4,7 +4,7 @@ import {
   ElPopover,
   ElDivider
 } from 'element-plus';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import IconClose from '../../assets/svg/icon-close.svg';
 import IconSettingsConfig from '../../assets/svg/icon-settings-config.svg';
 import IconSettingsProxy from '../../assets/svg/icon-settings-proxy.svg';
@@ -37,6 +37,10 @@ enum SettingsLabel {
 }
 const navItemSelected = ref('应用');
 
+watch(() => navItemSelected.value, () => {
+  const main = document.querySelector('#settings-main');
+  main && (main.scrollTop = 0);
+});
 </script>
 <script lang="ts">
 export default {
@@ -86,7 +90,7 @@ export default {
         </div>
         <ElDivider v-once />
       </header>
-      <main :class="['rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
+      <main id="settings-main" :class="['rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
         <SettingsConfig v-if="navItemSelected === SettingsLabel.CONFIG" />
         <SettingsPlugin v-else-if="navItemSelected === SettingsLabel.PLUGIN" />
         <SettingsProxy v-else-if="navItemSelected === SettingsLabel.PROXY" />
