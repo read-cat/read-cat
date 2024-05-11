@@ -167,7 +167,7 @@ export default {
       <ElPagination v-memo="[totalPage, currentPage]" layout="prev, pager, next" :page-count="totalPage"
         :current-page="currentPage" @current-change="currentPageChange" hide-on-single-page />
     </SettingsCard>
-    <Window width="400" height="400" center destroy-on-close :z-index="1000" @event="e => importErrorWindow = e">
+    <Window width="400" height="400" centerX centerY destroy-on-close :z-index="1000" @event="e => importErrorWindow = e">
       <p v-once style="margin: 5px 0;font-size: 12px; text-align: center; color: var(--rc-error-color)">插件导入失败列表</p>
       <ElTable v-memo="[importErrorList]" :data="importErrorList" height="380">
         <ElTableColumn label="文件名" width="150">

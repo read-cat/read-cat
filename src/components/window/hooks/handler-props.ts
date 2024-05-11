@@ -5,12 +5,14 @@ import { useSettingsStore } from '../../../store/settings';
 
 export const useHandlerProps = (props: WindowProps) => {
   const _top = ref('');
+  const _left = ref('');
   const _width = ref('');
   const _height = ref('');
   const _backgroundColor = ref('');
   const _className = ref('');
   const _toBody = ref(isUndefined(props.toBody) ? true : props.toBody);
-  const _center = ref(Boolean(props.center));
+  const _centerX = ref(Boolean(props.centerX));
+  const _centerY = ref(Boolean(props.centerY));
 
   const { options } = useSettingsStore();
   const handler = (val: any, defaultVal: string) => {
@@ -23,11 +25,22 @@ export const useHandlerProps = (props: WindowProps) => {
     return defaultVal;
   }
 
+  const handlerLeft = (left?: number | string) => {
+    if (isUndefined(left)) {
+      return '';
+    }
+    if (isNumber(left)) {
+      return left >= 0 ? `${left}px` : '';
+    }
+    return handler(left, '');
+  }
+
   watch(() => props, newVal => {
-    const { top, width, height, className } = newVal;
+    const { top, left, width, height, className } = newVal;
     _width.value = handler(width, '400px');
     _height.value = handler(height, '500px');
-    _top.value = _center.value ? `calc((100% - ${_height.value}) / 2)` : handler(top, '5px');
+    _top.value = _centerY.value ? `calc((100% - ${_height.value}) / 2)` : handler(top, '5px');
+    _left.value = _centerX.value ? `calc((100% - ${_width.value}) / 2)` : handlerLeft(left);
     _className.value = isUndefined(className) ? '' : className;
   }, {
     immediate: true,
@@ -47,11 +60,13 @@ export const useHandlerProps = (props: WindowProps) => {
 
   return {
     _top,
+    _left,
     _width,
     _height,
     _toBody,
     _backgroundColor,
     _className,
-    _center
+    _centerX,
+    _centerY
   }
 }

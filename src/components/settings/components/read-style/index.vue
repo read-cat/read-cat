@@ -148,7 +148,8 @@ export default {
         toBody
         destroyOnClose
         :clickHide="false"
-        center
+        centerX
+        centerY
         @event="e => readColorWindow = e"
       >
         <section>
@@ -235,7 +236,7 @@ export default {
             <ElButton @click="openFontSelectWindow">选择</ElButton>
           </template>
         </ElInput>
-        <Window class-name="fonts-window" width="300" height="250" toBody destroyOnClose clickHide center
+        <Window class-name="fonts-window" width="300" height="250" toBody destroyOnClose clickHide centerX centerY
           :isLoading="isLoading" @event="e => fontWindow = e">
           <div class="fonts-window-container">
             <ElInput v-model="fontQuery" clearable :prefix-icon="IconSearch" />

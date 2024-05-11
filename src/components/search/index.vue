@@ -58,7 +58,7 @@ export default {
         <span v-memo="[searchBoxHeaderText]">{{ searchBoxHeaderText }}</span>
       </div>
     </div>
-    <Window :to-body="false" destroy-on-close :top="5" :width="winSize.width" :height="winSize.height" background-color="var(--rc-search-box-bgcolor)"
+    <Window :to-body="false" destroy-on-close :top="5" center-x :width="winSize.width" :height="winSize.height" background-color="var(--rc-search-box-bgcolor)"
       @event="e => winEvent = e">
       <SearchBox v-if="currentPath !== PagePath.READ" v-model:search-key="searchKey" v-model:search-progress="searchProgress" :window-event="winEvent" :window-size="winSize" />
       <ChapterBox :window-event="winEvent" v-else />
