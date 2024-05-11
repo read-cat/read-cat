@@ -128,7 +128,7 @@ const bookmarkWindow = ref<WindowEvent>();
           <div :class="['list', 'rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
             <ElRow v-for="(item, index) in showValue" :key="index">
               <ElCol class="rc-button" :span="8" v-for="i in item" :key="i.url" @click="getChapterContent(i)">
-                <ElIcon v-if="cacheIndexs.includes(i.index)">
+                <ElIcon v-if="cacheIndexs[<string>detailUrl].includes(i.index)">
                   <IconCache />
                 </ElIcon>
                 <ElTooltip effect="light" :content="i.title" placement="bottom-end" :show-after="1500">
@@ -142,7 +142,7 @@ const bookmarkWindow = ref<WindowEvent>();
         </div>
       </div>
     </div>
-    <Window top="10" @event="e => bookmarkWindow = e" class-name="bookmark-window">
+    <Window top="10" centerX @event="e => bookmarkWindow = e" class-name="bookmark-window">
       <ElContainer>
         <ElHeader class="header" v-once>
           <ElText type="info" size="small">书签</ElText>

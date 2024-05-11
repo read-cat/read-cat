@@ -26,7 +26,7 @@ export const useDetailStore = defineStore('Detail', {
         chapterIndex: 0,
         scrollTop: 0
       },
-      cacheIndexs: [] as number[],
+      cacheIndexs: {} as Record<string, number[]>,
       currentPid: null as string | null,
     }
   },
@@ -54,7 +54,7 @@ export const useDetailStore = defineStore('Detail', {
         this.error = null;
         this.currentDetailUrl = null;
         this.currentPid = null;
-        this.cacheIndexs = [];
+        this.cacheIndexs[url] = [];
         const plugin = GLOBAL_PLUGINS.getPluginById<BookSource>(pid);
         if (isUndefined(plugin)) {
           this.error = `无法获取插件, 插件ID:${pid}不存在`;
@@ -70,7 +70,7 @@ export const useDetailStore = defineStore('Detail', {
         const book = await GLOBAL_DB.store.bookshelfStore.getByPidAndDetailPageUrl(pid, url);
         if (!isNull(book)) {
           const cacheIndexs = (await GLOBAL_DB.store.textContentStore.getByPidAndDetailUrl(pid, url))?.map(v => v.chapter.index);
-          this.cacheIndexs = isUndefined(cacheIndexs) ? [] : cacheIndexs;
+          this.cacheIndexs[url] = isUndefined(cacheIndexs) ? [] : cacheIndexs;
           if (!refresh) {
             if (book.baseUrl !== plugin.props.BASE_URL.trim()) {
               this.error = '插件请求目标链接不匹配, 请更新详情页';

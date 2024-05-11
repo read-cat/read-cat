@@ -102,9 +102,9 @@ export default {
     <ElMain class="chapter-box-main">
       <div v-show="radioValue === 'directory'" class="directory">
         <ul>
-          <li v-memo="[item.title === currentChapterTitle, cacheIndexs.includes(item.index)]" v-for="item in showValue"
+          <li v-if="currentDetailUrl" v-memo="[item.title === currentChapterTitle, cacheIndexs[currentDetailUrl].includes(item.index)]" v-for="item in showValue"
             :key="item.url" class="rc-button" @click="directoryItemClick(item)">
-            <ElIcon v-if="cacheIndexs.includes(item.index)">
+            <ElIcon v-if="cacheIndexs[currentDetailUrl].includes(item.index)">
               <IconCache />
             </ElIcon>
             <span :style="{

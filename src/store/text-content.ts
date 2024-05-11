@@ -80,6 +80,7 @@ export const useTextContentStore = defineStore('TextContent', {
 
     async cache(pid: string, detailUrl: string, chapterList: Chapter[], currentIndex: number) {
       const { maxCacheChapterNumber, threadsNumber } = storeToRefs(useSettingsStore());
+      const { cacheIndexs } = storeToRefs(useDetailStore());
       const cacheList = [];
       let cacheNumber = 0;
       for (let i = currentIndex; i < chapterList.length; i++) {
@@ -115,6 +116,7 @@ export const useTextContentStore = defineStore('TextContent', {
                   chapter,
                   textContent
                 });
+                cacheIndexs.value[detailUrl].push(chapter.index);
                 return reso();
               } catch (e) {
                 GLOBAL_LOG.error(`Text Content cache pid:${pid}`, e);
@@ -127,9 +129,8 @@ export const useTextContentStore = defineStore('TextContent', {
         }
         await Promise.allSettled(ps);
       }
-      const { cacheIndexs } = storeToRefs(useDetailStore());
       const indexs = (await GLOBAL_DB.store.textContentStore.getByPidAndDetailUrl(pid, detailUrl))?.map(v => v.chapter.index);
-      !isUndefined(indexs) && (cacheIndexs.value = indexs);
+      !isUndefined(indexs) && (cacheIndexs.value[detailUrl] = indexs);
     },
     async removeTextContentsByPidAndDetailUrl(pid: string, detailUrl: string): Promise<void> {
       try {
@@ -137,7 +138,7 @@ export const useTextContentStore = defineStore('TextContent', {
         const { cacheIndexs } = storeToRefs(useDetailStore());
         GLOBAL_DB.store.textContentStore.getByPidAndDetailUrl(pid, detailUrl).then(res => {
           const indexs = res?.map(v => v.chapter.index);
-          cacheIndexs.value = isUndefined(indexs) ? [] : indexs;
+          cacheIndexs.value[detailUrl] = isUndefined(indexs) ? [] : indexs;
         });
       } catch (e) {
         useMessage().error(errorHandler(e, true));
