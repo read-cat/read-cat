@@ -78,7 +78,7 @@ export const useSearchStore = defineStore('Search', {
                 if (isNull(author)) {
                   return v.bookname.includes(searchkey) || v.author.includes(searchkey);
                 } else {
-                  return v.author.trim() === author;
+                  return v.author.trim().includes(author);
                 }
               }).map<SearchResult>(e => ({
                 bookname: e.bookname?.trim(),
