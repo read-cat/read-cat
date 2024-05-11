@@ -18,6 +18,9 @@ export const useReadAloudStore = defineStore('ReadAloud', {
       currentPlayIndex: -1,
       abortController: null as AbortController | null,
       chapterUrl: null as string | null,
+      playerConfig: {
+        playbackRate: 1
+      }
     }
   },
   getters: {
@@ -32,6 +35,12 @@ export const useReadAloudStore = defineStore('ReadAloud', {
         section.classList.add('current-read-aloud');
         scrollTop(section.offsetTop - window.screen.height / 3);
       }
+    },
+    removeReadAloudClass() {
+      const section = document.querySelectorAll<HTMLElement>(`#text-content > div[data-index]`);
+      section.forEach(e => {
+        e.classList.remove('current-read-aloud');
+      });
     },
     async play(start = 0) {
       const {
@@ -99,6 +108,12 @@ export const useReadAloudStore = defineStore('ReadAloud', {
           this.addReadAloudClass();
         }
       }
+      this.readAloudRef.oncanplay = () => {
+        if (!this.readAloudRef) {
+          return;
+        }
+        this.readAloudRef.playbackRate = this.playerConfig.playbackRate;
+      }
       this.readAloudRef.onended = () => {
         this.isPlay = false;
         this.currentPlayIndex += 1;
@@ -160,6 +175,37 @@ export const useReadAloudStore = defineStore('ReadAloud', {
     },
     pause() {
       this.readAloudRef?.pause();
-    }
+    },
+    stop() {
+      if (this.abortController) {
+        this.abortController.abort();
+        this.abortController = null;
+      }
+      if (this.readAloudRef) {
+        this.readAloudRef.pause();
+        const old = this.readAloudRef.src;
+        this.readAloudRef.src = '';
+        URL.revokeObjectURL(old);
+      }
+      this.removeReadAloudClass();
+      this.chapterUrl = null;
+      this.currentPlayIndex = -1;
+      this.audios = [];
+      this.isPlay = false;
+    },
+    setPlaybackRate(rate: number) {
+      this.playerConfig.playbackRate = rate;
+      this.readAloudRef && (this.readAloudRef.playbackRate = rate);
+    },
+    fastForward() {
+      if (this.readAloudRef && this.isPlay) {
+        this.readAloudRef.currentTime += 5;
+      }
+    },
+    fastReverse() {
+      if (this.readAloudRef && this.isPlay) {
+        this.readAloudRef.currentTime -= 5;
+      }
+    },
   }
 });

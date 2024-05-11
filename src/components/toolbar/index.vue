@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {
   ElTooltip,
-  ElDivider
+  ElDivider,
+  ElSelect,
+  ElOption,
 } from 'element-plus';
 import IconMinimize from '../../assets/svg/icon-minimize.svg';
 import IconMaximize from '../../assets/svg/icon-maximize.svg';
@@ -13,8 +15,12 @@ import IconHistory from '../../assets/svg/icon-history.svg';
 import IconSettings from '../../assets/svg/icon-settings.svg';
 import IconExitFullScreen from '../../assets/svg/icon-exit-fullscreen.svg';
 import IconRedo from '../../assets/svg/icon-redo.svg';
-import IconPlay from '../../assets/svg/icon-play.svg';
-import IconPause from '../../assets/svg/icon-pause.svg';
+import IconAcoustic from '../../assets/svg/icon-acoustic.svg';
+import IconPlayerStop from '../../assets/svg/icon-player-stop.svg';
+import IconPlayerPlay from '../../assets/svg/icon-player-play.svg';
+import IconPlayerPause from '../../assets/svg/icon-player-pause.svg';
+import IconPlayerFastReverse from '../../assets/svg/icon-player-fast-reverse.svg';
+import IconPlayerFastForWard from '../../assets/svg/icon-player-fast-forward.svg';
 import Window, { WindowEvent } from '../window/index.vue';
 import Settings from '../settings/index.vue'
 
@@ -22,11 +28,9 @@ import { useRouter } from 'vue-router';
 import { useWindowStore } from '../../store/window';
 import { PagePath } from '../../core/window';
 import { useEvent } from './hooks/event';
-import { ref, watch } from 'vue';
-import { useReadAloudStore } from '../../store/read-aloud';
-import { storeToRefs } from 'pinia';
-import { useTextContentStore } from '../../store/text-content';
+import { ref } from 'vue';
 import { PluginType } from '../../core/plugins';
+import { useReadAloud } from './hooks/read-aloud';
 
 
 const router = useRouter();
@@ -39,21 +43,32 @@ const {
   close,
   exitFullScreen
 } = useEvent();
-const { isPlay, readAloudRef } = storeToRefs(useReadAloudStore());
-const { play, pause } = useReadAloudStore();
-const { currentChapter } = storeToRefs(useTextContentStore());
+
 const settingsWindow = ref<WindowEvent>();
 const { platform } = process;
 
-watch(() => [win.currentPath, currentChapter.value], () => {
-  pause();
-});
+
 const showReadAloud = () => {
   return GLOBAL_PLUGINS.getPluginsByType(PluginType.TTS_ENGINE, {
     enable: true
   }).length > 0;
 }
 
+const {
+  readAloudPlayerWindow,
+  showReadAloudPlayerWindow,
+  readAloudPlayerWindowConfig,
+  readAloudPlaybackRates,
+  readAloudPlaybackRate,
+  readAloudPlaybackRateChange,
+  readAloudIsPlay,
+  readAloudRef,
+  readAloudPlay,
+  readAloudPause,
+  readAloudStop,
+  readAloudFastForward,
+  readAloudFastReverse,
+} = useReadAloud();
 
 
 </script>
@@ -71,13 +86,51 @@ export default {
           <IconRedo />
         </button>
       </ElTooltip>
-      <ElTooltip v-memo="[win.currentPath, isPlay, showReadAloud()]" v-if="win.currentPath === PagePath.READ && showReadAloud()" effect="light"
-        :content="isPlay ? '暂停' : '朗读'" placement="bottom" :show-after="1000">
-        <button class="rc-button" @click="() => isPlay ? pause() : play()">
-          <IconPlay v-if="!isPlay" />
-          <IconPause v-else />
+      <ElTooltip v-memo="[win.currentPath, showReadAloud()]" v-if="win.currentPath === PagePath.READ && showReadAloud()"
+        effect="light" content="朗读" placement="bottom" :show-after="1000">
+        <button class="rc-button" @click="showReadAloudPlayerWindow">
+          <IconAcoustic />
         </button>
       </ElTooltip>
+      <Window :width="readAloudPlayerWindowConfig.width" :height="readAloudPlayerWindowConfig.height"
+        :top="readAloudPlayerWindowConfig.y" :left="readAloudPlayerWindowConfig.x" destroy-on-close
+        @event="e => readAloudPlayerWindow = e" class-name="read-aloud-player-window">
+        <div>
+          <div class="btns">
+            <ElTooltip v-once effect="light" content="快退" placement="bottom" :show-after="1000">
+              <button class="rc-button" @click="readAloudFastReverse">
+                <IconPlayerFastReverse />
+              </button>
+            </ElTooltip>
+            <ElTooltip v-memo="[readAloudIsPlay]" effect="light" :content="readAloudIsPlay ? '暂停' : '播放'" placement="bottom" :show-after="1000">
+              <button class="rc-button" @click="readAloudIsPlay ? readAloudPause() : readAloudPlay()">
+                <IconPlayerPlay v-if="!readAloudIsPlay" />
+                <IconPlayerPause v-else />
+              </button>
+            </ElTooltip>
+            <ElTooltip v-once effect="light" content="快进" placement="bottom" :show-after="1000">
+              <button class="rc-button" @click="readAloudFastForward">
+                <IconPlayerFastForWard />
+              </button>
+            </ElTooltip>
+            <ElTooltip v-once effect="light" content="停止" placement="bottom" :show-after="1000">
+              <button class="rc-button" @click="readAloudStop">
+                <IconPlayerStop />
+              </button>
+            </ElTooltip>
+          </div>
+
+          <ElSelect
+            v-model="readAloudPlaybackRate"
+            popper-class="playback-rate-select"
+            size="small"
+            style="width: 70px;"
+            @change="readAloudPlaybackRateChange"
+          >
+            <ElOption v-for="rate of readAloudPlaybackRates" :key="rate" :label="`${rate} X`" :value="rate" />
+          </ElSelect>
+        </div>
+      </Window>
       <audio v-once ref="readAloudRef" autoplay></audio>
       <ElTooltip v-memo="[win.isDark]" effect="light" :content="win.isDark ? '切换到浅色模式' : '切换到深色模式'" placement="bottom"
         :show-after="1000">
@@ -97,7 +150,8 @@ export default {
           <IconSettings />
         </button>
       </ElTooltip>
-      <Window width="840" height="550" center destroy-on-close :click-hide="false" @event="e => settingsWindow = e">
+      <Window width="840" height="550" centerX centerY destroy-on-close :click-hide="false"
+        @event="e => settingsWindow = e">
         <Settings :window="settingsWindow" />
       </Window>
     </div>
@@ -130,7 +184,45 @@ export default {
     </template>
   </div>
 </template>
+<style lang="scss">
+.read-aloud-player-window {
+  &>div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 5px;
+    height: 100%;
 
+    .btns {
+      display: flex;
+      align-items: center;
+      button {
+        width: 25px;
+        height: 25px;
+
+        &+button.rc-button {
+          margin-left: 5px;
+        }
+
+        svg {
+          width: 20px;
+          height: 20px;
+        }
+      }
+    }
+
+  }
+}
+.playback-rate-select {
+  .el-select-dropdown__list {
+    li {
+      padding: 0 15px;
+      height: 25px;
+      line-height: 25px;
+    }
+  }
+}
+</style>
 <style scoped lang="scss">
 .center {
   display: flex;
