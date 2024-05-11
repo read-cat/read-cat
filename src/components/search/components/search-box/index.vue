@@ -6,7 +6,8 @@ import {
   ElInput,
   ElButton,
   ElMain,
-  ElTooltip
+  ElTooltip,
+  InputInstance
 } from 'element-plus';
 import IconSearchKeyDelete from '../../../../assets/svg/icon-searchkey-delete.svg';
 import IconSearch from '../../../../assets/svg/icon-search.svg';
@@ -18,6 +19,7 @@ import { nanoid } from 'nanoid';
 import { useRouter } from 'vue-router';
 import { WindowEvent, WindowSize } from '../../../window/index.vue';
 import { useSettingsStore } from '../../../../store/settings';
+import { onMounted, ref } from 'vue';
 
 const props = defineProps<{
   windowEvent?: WindowEvent,
@@ -80,6 +82,11 @@ const deleteSearchkeyHistory = (e: MouseEvent, id: string) => {
   }
   removeSearchKey(id);
 }
+
+const searchInputRef = ref<InputInstance>();
+onMounted(() => {
+  setTimeout(() => searchInputRef.value?.focus(), 200);
+})
 </script>
 <script lang="ts">
 export default {
@@ -90,7 +97,7 @@ export default {
   <ElContainer id="search-box-container">
     <ElHeader id="search-box-header">
       <ElText v-once type="info" size="small">搜索</ElText>
-      <ElInput v-memo="[searchKey]" v-model="searchKey" clearable placeholder="请输入书名、作者" @keyup="(e: KeyboardEvent) => search(e, searchKey)">
+      <ElInput ref="searchInputRef" v-memo="[searchKey]" v-model="searchKey" clearable placeholder="请输入书名、作者" @keyup="(e: KeyboardEvent) => search(e, searchKey)">
         <template #append>
           <ElButton :icon="IconSearch" @click="e => search(e, searchKey)" />
         </template>
