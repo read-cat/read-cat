@@ -25,6 +25,7 @@ import Bookmark from '../../../bookmark/index.vue';
 import { useSettingsStore } from '../../../../store/settings';
 import { useWindowStore } from '../../../../store/window';
 import { useScrollTopStore } from '../../../../store/scrolltop';
+import { Text } from '../../..';
 
 const props = defineProps<{
   windowEvent?: WindowEvent
@@ -32,7 +33,7 @@ const props = defineProps<{
 
 
 const { isDark } = storeToRefs(useWindowStore());
-const { textColor } = storeToRefs(useSettingsStore());
+const { textColor, backgroundImage } = storeToRefs(useSettingsStore());
 const radioValue = ref('directory');
 const { options } = useSettingsStore();
 const message = useMessage();
@@ -50,14 +51,14 @@ const {
   currentChapterTitle,
   currentChapterPage
 } = usePagination(13);
-const { mainElement } = storeToRefs(useScrollTopStore());
+const { scrollToTextContent } = useScrollTopStore();
 const directoryItemClick = (chapter: Chapter) => {
   if (currentChapterTitle.value === chapter.title) {
     return;
   }
   props.windowEvent?.hide();
   getTextContent(pid.value, chapter).then(() => {
-    mainElement.value.scrollTop = 0;
+    scrollToTextContent(void 0, 'instant');
     if (isUndefined(chapter.index)) {
       setCurrentReadIndex(-1);
       GLOBAL_LOG.warn(`chapter index is undefined, pid:${pid}`, chapter);
@@ -91,7 +92,7 @@ export default {
 
 <template>
   <ElContainer class="chapter-box-container" :style="{
-    '--text-color': isDark ? '' : textColor,
+    '--text-color': isDark ? '' : backgroundImage ? '' : textColor,
   }">
     <ElHeader class="chapter-box-header">
       <ElText size="small" truncated v-memo="[currentChapterPage, currentChapterTitle]">当前章节(第{{ currentChapterPage }}页)
@@ -103,20 +104,21 @@ export default {
     </ElHeader>
     <ElMain class="chapter-box-main">
       <div v-show="radioValue === 'directory'" class="directory">
-        <ul>
-          <li v-if="currentDetailUrl" v-memo="[item.title === currentChapterTitle, cacheIndexs[currentDetailUrl].includes(item.index)]" v-for="item in showValue"
-            :key="item.url" class="rc-button" @click="directoryItemClick(item)">
-            <ElIcon v-if="cacheIndexs[currentDetailUrl].includes(item.index)">
-              <IconCache />
-            </ElIcon>
-            <span :style="{
-              color: `${item.title === currentChapterTitle ? 'var(--rc-theme-color)' : ''}`,
-              fontWeight: `${item.title === currentChapterTitle ? 'bold' : ''}`
-            }">{{ item.title }}</span>
-          </li>
-        </ul>
-        <ElPagination layout="prev, pager, next" :current-page="currentPage" :page-count="totalPage"
-          @current-change="currentPageChange" hide-on-single-page />
+        <template v-if="currentDetailUrl">
+          <ul>
+            <li v-for="item in showValue" :key="item.url" class="rc-button" @click="directoryItemClick(item)">
+              <ElIcon v-if="cacheIndexs[currentDetailUrl].includes(item.index)">
+                <IconCache />
+              </ElIcon>
+              <Text ellipsis max-width="350" :title="item.title" :style="{
+                color: `${item.title === currentChapterTitle ? 'var(--rc-theme-color)' : ''}`,
+                fontWeight: `${item.title === currentChapterTitle ? 'bold' : ''}`
+              }">{{ item.title }}</Text>
+            </li>
+          </ul>
+          <ElPagination layout="prev, pager, next" :current-page="currentPage" :page-count="totalPage"
+            @current-change="currentPageChange" hide-on-single-page />
+        </template>
       </div>
       <div v-show="radioValue === 'bookmark'"
         :class="['bookmark', 'rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
@@ -131,6 +133,7 @@ export default {
   * {
     color: var(--text-color);
   }
+
   .chapter-box-header {
     display: flex;
     flex-direction: column;
@@ -183,14 +186,6 @@ export default {
 
           &:last-child {
             margin-bottom: 0;
-          }
-
-          span {
-            display: inline-block;
-            max-width: 350px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-wrap: nowrap;
           }
 
           :deep(.el-icon) {

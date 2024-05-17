@@ -35,6 +35,8 @@ export class EventCode {
   static ASYNC_UNREGISTER_SHORTCUT_KEY: string
   /**初始化全局快捷键 */
   static ASYNC_INIT_GLOBAL_SHORTCUT_KEY: string
+  /**全局快捷键被触发 */
+  static ASYNC_TRIGGER_GLOBAL_SHORTCUT_KEY: string
 
   /**插件开发窗口被关闭 */
   static ASYNC_PLUGIN_WINDOW_CLOSED: string
@@ -46,6 +48,11 @@ export class EventCode {
 
   /**重新启动程序 */
   static ASYNC_REBOOT_APPLICATION: string
+
+  /**设置窗口背景颜色 */
+  static ASYNC_SET_WINDOW_BACKGROUND_COLOR: string
+  /**是否为透明窗口 */
+  static ASYNC_WINDOW_IS_TRANSPARENT: string
 
   /**
    * 开发环境

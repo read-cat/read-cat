@@ -81,6 +81,9 @@ export const usePlugin = () => {
   const handleSelectionChange = (val: Plugin[]) => {
     checked.value = val.map(v => v.id);
   }
+  const checkSelectable = (val: Plugin) => {
+    return !val.builtIn;
+  }
 
   const deletePlugin = (val: Plugin) => {
     const { id, name } = val;
@@ -185,6 +188,8 @@ export const usePlugin = () => {
     importErrorList.value = list;
     if (importErrorList.value.length > 0) {
       importErrorWindow.value?.show();
+    } else {
+      message.success(`已成功导入${files.length}个插件`);
     }
   }
 
@@ -226,6 +231,7 @@ export const usePlugin = () => {
     plugins,
     refresh,
     handleSelectionChange,
+    checkSelectable,
     toggleState,
     deletePlugin,
     updatePlugin,

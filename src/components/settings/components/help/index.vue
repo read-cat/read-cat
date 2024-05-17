@@ -150,4 +150,12 @@ export default {
     }
   }
 }
+
+@media screen and (max-width: 800px) {
+  .settings-help {
+    main {
+      width: 80%;
+    }
+  }
+}
 </style>

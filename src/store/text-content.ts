@@ -5,11 +5,13 @@ import { chunkArray, errorHandler, newError } from '../core/utils';
 import { isNull, isUndefined } from '../core/is';
 import { useSettingsStore } from './settings';
 import { nanoid } from 'nanoid';
-import { toRaw } from 'vue';
+import { nextTick, toRaw } from 'vue';
 import { useDetailStore } from './detail';
 import { useMessage } from '../hooks/message';
 import { useWindowStore } from './window';
 import { PagePath } from '../core/window';
+import { BookParser } from '../core/book/book-parser';
+import { useScrollTopStore } from './scrolltop';
 
 export type TextContent = {
   contents: string[],
@@ -39,46 +41,57 @@ export const useTextContentStore = defineStore('TextContent', {
         win.disableShowSearchBox.set(PagePath.READ, true);
         win.disableShowSearchBox.set(PagePath.DETAIL, true);
         const booksource = GLOBAL_PLUGINS.getPluginInstanceById<BookSource>(pid);
+        const dbTextContent = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
+        this.currentChapter = chapter;
+        if ((pid === BookParser.PID || !refresh) && dbTextContent) {
+          const { chapter, textContent } = dbTextContent;
+          const lengths = textContent.map(t => t.length);
+          this.textContent = {
+            contents: [chapter.title, ...textContent],
+            length: lengths.length > 0 ? lengths.reduce((prev, curr) => prev + curr) : 0
+          };
+          return;
+        }
+        if (pid === BookParser.PID && !dbTextContent) {
+          throw newError('无法获取章节内容');
+        }
         if (isUndefined(booksource)) {
           throw newError(`无法获取插件, 插件ID:${pid}不存在`);
         }
         if (isNull(booksource)) {
           throw newError(`插件未启用, 插件ID:${pid}`);
         }
-        const dbTextContent = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
-        this.currentChapter = chapter;
-        if (dbTextContent && !refresh) {
-          const { chapter, textContent } = dbTextContent;
-          this.textContent = {
-            contents: [chapter.title, ...textContent],
-            length: textContent.map(t => t.length).reduce((prev, curr) => prev + curr)
-          };
-        } else {
-          const textContent = (await booksource.getTextContent(chapter));
-          this.textContent = {
-            contents: [chapter.title, ...textContent],
-            length: textContent.map(t => t.length).reduce((prev, curr) => prev + curr)
-          };
-          const cache = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
-          if (!isNull(cache)) {
-            await GLOBAL_DB.store.textContentStore.put({
-              ...cache,
-              textContent: this.textContent.contents
-            });
-          }
+        const textContent = (await booksource.getTextContent(chapter));
+        const lengths = textContent.map(t => t.length);
+        this.textContent = {
+          contents: [chapter.title, ...textContent],
+          length: lengths.length > 0 ? lengths.reduce((prev, curr) => prev + curr) : 0
+        };
+        const cache = await GLOBAL_DB.store.textContentStore.getByPidAndChapterUrl(pid, chapter.url);
+        if (!isNull(cache)) {
+          await GLOBAL_DB.store.textContentStore.put({
+            ...cache,
+            textContent: this.textContent.contents
+          });
         }
         return;
       } catch (e) {
         GLOBAL_LOG.error('Text Content Store getTextContent', e);
         return errorHandler(e);
       } finally {
-        this.isRunningGetTextContent = false;
-        win.disableShowSearchBox.set(PagePath.READ, false);
-        win.disableShowSearchBox.set(PagePath.DETAIL, false);
+        nextTick(() => {
+          this.isRunningGetTextContent = false;
+          win.disableShowSearchBox.set(PagePath.READ, false);
+          win.disableShowSearchBox.set(PagePath.DETAIL, false);
+          useScrollTopStore().scrollToTextContent(void 0, 'instant');
+        });
       }
     },
 
     async cache(pid: string, detailUrl: string, chapterList: Chapter[], currentIndex: number) {
+      if (pid === BookParser.PID) {
+        return;
+      }
       const { maxCacheChapterNumber, threadsNumber } = storeToRefs(useSettingsStore());
       const { cacheIndexs } = storeToRefs(useDetailStore());
       const cacheList = [];

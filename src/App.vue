@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ElContainer, ElHeader, ElMain, ElBacktop } from 'element-plus';
+import { ElContainer, ElHeader, ElMain } from 'element-plus';
 import { Transition, onMounted, watchEffect } from 'vue';
 import Toolbar from './components/toolbar/index.vue';
 import { useRouter } from 'vue-router';
@@ -11,12 +11,12 @@ import Search from './components/search/index.vue';
 import { useWindowStore } from './store/window';
 import { PagePath } from './core/window';
 import { useSettingsStore } from './store/settings';
-import { useShortcutKey } from './hooks/shortcut-key';
 import { storeToRefs } from 'pinia';
 import { colorIsLight, getColorRGB } from './core/utils';
+import { Backtop } from './components';
 
-useShortcutKey();
 const win = useWindowStore();
+const { transparentWindow } = storeToRefs(win);
 const router = useRouter();
 router.afterEach((to, _, fail) => {
   if (fail) {
@@ -28,6 +28,8 @@ router.afterEach((to, _, fail) => {
     return;
   }
   win.currentPath = v;
+  const title = document.head.querySelector('title');
+  title && (title.innerText = (to.meta.title ? `${to.meta.title} | ` : '') + 'ReadCat');
 });
 
 const { setScrollTop: _setScrollTop } = useScrollTopStore();
@@ -44,7 +46,15 @@ const setScrollTop = ({ target }: Event) => {
 
 const { options } = useSettingsStore();
 const { platform } = process;
-const { backgroundColor, texture } = storeToRefs(useSettingsStore());
+const {
+  backgroundColor,
+  texture,
+  windowOpacity,
+  backgroundImage,
+  backgroundBlur,
+  backgroundBlurBgColor,
+  backgroundSize,
+} = storeToRefs(useSettingsStore());
 onMounted(() => {
   watchEffect(() => {
     let val = 'var(--rc-button-hover-bgcolor)';
@@ -54,19 +64,30 @@ onMounted(() => {
     }
     document.body.style.setProperty('--rc-button-hover-background-color', val);
   });
+  watchEffect(() => {
+    if (!transparentWindow.value) {
+      return;
+    }
+    document.body.style.opacity = windowOpacity.value;
+  });
 });
+
 </script>
 
 <template>
   <ElContainer id="container" :style="{
     '--rc-header-color': win.backgroundColor,
+    backgroundImage,
+    backgroundSize
   }">
     <ElHeader id="header" :class="[
       'app-drag',
       platform, win.isFullScreen ? 'fullscreen' : '',
       win.currentPath === PagePath.READ ? texture : '',
+      backgroundBlur ? 'app-blur' : '',
     ]" :style="{
-      '--rc-text-color': win.textColor
+      '--rc-text-color': win.textColor,
+      backgroundColor: backgroundBlurBgColor
     }">
       <div class="left-box">
         <div v-if="platform === 'darwin'" v-once class="window-controls-container app-no-darg"></div>
@@ -88,24 +109,25 @@ onMounted(() => {
           :class="['window-controls-container', 'app-no-darg', platform, win.isFullScreen ? 'fullscreen' : '']"></div>
       </div>
     </ElHeader>
-    <ElMain id="main"
-      :class="[
-        'rc-scrollbar',
-        options.enableTransition ? 'rc-scrollbar-behavior' : '',
-        win.currentPath === PagePath.READ ? texture : '',
-      ]"
-      @scroll="(e: any) => setScrollTop(e)" :style="{
-        '--rc-main-color': win.backgroundColor,
-        '--rc-text-color': win.textColor
-      }">
+    <ElMain id="main" :class="[
+      'rc-scrollbar',
+      options.enableTransition ? 'rc-scrollbar-behavior' : '',
+      win.currentPath === PagePath.READ ? texture : '',
+    ]"
+    @scroll="(e: any) => setScrollTop(e)" :style="{
+      '--rc-main-color': win.backgroundColor,
+      '--rc-text-color': win.textColor,
+      backgroundColor: backgroundImage ? 'transparent' : ''
+    }">
       <RouterView v-slot="{ Component }">
         <Transition :name="options.enableTransition ? 'router_animate' : void 0">
           <Component :is="Component" />
         </Transition>
       </RouterView>
-      <ElBacktop
-        v-if="win.currentPath !== PagePath.READ || (win.currentPath === PagePath.READ && options.enableReadBacktop)"
-        :right="50" :bottom="50" :visibility-height="200" target="#main" />
+      <Backtop
+        v-if="win.currentPath !== PagePath.READ || (win.currentPath === PagePath.READ && options.enableReadBacktop)"  
+        target="#main"
+      />
     </ElMain>
   </ElContainer>
 </template>
@@ -227,6 +249,19 @@ onMounted(() => {
     position: relative;
     padding: 5px 0 5px 5px;
     min-height: calc(100% - 10px);
+  }
+}
+@media screen and (max-width: 800px) {
+  #header {
+    .left-box,
+    .right-box {
+      width: auto;
+      min-width: auto;
+    }
+
+    .center-box {
+      width: 300px;
+    }
   }
 }
 </style>

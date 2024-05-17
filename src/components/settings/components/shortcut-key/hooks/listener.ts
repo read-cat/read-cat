@@ -22,6 +22,7 @@ export const useListener = () => {
   const createKeyDownListener = (call: (raw: string, key: string) => void): Listener => {
     const debo = debounce((raw: string, key: string) => call(raw, key), 200);
     return (e: KeyboardEvent | Event) => {
+      e.preventDefault();
       if (!isKeyboardEvent(e)) {
         return;
       }
@@ -107,7 +108,14 @@ export const useListener = () => {
     zoomOutWindowListener: handlerApplicationShortcutKey('zoomOutWindow'),
     zoomRestWindowListener: handlerApplicationShortcutKey('zoomRestWindow'),
     fullScreenWindowListener: handlerApplicationShortcutKey('fullScreen'),
+  }
+  const globalShortcutKeyListeners = {
     bossKeyListener: handlerGlobalShortcutKey('globalBossKey'),
+    readAloudToggleListener: handlerGlobalShortcutKey('globalReadAloudToggle'),
+    readAloudPrevChapterListener: handlerGlobalShortcutKey('globalReadAloudPrevChapter'),
+    readAloudNextChapterListener: handlerGlobalShortcutKey('globalReadAloudNextChapter'),
+    readAloudFastForwardListener: handlerGlobalShortcutKey('globalReadAloudFastForward'),
+    readAloudFastRewindListener: handlerGlobalShortcutKey('globalReadAloudFastRewind'),
   }
 
   onUnmounted(() => {
@@ -117,5 +125,6 @@ export const useListener = () => {
 
   return {
     ...listeners,
+    ...globalShortcutKeyListeners,
   }
 }

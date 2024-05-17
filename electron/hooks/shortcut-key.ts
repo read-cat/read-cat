@@ -1,7 +1,8 @@
 import { BrowserWindow, globalShortcut } from 'electron';
+import { EventCode } from '../../events';
+
 const debounce = (executor: (...args: any[]) => void, ms = 1000) => {
   let timeout: NodeJS.Timeout | null = null;
-
   return (...args: any[]) => {
     if (timeout) {
       clearTimeout(timeout);
@@ -14,7 +15,6 @@ const debounce = (executor: (...args: any[]) => void, ms = 1000) => {
   }
 }
 export const useShortcutKey = (win: BrowserWindow) => {
-
   /**
    * 注册快捷键
    * @param key 快捷键名称
@@ -23,10 +23,10 @@ export const useShortcutKey = (win: BrowserWindow) => {
   const register = (key: string, skey: string) => {
     switch (key) {
       case 'globalBossKey':
-        return registerGlobalBossKey(skey);
+        return registerGlobalShortcutKey(key, skey, bossKey);
 
       default:
-        return false;
+        return registerGlobalShortcutKey(key, skey);
     }
   }
 
@@ -35,9 +35,14 @@ export const useShortcutKey = (win: BrowserWindow) => {
   }
 
 
-  const registerGlobalBossKey = (skey: string) => {
+  const bossKey = () => {
+    win.isVisible() ? win.hide() : win.show();
+  }
+
+  const registerGlobalShortcutKey = (key: string, skey: string, callback?: () => void) => {
     const debo = debounce(() => {
-      win.isVisible() ? win.hide() : win.show();
+      win.webContents.send(EventCode.ASYNC_TRIGGER_GLOBAL_SHORTCUT_KEY, key);
+      callback && callback();
     }, 200);
     return globalShortcut.register(skey, debo);
   }

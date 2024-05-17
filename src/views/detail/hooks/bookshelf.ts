@@ -7,6 +7,8 @@ import { storeToRefs } from 'pinia';
 import { useBookmarkStore } from '../../../store/bookmark';
 import { useTextContentStore } from '../../../store/text-content';
 import { useMessage } from '../../../hooks/message';
+import { useRouter } from 'vue-router';
+import { BookParser } from '../../../core/book/book-parser';
 
 export const useBookshelf = (pid: string, detailUrl: string, detailResult: Ref<DetailPageResult | null>) => {
   const exist = ref(false);
@@ -16,6 +18,7 @@ export const useBookshelf = (pid: string, detailUrl: string, detailResult: Ref<D
   const message = useMessage();
   const { currentReadIndex } = storeToRefs(useDetailStore());
   const { currentReadScrollTop } = useDetailStore();
+  const router = useRouter();
   const putAndRemoveBookshelf = () => {
     if (!detailResult.value) {
       return;
@@ -28,6 +31,7 @@ export const useBookshelf = (pid: string, detailUrl: string, detailResult: Ref<D
         cancelButtonText: '取消'
       }).then(() => {
         bookshelf.removeByPidAndDetailUrl(pid, detailUrl).then(() => {
+          pid === BookParser.PID && router.back();
           message.success(`已将 ${detailResult.value?.bookname} 移出书架`);
           bookmark.removeBookmarksByDetailUrl(detailUrl);
           textContent.removeTextContentsByPidAndDetailUrl(pid, detailUrl);

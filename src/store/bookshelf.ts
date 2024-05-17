@@ -5,6 +5,7 @@ import { chunkArray, errorHandler, newError, replaceInvisibleStr } from '../core
 import { isNull, isUndefined } from '../core/is';
 import { useSettingsStore } from './settings';
 import { BookSource } from '../core/plugins/defined/booksource';
+import { BookParser } from '../core/book/book-parser';
 
 export type Book = {
   id: string,
@@ -80,8 +81,14 @@ export const useBookshelfStore = defineStore('Bookshelf', {
           baseUrl
         } = _entity;
         const props = GLOBAL_PLUGINS.getPluginPropsById(pid);
-        if (isUndefined(props)) {
-          throw newError('插件属性获取失败');
+        let GROUP, NAME;
+        if (pid !== BookParser.PID) {
+          if (isUndefined(props)) throw newError('插件属性获取失败');
+          GROUP = props.GROUP;
+          NAME = props.NAME;
+        } else {
+          GROUP = '内置';
+          NAME = '本地书籍';
         }
         const obj: Book = {
           id,
@@ -97,8 +104,8 @@ export const useBookshelfStore = defineStore('Bookshelf', {
           timestamp,
           pluginVersionCode,
           baseUrl,
-          group: props.GROUP,
-          pluginName: props.NAME
+          group: GROUP,
+          pluginName: NAME
         }
         const i = this._books.findIndex(v => v.id === id);
         if (i >= 0) {
@@ -119,9 +126,9 @@ export const useBookshelfStore = defineStore('Bookshelf', {
         return errorHandler(e);
       }
     },
-    async remove(id: string) {
+    async remove(id: string): Promise<void> {
       try {
-        const i = this._books.findIndex(v => v.id = id);
+        const i = this._books.findIndex(v => v.id === id);
         if (i >= 0) {
           await GLOBAL_DB.store.bookshelfStore.remove(id);
           this._books.splice(i, 1);
@@ -154,6 +161,9 @@ export const useBookshelfStore = defineStore('Bookshelf', {
       }
       try {
         const { pid, detailPageUrl } = this._books[index];
+        if (pid === BookParser.PID) {
+          return;
+        }
         const plugin = GLOBAL_PLUGINS.getPluginById<BookSource>(pid);
         if (isUndefined(plugin)) {
           throw newError(`无法获取插件, 插件ID:${pid}`);
@@ -166,7 +176,14 @@ export const useBookshelfStore = defineStore('Bookshelf', {
           throw newError('插件请求目标链接[BASE_URL]不匹配');
         }
         this._books[index].isRunningRefresh = true;
-        const detail = await instance.getDetail(detailPageUrl);
+        const {
+          bookname,
+          author,
+          intro,
+          coverImageUrl,
+          chapterList,
+          latestChapterTitle
+        } = await instance.getDetail(detailPageUrl);
         await this.put({
           id: db.id,
           pid: db.pid,
@@ -177,7 +194,12 @@ export const useBookshelfStore = defineStore('Bookshelf', {
           searchIndex: db.searchIndex,
           timestamp: db.timestamp,
           baseUrl: db.baseUrl,
-          ...detail
+          bookname: bookname.trim() || db.bookname,
+          author: author.trim() || db.author,
+          intro: intro?.trim() || db.intro,
+          coverImageUrl: coverImageUrl.trim() || db.coverImageUrl,
+          chapterList: chapterList || db.chapterList,
+          latestChapterTitle: latestChapterTitle?.trim() || db.latestChapterTitle
         });
       } catch (e: any) {
         this._books[index].error = e;

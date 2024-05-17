@@ -5,7 +5,9 @@ import { createPluginDevtoolsWindow } from './plugin-devtools';
 import { PluginDevtoolsEventCode } from '../events/plugin-devtools';
 import { useShortcutKey } from './hooks/shortcut-key';
 import fs from 'fs/promises';
+import { existsSync } from 'fs';
 import { useCache } from './hooks/cache';
+import { useListener } from './hooks/listener';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public');
@@ -19,6 +21,9 @@ let pluginDevtoolsWin: BrowserWindow | null = null;
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
 const icon = path.join(process.env.VITE_PUBLIC, 'icons/icon.ico');
 const windowSizeConfigPath = path.join(app.getPath('userData'), 'window_size');
+const windowTransparentPath = path.join(app.getPath('userData'), 'window_transparent');
+const isTransparent = existsSync(windowTransparentPath);
+
 function createWindow(width?: number, height?: number) {
   win = new BrowserWindow({
     title: 'ReadCat',
@@ -35,9 +40,11 @@ function createWindow(width?: number, height?: number) {
       height: 35
     },
     backgroundColor: '#2980B9',
+    transparent: isTransparent,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
+      nodeIntegrationInWorker: true,
       contextIsolation: false
     },
   });
@@ -55,32 +62,12 @@ function createWindow(width?: number, height?: number) {
       action: 'deny'
     }
   });
-  win.on('closed', () => {
-    app.quit();
-    win = null;
-    process.exit(0);
+  
+  useListener({
+    win,
+    transparent: isTransparent,
+    windowSizeConfigPath
   });
-  win.on('enter-full-screen', () => {
-    win?.webContents.send(EventCode.ASYNC_WINDOW_IS_FULLSCREEN, true);
-  });
-  win.on('leave-full-screen', () => {
-    win?.webContents.send(EventCode.ASYNC_WINDOW_IS_FULLSCREEN, false);
-  });
-  win.on('maximize', () => {
-    win?.webContents.send(EventCode.ASYNC_WINDOW_IS_MAXIMIZE, true);
-  });
-  win.on('unmaximize', () => {
-    win?.webContents.send(EventCode.ASYNC_WINDOW_IS_MAXIMIZE, false);
-  });
-  win.on('resized', () => {
-    if (!win) return;
-    const [width, height] = win.getSize();
-    fs.writeFile(windowSizeConfigPath, JSON.stringify({
-      width,
-      height
-    }), { encoding: 'utf-8' });
-  });
-
   useCache();
 
   (process.platform === 'win32') && ipcMain.on(EventCode.ASYNC_SET_TITLE_BAR_STYLE, (_, bgcolor, textcolor) => {
@@ -142,10 +129,14 @@ function createWindow(width?: number, height?: number) {
   });
   ipcMain.once(EventCode.ASYNC_INIT_GLOBAL_SHORTCUT_KEY, (e, arr: [string, string][]) => {
     const res: [string, string, boolean][] = [];
+
     for (const [key, skey] of arr) {
       res.push([key, skey, register(key, skey)]);
     }
     e.sender.send(EventCode.ASYNC_INIT_GLOBAL_SHORTCUT_KEY, res);
+  });
+  ipcMain.on(EventCode.ASYNC_SET_WINDOW_BACKGROUND_COLOR, (_, color) => {
+    win?.setBackgroundColor(color);
   });
 
 

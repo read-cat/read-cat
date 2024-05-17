@@ -8,6 +8,7 @@ export interface WindowEvent {
   show: () => void
   hide: () => void
   isShow: () => boolean
+  el: () => HTMLElement | null
 }
 export type WindowSize = {
   width: string,
@@ -67,7 +68,8 @@ const { showWindow } = useShowWindow(id, props);
 emits('event', {
   show: () => showWindow.value = true,
   hide: () => showWindow.value = false,
-  isShow: () => showWindow.value
+  isShow: () => showWindow.value,
+  el: () => document.getElementById(id)
 });
 
 

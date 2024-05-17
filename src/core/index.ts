@@ -104,6 +104,7 @@ export class Core {
   public static async initDatabase() {
     const db = new Database();
     await db.open();
+    await db.store.settingsStore.read().finally(() => db.store.settingsStore.watch());
     Core.setValue(Core, 'database', db);
     Core.setValue(window, 'GLOBAL_DB', Core.database);
   }

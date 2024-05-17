@@ -13,6 +13,7 @@ import './assets/style/font/HarmonyOS_Sans_SC/index.css';
 import { isUndefined } from './core/is';
 import { useMessage } from './hooks/message';
 import { ElLoading } from 'element-plus';
+import { useShortcutKey } from './hooks/shortcut-key';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -36,6 +37,14 @@ const startListener = () => {
   GLOBAL_IPC.on(EventCode.ASYNC_WINDOW_IS_MAXIMIZE, (_, is: boolean) => {
     win.isMaximize = is;
   });
+  GLOBAL_IPC.once(EventCode.ASYNC_WINDOW_IS_TRANSPARENT, (_, is: boolean) => {
+    if (!is) {
+      win.transparentWindow = false;
+      return;
+    }
+    win.transparentWindow = true;
+    GLOBAL_IPC.send(EventCode.ASYNC_SET_WINDOW_BACKGROUND_COLOR, '#00000000');
+  });
 }
 
 const initHeaderColor = () => {
@@ -50,13 +59,13 @@ const initHeaderColor = () => {
   }
   GLOBAL_IPC.send(EventCode.ASYNC_SET_TITLE_BAR_STYLE, headerColor, headerTextColor);
 }
-
 Core.initIpcRenderer();
+startListener();
 app.mount('#app').$nextTick().then(() => {
   Core.init().then(es => {
-    startListener();
     postMessage({ payload: 'removeLoading' }, '*');
     (process.platform === 'win32') && initHeaderColor();
+    useShortcutKey();
     if (!isUndefined(es)) {
       const message = useMessage();
       for (const e of es) {

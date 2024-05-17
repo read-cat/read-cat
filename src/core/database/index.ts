@@ -9,6 +9,7 @@ import { BookmarkStoreDatabase } from './store/bookmark-store';
 import { SettingsStoreDatabase } from './store/settings-store';
 import { newError } from '../utils';
 import { ReadColorStoreDatabase } from './store/read-color-store';
+import { TxtParseRuleStoreDatabase } from './store/txt-parse-rule-store';
 
 export enum StoreName {
   PLUGINS = 'store_plugins_jscode',
@@ -20,10 +21,11 @@ export enum StoreName {
   BOOKMARK = 'store_bookmark',
   SETTINGS = 'store_settings',
   READ_COLOR = 'store_read_color',
+  TXT_PARSE_RULE = 'store_txt_parse_rule',
 }
 
 export class Database {
-  public static readonly VERSION: number = 7;
+  public static readonly VERSION: number = 8;
   public static readonly NAME: string = 'ReadCatDatabase';
 
   private db: IDBDatabase | null = null;
@@ -38,6 +40,7 @@ export class Database {
     bookmarkStore: BookmarkStoreDatabase,
     settingsStore: SettingsStoreDatabase,
     readColorStore: ReadColorStoreDatabase,
+    txtParseRuleStore: TxtParseRuleStoreDatabase,
   } | null = null;
   constructor() {
 
@@ -64,6 +67,7 @@ export class Database {
         bookmarkStore: new BookmarkStoreDatabase(this.db, StoreName.BOOKMARK),
         settingsStore: new SettingsStoreDatabase(this.db, StoreName.SETTINGS),
         readColorStore: new ReadColorStoreDatabase(this.db, StoreName.READ_COLOR),
+        txtParseRuleStore: new TxtParseRuleStoreDatabase(this.db, StoreName.TXT_PARSE_RULE),
       };
     }
 
@@ -130,7 +134,7 @@ export class Database {
     });
   }
   private async createDatabase() {
-    return Promise.all([
+    const stores = [
       this.createStore(StoreName.PLUGINS, {
         keyPath: 'id'
       }, [{
@@ -239,6 +243,16 @@ export class Database {
           unique: true
         }
       }]),
-    ]);
+      this.createStore(StoreName.TXT_PARSE_RULE, {
+        keyPath: 'id'
+      }, [{
+        name: 'index_id',
+        keyPath: 'id',
+        options: {
+          unique: true
+        }
+      }]),
+    ];
+    for (const store of stores) await store;
   }
 }

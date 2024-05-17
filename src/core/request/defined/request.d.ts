@@ -20,6 +20,7 @@ export type RequestConfig = {
   urlencode?: Charset,
   charset?: Charset,
   responseType?: ResponseType
+  maxRedirects?: number
 }
 
 export type Response<T> = {

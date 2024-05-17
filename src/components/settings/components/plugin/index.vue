@@ -3,7 +3,6 @@ import {
   ElInput,
   ElButton,
   ElInputNumber,
-  ElTooltip,
   ElTable,
   ElTableColumn,
   ElCheckTag,
@@ -18,23 +17,23 @@ import { useSettingsStore } from '../../../../store/settings';
 import { isUndefined } from '../../../../core/is';
 import IconRedo from '../../../../assets/svg/icon-redo.svg';
 import { usePlugin } from './hooks/plugin';
-import { usePagination } from './hooks/pagination';
-import { useSearch } from './hooks/search';
 import { PluginType } from '../../../../core/plugins';
 import IconLoading from '../../../../assets/svg/icon-loading.svg';
 import IconImport from '../../../../assets/svg/icon-import.svg';
 import IconDelete from '../../../../assets/svg/icon-delete.svg';
 import IconUpdate from '../../../../assets/svg/icon-update.svg';
 import IconSearch from '../../../../assets/svg/icon-search.svg';
-import Window from '../../../../components/window/index.vue';
+import { Window, FileDrag, Text } from '../../../../components';
 import { usePluginDevtools } from './hooks/plugin-devtools';
-import FileDrag from '../../../file-drag/index.vue';
+import { useDefaultSearch } from '../../../../hooks/default-search';
+import { useDefaultPagination } from '../../../../hooks/default-pagination';
 
 const { pluginDevtools } = useSettingsStore();
 const {
   plugins,
   refresh,
   handleSelectionChange,
+  checkSelectable,
   toggleState,
   deletePlugin,
   updatePlugin,
@@ -45,13 +44,14 @@ const {
   importErrorWindow,
   importPluginsFileDragChange,
 } = usePlugin();
-const { searchkey, searchResult } = useSearch(plugins);
+const { searchKey, searchResult } = useDefaultSearch(plugins);
+
 const {
   totalPage,
   showValue,
   currentPage,
   currentPageChange
-} = usePagination(searchResult);
+} = useDefaultPagination(searchResult);
 
 const {
   openPluginDevtoolsKit,
@@ -88,31 +88,21 @@ export default {
       <template #header>
         <span v-once class="title">管理</span>
         <div style="display: flex; align-items: center;">
-          <ElTooltip v-once effect="light" placement="bottom-start" content="导入" :show-after="1000">
-            <ElButton circle size="small" type="warning" :icon="IconImport" @click="importPlugin" />
-          </ElTooltip>
-          <ElTooltip v-once effect="light" placement="bottom-start" content="刷新" :show-after="1000">
-            <ElButton circle size="small" type="primary" :icon="IconRedo" @click="refresh" />
-          </ElTooltip>
-          <ElTooltip v-once effect="light" placement="bottom-start" content="删除" :show-after="1000">
-            <ElButton circle size="small" type="danger" :icon="IconDelete" @click="deleteChecked" />
-          </ElTooltip>
-          <ElTooltip v-once effect="light" placement="bottom-start" content="更新" :show-after="1000">
-            <ElButton circle size="small" type="success" :icon="IconUpdate" @click="updateChecked" />
-          </ElTooltip>
-          <ElInput v-memo="[searchkey]" class="settings-card-item-plugin-search-input" v-model="searchkey" clearable
+          <ElButton v-once title="导入" circle size="small" type="warning" :icon="IconImport" @click="importPlugin" />
+          <ElButton v-once title="刷新" circle size="small" type="primary" :icon="IconRedo" @click="refresh" />
+          <ElButton v-once title="删除" circle size="small" type="danger" :icon="IconDelete" @click="deleteChecked" />
+          <ElButton v-once title="更新" circle size="small" type="success" :icon="IconUpdate" @click="updateChecked" />
+          <ElInput v-memo="[searchKey]" class="settings-card-item-plugin-search-input" v-model="searchKey" clearable
             placeholder="请输入搜索关键字" :prefix-icon="IconSearch" />
         </div>
       </template>
       <FileDrag tip="导入插件" :z-index="1000" :to-body="false" width="100%" height="100%" @change="importPluginsFileDragChange">
-        <ElTable v-memo="[showValue]" :data="showValue" height="245" @selection-change="handleSelectionChange"
+        <ElTable v-memo="[showValue]" :data="showValue" height="215" @selection-change="handleSelectionChange"
           empty-text="暂无插件">
-          <ElTableColumn type="selection" width="30" />
+          <ElTableColumn type="selection" width="30" :selectable="checkSelectable" />
           <ElTableColumn label="ID" width="90">
             <template #default="{ row }">
-              <ElTooltip effect="light" placement="bottom-start" :content="row.id">
-                <span class="settings-card-item-plugin-label">{{ row.id }}</span>
-              </ElTooltip>
+              <Text :title="row.id" ellipsis max-width="100%">{{ row.id }}</Text>
             </template>
           </ElTableColumn>
           <ElTableColumn label="类型" width="70">
@@ -124,22 +114,18 @@ export default {
           </ElTableColumn>
           <ElTableColumn label="分组" width="80">
             <template #default="{ row }">
-              <ElTooltip effect="light" placement="bottom-start" :content="row.group">
-                <span class="settings-card-item-plugin-label">{{ row.group }}</span>
-              </ElTooltip>
+              <Text :title="row.group" ellipsis max-width="100%">{{ row.group }}</Text>
             </template>
           </ElTableColumn>
           <ElTableColumn label="名称" width="90">
             <template #default="{ row }">
-              <ElTooltip effect="light" placement="bottom-start" :content="row.name">
-                <span class="settings-card-item-plugin-label">{{ row.name }}</span>
-              </ElTooltip>
+              <Text :title="row.name" ellipsis max-width="100%">{{ row.name }}</Text>
             </template>
           </ElTableColumn>
           <ElTableColumn label="状态" width="70">
             <template #default="{ row }">
               <ElCheckTag class="settings-card-item-plugin-state-check-tag" :checked="row.enable" type="primary"
-                @click="toggleState(row)">{{ row.enable ? '启用' : '禁用' }}</ElCheckTag>
+                @click="toggleState(row)">{{ row.enable ? '已启用' : '已禁用' }}</ElCheckTag>
             </template>
           </ElTableColumn>
           <ElTableColumn label="版本号" width="70">
@@ -147,9 +133,7 @@ export default {
               <ElIcon class="is-loading" v-if="row.updating">
                 <IconLoading />
               </ElIcon>
-              <ElTooltip v-else effect="light" placement="bottom-start" :content="row.version">
-                <span class="settings-card-item-plugin-label">{{ row.version }}</span>
-              </ElTooltip>
+              <Text v-else :title="row.version" ellipsis max-width="100%">{{ row.version }}</Text>
             </template>
           </ElTableColumn>
           <ElTableColumn label="操作" fixed="right">
@@ -205,14 +189,6 @@ export default {
       height: 15px !important;
     }
   }
-}
-
-.settings-card-item-plugin-label {
-  display: inline-block;
-  max-width: 100%;
-  text-wrap: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .settings-card-item-plugin-state-check-tag {
@@ -292,7 +268,10 @@ export default {
         padding: 0 10px;
       }
     }
-
+    th.el-table__cell:is(.el-table-fixed-column--right),
+    tr td:is(.el-table-fixed-column--right) {
+      --el-table-tr-bg-color: var(--rc-card-bgcolor);
+    }
     td.el-table__cell div {
       display: flex;
       align-items: center;

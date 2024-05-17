@@ -16,7 +16,7 @@ export const useTextContent = () => {
   const message = useMessage();
   const { exist, getBookshelfEntity, put } = useBookshelfStore();
   const { calcReadProgress } = useWindowStore();
-  const { mainElement } = storeToRefs(useScrollTopStore());
+  const { scrollToTextContent } = useScrollTopStore();
   
   const handler = async (type: 'next' | 'prev') => {
     try {
@@ -74,25 +74,21 @@ export const useTextContent = () => {
     } catch (e) {
       e && message.error(errorHandler(e, true));
       return e ? errorHandler(e) : Promise.reject();
+    } finally {
+      scrollToTextContent();
     }
   }
 
   const nextChapter = async (ignoreError = false) => {
-    await handler('next').then(() => {
-      mainElement.value.scrollTop = 0;
-    }).catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
-    
+    await handler('next').catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
   }
 
   const prevChapter = async (ignoreError = false) => {
-    await handler('prev').then(() => {
-      mainElement.value.scrollTop = 0;
-    }).catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
-    
+    await handler('prev').catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
   }
 
   return {
     nextChapter,
-    prevChapter
+    prevChapter,
   }
 }

@@ -1,9 +1,9 @@
 import { useReadColorStore } from '../../../store/read-color';
-import { ReadColor } from '../../window/default-read-style';
+import { ReadBackground } from '../../window/default-read-style';
 import { BaseStoreDatabase } from './base-store';
 import { useMessage } from '../../../hooks/message';
 
-export class ReadColorStoreDatabase extends BaseStoreDatabase<ReadColor> {
+export class ReadColorStoreDatabase extends BaseStoreDatabase<ReadBackground> {
 
   constructor(db: IDBDatabase, storeName: string) {
     super(db, storeName, 'ReadColorStoreDatabase');

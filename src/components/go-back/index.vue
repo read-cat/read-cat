@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ElTooltip } from 'element-plus';
 import { useRouter } from 'vue-router';
 import IconBack from '../../assets/svg/icon-goback-back.svg';
 import IconForward from '../../assets/svg/icon-goback-forward.svg';
@@ -15,16 +14,12 @@ export default {
 </script>
 <template>
   <div class="container" v-once>
-    <ElTooltip effect="light" content="后退" placement="bottom" :show-after="1000">
-      <button class="rc-button" @click="router.back">
-        <IconBack />
-      </button>
-    </ElTooltip>
-    <ElTooltip effect="light" content="前进" placement="bottom" :show-after="1000">
-      <button class="rc-button" @click="router.forward">
-        <IconForward />
-      </button>
-    </ElTooltip>
+    <button title="后退" class="rc-button" @click="router.back">
+      <IconBack />
+    </button>
+    <button title="前进" class="rc-button" @click="router.forward">
+      <IconForward />
+    </button>
   </div>
 </template>
 

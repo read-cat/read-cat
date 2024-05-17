@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElIcon } from 'element-plus';
-import Window, { WindowEvent, WindowSize } from '../window/index.vue';
+import { Window, WindowEvent, WindowSize } from '..';
 import IconSearch from '../../assets/svg/icon-search.svg';
 import IconOpenBook from '../../assets/svg/icon-open-book.svg';
 import IconLoading from '../../assets/svg/icon-loading.svg';
@@ -12,6 +12,7 @@ import SearchBox from './components/search-box/index.vue';
 import ChapterBox from './components/chapter-box/index.vue';
 import { reactive, ref } from 'vue';
 import { useHeaderStyle } from '../../hooks/header-style';
+import { useSettingsStore } from '../../store/settings';
 
 
 const win = useWindowStore();
@@ -35,6 +36,8 @@ const winSize = reactive<WindowSize>({
   width: '400px',
   height: '500px'
 });
+
+const { backgroundImage } = storeToRefs(useSettingsStore());
 </script>
 <script lang="ts">
 export default {
@@ -58,8 +61,15 @@ export default {
         <span v-memo="[searchBoxHeaderText]">{{ searchBoxHeaderText }}</span>
       </div>
     </div>
-    <Window :to-body="false" destroy-on-close :top="5" center-x :width="winSize.width" :height="winSize.height" background-color="var(--rc-search-box-bgcolor)"
-      @event="e => winEvent = e">
+    <Window
+      :to-body="!!backgroundImage"
+      destroy-on-close :top="5"
+      center-x
+      :width="winSize.width"
+      :height="winSize.height"
+      :background-color="backgroundImage ? '' : 'var(--rc-search-box-bgcolor)'"
+      @event="e => winEvent = e"
+    >
       <SearchBox v-if="currentPath !== PagePath.READ" v-model:search-key="searchKey" v-model:search-progress="searchProgress" :window-event="winEvent" :window-size="winSize" />
       <ChapterBox :window-event="winEvent" v-else />
     </Window>
@@ -87,7 +97,7 @@ export default {
     .title {
       display: flex;
       align-items: center;
-
+      max-width: 100%;
       span {
         display: inline-block;
         margin-left: 5px;

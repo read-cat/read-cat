@@ -17,7 +17,7 @@ export const useCache = () => {
     }).catch(e => {
       GLOBAL_LOG.error('get cache size', e);
     });
-  }, 1000);
+  }, 30000);
 
   onMounted(() => {
     timer.executor();

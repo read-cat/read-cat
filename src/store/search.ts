@@ -8,6 +8,7 @@ import { SearchKeyStoreEntity } from '../core/database/database';
 import { PagePath } from '../core/window';
 import { SearchEntity } from '../core/book/book';
 import { useMessage } from '../hooks/message';
+import { nextTick } from 'vue';
 
 export interface SearchResult extends SearchEntity {
   pid: string,
@@ -104,9 +105,11 @@ export const useSearchStore = defineStore('Search', {
         GLOBAL_LOG.error('Search store search', e);
         return errorHandler(e);
       } finally {
-        searchBoxHeaderText.value = searchkey;
-        this.isRunningSearch = false;
-        win.disableShowSearchBox.set(PagePath.SEARCH, false);
+        nextTick(() => {
+          searchBoxHeaderText.value = searchkey;
+          this.isRunningSearch = false;
+          win.disableShowSearchBox.set(PagePath.SEARCH, false);
+        });
       }
     }
   }

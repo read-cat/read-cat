@@ -6,7 +6,6 @@ import {
   ElInput,
   ElButton,
   ElMain,
-  ElTooltip,
   InputInstance
 } from 'element-plus';
 import IconSearchKeyDelete from '../../../../assets/svg/icon-searchkey-delete.svg';
@@ -112,10 +111,8 @@ export default {
             <ElText v-once size="small" type="info">没有搜索历史</ElText>
           </div>
           <ul v-else>
-            <li v-for="item in storeSearchkey" :key="item.id" @click="e => search(e, item.searchkey)">
-              <ElTooltip v-memo="[item.searchkey]" effect="light" :show-after="1500" :content="item.searchkey">
-                <span>{{ item.searchkey }}</span>
-              </ElTooltip>
+            <li v-for="item in storeSearchkey" :key="item.id" @click="(e: MouseEvent) => search(e, item.searchkey)">
+              <span v-memo="[item.searchkey]" :title="item.searchkey" class="rc-text-ellipsis">{{ item.searchkey }}</span>
               <i v-memo="[item.id]" @click="e => deleteSearchkeyHistory(e, item.id)">
                 <IconSearchKeyDelete />
               </i>
@@ -219,11 +216,7 @@ export default {
           }
 
           span {
-            display: inline-block;
             width: calc((v-bind(width) - 20px - 5px) / 3 - 21px);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-wrap: nowrap;
           }
 
           i {

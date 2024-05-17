@@ -3,7 +3,7 @@ import {
   ElDivider,
   ElIcon
 } from 'element-plus';
-import { nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
+import { nextTick, onMounted } from 'vue';
 import { useScrollTopStore } from '../../store/scrolltop';
 import { useWindowStore } from '../../store/window';
 import { useSettingsStore } from '../../store/settings';
@@ -16,13 +16,13 @@ import { PagePath } from '../../core/window';
 import { useMessage } from '../../hooks/message';
 import { isNull, isUndefined } from '../../core/is';
 import { useDetailStore } from '../../store/detail';
-import Menu from '../../components/menu/index.vue';
-import MenuItem from '../../components/menu/item/index.vue';
+import { Menu, MenuItem } from '../../components';
 import { useBookmarks } from './hooks/bookmarks';
 import { useTextContent } from './hooks/text-content';
-import SendBackward from '../../assets/svg/icon-send-backward.svg';
-import { debounce } from '../../core/utils/timer';
+import IconArrowLineUp from '../../assets/svg/icon-arrow-line-up.svg';
+import IconArrowLineDown from '../../assets/svg/icon-arrow-line-down.svg';
 import { useReadAloudStore } from '../../store/read-aloud';
+import { useScrollToggleChapter } from './hooks/scroll-toggle-chapter';
 
 const route = useRoute();
 
@@ -31,8 +31,9 @@ const detailUrl = String(route.query.detailUrl);
 
 const { currentChapter } = storeToRefs(useTextContentStore());
 const { mainElement } = storeToRefs(useScrollTopStore());
+const { scrollToTextContent } = useScrollTopStore();
 const { calcReadProgress, onRefresh } = useWindowStore();
-const { isDark, currentPath } = storeToRefs(useWindowStore());
+const { isDark } = storeToRefs(useWindowStore());
 const { setBookmark, contents } = useBookmarks();
 const { options } = useSettingsStore();
 
@@ -48,8 +49,17 @@ const {
   bookmarkColorOdd,
   readAloudColor,
 } = storeToRefs(useSettingsStore());
+
+const { nextChapter, prevChapter } = useTextContent();
+
+const {
+  pageHeight,
+} = useScrollToggleChapter();
+
 onMounted(() => {
-  nextTick(() => calcReadProgress(mainElement.value));
+  nextTick(() => {
+    calcReadProgress(mainElement.value);
+  });
 });
 const { isRunningGetTextContent } = storeToRefs(useTextContentStore());
 const { getTextContent } = useTextContentStore();
@@ -58,6 +68,7 @@ useScrollTop(pid, detailUrl);
 
 const message = useMessage();
 const { setCurrentReadIndex } = useDetailStore();
+const { isSelectPlay, playerStatus } = storeToRefs(useReadAloudStore());
 const { stop: readAloudStop } = useReadAloudStore();
 onRefresh(PagePath.READ, () => {
   if (isNull(currentChapter.value)) {
@@ -72,49 +83,27 @@ onRefresh(PagePath.READ, () => {
     } else {
       setCurrentReadIndex(currentChapter.value.index);
     }
-    mainElement.value.scrollTop = 0;
+    scrollToTextContent(void 0, 'instant');
   }).catch(e => {
     message.error(e.message);
   });
 });
 
-const { nextChapter, prevChapter } = useTextContent();
-
-const deboNextChapter = debounce(() => {
-  nextChapter().catch(e => message.error(e.message));
-}, 200);
-const scrollBottomToNextChapterListener = () => {
-  const { scrollTop, clientHeight, scrollHeight } = mainElement.value;
-  if (scrollTop >= scrollHeight - clientHeight) {
-    deboNextChapter();
-  }
-}
-watchEffect(() => {
-  if (options.enableScrollBottomToNextChapter && currentPath.value === PagePath.READ) {
-    mainElement.value.addEventListener('scrollend', scrollBottomToNextChapterListener);
-  } else {
-    mainElement.value.removeEventListener('scrollend', scrollBottomToNextChapterListener);
-  }
-});
-onUnmounted(() => {
-  mainElement.value.removeEventListener('scrollend', scrollBottomToNextChapterListener);
-});
-const pageHeight = ref('500px');
-watch(() => mainElement.value.clientHeight, (height) => {
-  if (height > 500) {
-    pageHeight.value = `${height - 10}px`;
-  } else {
-    pageHeight.value = '500px';
-  }
-}, { immediate: true });
 </script>
 
 <template>
   <div :class="['container', isRunningGetTextContent ? 'loading' : '']" v-loading="isRunningGetTextContent" :style="{
     '--font-family': `'${fontFamily === '' ? Font.default : fontFamily}'`
   }">
+    <div v-if="options.enableScrollToggleChapter && !isRunningGetTextContent" class="scroll-top-to-prev-chapter">
+      <p>向上滚动切换上一章节</p>
+      <ElIcon size="60">
+        <IconArrowLineUp />
+      </ElIcon>
+    </div>
     <div id="text-content" v-show="!isRunningGetTextContent" v-html="contents" :style="{
       width,
+      minHeight: pageHeight,
       fontSize,
       fontWeight,
       '--rc-read-aloud-color': isDark ? '' : readAloudColor,
@@ -122,10 +111,10 @@ watch(() => mainElement.value.clientHeight, (height) => {
       '--rc-bookmark-even-color': isDark ? '' : bookmarkColorEven,
       '--rc-bookmark-odd-font-color': isDark ? options.enableBookmarkHighlight ? '' : 'none' : options.enableBookmarkHighlight ? bookmarkColorOdd : '',
       '--rc-bookmark-even-font-color': isDark ? options.enableBookmarkHighlight ? '' : 'none' : options.enableBookmarkHighlight ? bookmarkColorEven : '',
-    }"></div>
-    <div v-if="options.enableScrollBottomToNextChapter" class="scroll-bottom-to-next-chapter">
+    }" :class="[isSelectPlay && playerStatus === 'pause' ? 'play-start' : '']"></div>
+    <div v-if="options.enableScrollToggleChapter && !isRunningGetTextContent" class="scroll-bottom-to-next-chapter">
       <ElIcon size="60">
-        <SendBackward />
+        <IconArrowLineDown />
       </ElIcon>
       <p>向下滚动切换下一章节</p>
     </div>
@@ -170,6 +159,14 @@ watch(() => mainElement.value.clientHeight, (height) => {
       font-family: var(--font-family);
     }
 
+    &.play-start {
+      :deep(div[data-index]) {
+        &:hover {
+          color: var(--rc-read-aloud-color);
+          cursor: pointer;
+        }
+      }
+    }
     &>:deep(div[data-index]) {
       margin-bottom: v-bind(sectionSpacing);
       text-indent: 2em;
@@ -178,7 +175,8 @@ watch(() => mainElement.value.clientHeight, (height) => {
       user-select: text;
       cursor: default;
       transition: color 0.3s ease;
-
+      overflow: hidden;
+      
       .bookmark {
         border-bottom: 1.5px solid var(--rc-bookmark-odd-color);
         color: var(--rc-bookmark-odd-font-color);
@@ -205,16 +203,24 @@ watch(() => mainElement.value.clientHeight, (height) => {
 
       * {
         max-width: 100%;
+        user-select: text;
       }
     }
   }
 
-  .scroll-bottom-to-next-chapter {
+  .scroll-bottom-to-next-chapter,
+  .scroll-top-to-prev-chapter {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 50px;
     height: v-bind(pageHeight);
+  }
+  .scroll-bottom-to-next-chapter {
+    padding-top: 50px;
+  }
+  .scroll-top-to-prev-chapter {
+    padding-bottom: 50px;
+    justify-content: flex-end;
   }
 }
 </style>

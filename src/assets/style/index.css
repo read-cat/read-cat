@@ -7,6 +7,8 @@
   --rc-button-hover-bgcolor-light: rgba(0, 0, 0, 0.08);
 
   --rc-window-box-bgcolor-light: #FFFFFF;
+  --rc-window-box-blur-bgcolor-light: rgba(255, 255, 255, 0.6);
+  --rc-window-box-blur-bgcolor-1-light: rgba(255, 255, 255, 0.3);
   --rc-main-color: #F6F6F6;
 
   --rc-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.1);
@@ -23,7 +25,7 @@
 
   --rc-window-box-shadow: var(--rc-shadow);
   --rc-window-box-bgcolor: var(--rc-window-box-bgcolor-light);
-  --rc-window-box-blur-bgcolor: rgba(255, 255, 255, 0.6);
+  --rc-window-box-blur-bgcolor: var(--rc-window-box-blur-bgcolor-light);
   --rc-window-close-btn-color: #F56C6C;
 
   --rc-scrollbar-hove-bgcolor: rgba(0, 0, 0, 0.1);
@@ -64,12 +66,15 @@ body,
   -webkit-user-drag: none;
   outline-color: var(--rc-theme-color);
   font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'PingFang SC', Arial, Helvetica;
-
+  
   &::selection {
-    /* background-color: rgba(127, 127, 127, 0.2); */
     background-color: rgba(30, 119, 235, 0.6);
     color: #1C1C1C;
   }
+}
+
+svg {
+  outline: none;
 }
 
 ul {
@@ -114,22 +119,22 @@ button {
   scroll-behavior: smooth;
 }
 
-.rc-scrollbar::-webkit-scrollbar {
+*::-webkit-scrollbar {
   width: 7px;
   height: 7px;
 }
 
-.rc-scrollbar::-webkit-scrollbar:hover {
+*::-webkit-scrollbar:hover {
   cursor: default;
   background-color: var(--rc-scrollbar-hove-bgcolor);
 }
 
-.rc-scrollbar::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   border-radius: 10px;
   background-color: var(--rc-scrollbar-thumb-bgcolor);
 }
 
-.rc-scrollbar::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
   cursor: default;
   background-color: var(--rc-scrollbar-thumb-hover-bgcolor);
 }
@@ -142,7 +147,6 @@ button {
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
-
   &:hover {
     background-color: var(--rc-button-hover-bgcolor);
   }
@@ -151,28 +155,25 @@ button {
   }
 }
 
-.rc-close-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 20px;
-  width: 20px;
-  height: 20px;
-  transition: all 0.3s ease;
-  border-radius: 5px;
-  cursor: pointer;
-
-  &:hover {
-    color: #FFFFFF;
-    background-color: var(--rc-window-close-btn-color);
-  }
-  &:active {
-    transform: scale(0.85);
-  }
-}
-
 .rc-error-color {
   color: var(--rc-error-color);
+}
+
+.rc-text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-wrap: nowrap;
+}
+
+ul.rc-help {
+  list-style: initial;
+
+  li {
+    margin-left: 1em;
+  }
+  li.em-2 {
+    margin-left: 2em;
+  }
 }
 
 .loading .el-loading-mask {
@@ -205,9 +206,16 @@ button {
 .el-table {
   tr {
     background-color: transparent !important;
+
+    td:is(.el-table-fixed-column--right) {
+      background-color: var(--el-table-tr-bg-color);
+    }
   }
   th.el-table__cell {
     background-color: transparent !important;
+    &:is(.el-table-fixed-column--right) {
+      background-color: var(--el-table-tr-bg-color) !important;
+    }
   }
 }
 
@@ -240,4 +248,8 @@ button {
 
 .el-link:hover {
   --el-link-hover-text-color: var(--rc-theme-color);
+}
+
+.el-slider {
+  --el-slider-main-bg-color: var(--rc-theme-color);
 }

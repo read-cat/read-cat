@@ -7,15 +7,16 @@ import { PagePath } from '../core/window';
 import { EventCode } from '../../events';
 import { GlobalShortcutKey } from '../store/defined/settings';
 import { useScrollTopStore } from '../store/scrolltop';
-import { nextTick, onMounted } from 'vue';
+import { useReadAloudStore } from '../store/read-aloud';
 
 export const useShortcutKey = () => {
   const { nextChapter, prevChapter } = useTextContent();
-  const { shortcutKey, zoomFactor, scrollbarStepValue } = storeToRefs(useSettingsStore());
-  const { handlerKeyboard } = useSettingsStore();
+  const { shortcutKey, scrollbarStepValue } = storeToRefs(useSettingsStore());
+  const { handlerKeyboard, window: windowConfig } = useSettingsStore();
   const win = useWindowStore();
   const { isSetShortcutKey, globalShortcutKeyRegisterError } = storeToRefs(win);
   const { mainElement } = storeToRefs(useScrollTopStore());
+  const readAloud = useReadAloudStore();
 
   const handler = debounce((key: string) => {
     switch (key) {
@@ -29,21 +30,21 @@ export const useShortcutKey = () => {
         GLOBAL_IPC.send(EventCode.ASYNC_OPEN_DEVTOOLS);
         break;
       case shortcutKey.value.zoomInWindow:
-        if (zoomFactor.value >= 2.9) break;
-        zoomFactor.value = Number((zoomFactor.value + 0.1).toFixed(2));
-        document.body.style.setProperty('--zoom-factor', `${zoomFactor.value}`);
-        GLOBAL_IPC.send(EventCode.ASYNC_ZOOM_WINDOW, zoomFactor.value);
+        if (windowConfig.zoomFactor >= 2.9) break;
+        windowConfig.zoomFactor = Number((windowConfig.zoomFactor + 0.1).toFixed(2));
+        document.body.style.setProperty('--zoom-factor', `${windowConfig.zoomFactor}`);
+        GLOBAL_IPC.send(EventCode.ASYNC_ZOOM_WINDOW, windowConfig.zoomFactor);
         break;
       case shortcutKey.value.zoomOutWindow:
-        if (zoomFactor.value <= 0.1) break;
-        zoomFactor.value = Number((zoomFactor.value - 0.1).toFixed(2));
-        document.body.style.setProperty('--zoom-factor', `${zoomFactor.value}`);
-        GLOBAL_IPC.send(EventCode.ASYNC_ZOOM_WINDOW, zoomFactor.value);
+        if (windowConfig.zoomFactor <= 0.1) break;
+        windowConfig.zoomFactor = Number((windowConfig.zoomFactor - 0.1).toFixed(2));
+        document.body.style.setProperty('--zoom-factor', `${windowConfig.zoomFactor}`);
+        GLOBAL_IPC.send(EventCode.ASYNC_ZOOM_WINDOW, windowConfig.zoomFactor);
         break;
       case shortcutKey.value.zoomRestWindow:
-        zoomFactor.value = 1;
-        document.body.style.setProperty('--zoom-factor', `${zoomFactor.value}`);
-        GLOBAL_IPC.send(EventCode.ASYNC_ZOOM_WINDOW, zoomFactor.value);
+        windowConfig.zoomFactor = 1;
+        document.body.style.setProperty('--zoom-factor', `${windowConfig.zoomFactor}`);
+        GLOBAL_IPC.send(EventCode.ASYNC_ZOOM_WINDOW, windowConfig.zoomFactor);
         break;
       case shortcutKey.value.fullScreen:
         GLOBAL_IPC.send(EventCode.ASYNC_WINDOW_SET_FULLSCREEN, !win.isFullScreen);
@@ -80,12 +81,8 @@ export const useShortcutKey = () => {
         break;
     }
   }
-  onMounted(() => {
-    nextTick(() => {
-      mainElement.value.addEventListener('scrollend', () => {
-        scrollEnd = true;
-      });
-    });
+  mainElement.value.addEventListener('scrollend', () => {
+    scrollEnd = true;
   });
 
   const onKeydown = (e: KeyboardEvent) => {
@@ -133,4 +130,43 @@ export const useShortcutKey = () => {
   });
 
   initGlobalShortcutKey();
+
+  const handlerGlobalShortcutKey = async (key: keyof GlobalShortcutKey) => {
+    switch (key) {
+      case 'globalBossKey':
+        //窗口显示、隐藏不在渲染进程实现
+        break;
+      case 'globalReadAloudPrevChapter':
+        if (win.currentPath !== PagePath.READ) return;
+        await prevChapter(true);
+        readAloud.stop();
+        readAloud.play(0);
+        break;
+      case 'globalReadAloudNextChapter':
+        if (win.currentPath !== PagePath.READ) return;
+        await nextChapter(true);
+        readAloud.stop();
+        readAloud.play(0);
+        break;
+      case 'globalReadAloudToggle':
+        if (win.currentPath !== PagePath.READ) return;
+        if (readAloud.playerStatus === 'play') readAloud.pause();
+        else if (readAloud.playerStatus === 'pause') readAloud.play();
+        break;
+      case 'globalReadAloudFastForward':
+        if (win.currentPath !== PagePath.READ) return;
+        readAloud.fastForward();
+        break;
+      case 'globalReadAloudFastRewind':
+        if (win.currentPath !== PagePath.READ) return;
+        readAloud.fastRewind();
+        break;
+      default:
+        break;
+    }
+  }
+
+  GLOBAL_IPC.on(EventCode.ASYNC_TRIGGER_GLOBAL_SHORTCUT_KEY, (_, key: keyof GlobalShortcutKey) => {
+    handlerGlobalShortcutKey(key);
+  });
 }

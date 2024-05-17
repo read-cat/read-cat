@@ -27,7 +27,7 @@ export default {
 }
 </script>
 <template>
-  <div :class="['read-state', 'app-no-drag', platform]">
+  <div :class="['read-state', platform]">
     <span v-memo="[date]">{{ date }}</span>
     <span v-memo="[readProgress]">已读:<br v-if="platform === 'darwin'">{{ readProgress }}</span>
     <span v-if="textContent" v-memo="[textContent]">字数:<br v-if="platform === 'darwin'">{{ textContent.length }}</span>
@@ -60,6 +60,11 @@ export default {
         font-size: 12px;
       }
     }
+  }
+}
+@media screen and (max-width: 800px) {
+  .read-state {
+    display: none;
   }
 }
 </style>

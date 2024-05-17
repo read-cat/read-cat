@@ -1,11 +1,12 @@
-import { defineStore, storeToRefs } from 'pinia';
-import { DefaultReadColor, ReadColor } from '../core/window/default-read-style';
+import { defineStore } from 'pinia';
+import { BackgroundBlur, BackgroundSize, DefaultReadColor, ReadBackground } from '../core/window/default-read-style';
 import { Settings, SettingsTheme } from './defined/settings';
 import { nanoid } from 'nanoid';
 import { useWindowStore } from './window';
-import { useToggle } from '@vueuse/core';
 import { cloneByJSON, newError } from '../core/utils';
 import { Font, FontData } from '../core/font';
+import { PagePath } from '../core/window';
+import { EdgeTTSEngine } from '../core/plugins/built-in/tts/edge';
 
 export const useSettingsStore = defineStore('Settings', {
   state: (): Settings => {
@@ -21,10 +22,11 @@ export const useSettingsStore = defineStore('Settings', {
         enableAppStartedFindNewVersion: true,
         enableTransition: true,
         enableAutoReadAloudNextChapter: false,
-        enableScrollBottomToNextChapter: false,
+        enableScrollToggleChapter: false,
+        enableTransparentWindow: false,
       },
       readStyle: {
-        color: DefaultReadColor.GREEN_QINGCAO,
+        background: DefaultReadColor.GREEN_QINGCAO,
         fontSize: 17.5,
         fontWeight: 'normal',
         letterSpacing: 1.5,
@@ -58,34 +60,110 @@ export const useSettingsStore = defineStore('Settings', {
         zoomOutWindow: 'Ctrl+-',
         zoomRestWindow: 'Ctrl+\\',
         fullScreen: 'F11',
+
         globalBossKey: 'Alt+Q',
+        globalReadAloudPrevChapter: 'Ctrl+Shift+D',
+        globalReadAloudNextChapter: 'Ctrl+Shift+F',
+        globalReadAloudToggle: 'Ctrl+Shift+A',
+        globalReadAloudFastRewind: 'Ctrl+Shift+Z',
+        globalReadAloudFastForward: 'Ctrl+Shift+C',
       },
       theme: 'os',
       updateSource: 'Github',
-      zoomFactor: 1,
-      scrollbarStepValue: 300
+      scrollbarStepValue: 300,
+      window: {
+        zoomFactor: 1,
+        opacity: 0.75
+      },
+      txtParse: {
+        maxLines: 300
+      },
+      readAloud: {
+        maxLineWordCount: 800,
+        use: EdgeTTSEngine.ID
+      }
     }
   },
   getters: {
     /**阅读样式 背景颜色*/
     backgroundColor(): string {
-      return this.readStyle.color.backgroundColor;
+      return this.readStyle.background.backgroundColor;
+    },
+    previewBackgroundImage(): string | undefined {
+      const win = useWindowStore();
+      if (win.isDark) {
+        return void 0;
+      }
+      const image = this.readStyle.background.backgroundImage?.image;
+      return image ? `url(${image})` : void 0;
+    },
+    /**阅读样式 背景图片 */
+    backgroundImage(): string | undefined {
+      const win = useWindowStore();
+      if (win.currentPath !== PagePath.READ) {
+        return void 0;
+      }
+      return this.previewBackgroundImage;
+    },
+    previewBackgroundSize(): BackgroundSize | undefined {
+      const win = useWindowStore();
+      if (win.isDark) {
+        return void 0;
+      }
+      return this.readStyle.background.backgroundImage?.size;
+    },
+    /**阅读样式 背景大小 */
+    backgroundSize(): BackgroundSize | undefined {
+      const win = useWindowStore();
+      if (win.currentPath !== PagePath.READ) {
+        return void 0;
+      }
+      return this.previewBackgroundSize;
+    },
+    backgroundBlur(): BackgroundBlur | undefined {
+      const win = useWindowStore();
+      if (win.currentPath !== PagePath.READ) {
+        return void 0;
+      }
+      if (win.isDark) {
+        return void 0;
+      }
+      return this.readStyle.background.backgroundImage?.blur;
+    },
+    backgroundBlurBgColor(): string | undefined {
+      const win = useWindowStore();
+      if (win.currentPath !== PagePath.READ) {
+        return void 0;
+      }
+      if (win.isDark) {
+        return void 0;
+      }
+      if (!this.readStyle.background.backgroundImage) {
+        return void 0;
+      }
+      if (!this.readStyle.background.backgroundImage.blur) {
+        return 'transparent';
+      }
+      if (this.readStyle.background.backgroundImage.blur === 'dark') {
+        return 'var(--rc-window-box-blur-bgcolor-1-dark)';
+      }
+      return 'var(--rc-window-box-blur-bgcolor-1-light)';
     },
     /**阅读样式 字体颜色*/
     textColor(): string {
-      return this.readStyle.color.textColor;
+      return this.readStyle.background.textColor;
     },
     /**阅读样式 书签颜色 */
     bookmarkColorEven(): string {
-      return this.readStyle.color.bookmarkColor.even;
+      return this.readStyle.background.bookmarkColor.even;
     },
     /**阅读样式 书签颜色 */
     bookmarkColorOdd(): string {
-      return this.readStyle.color.bookmarkColor.odd;
+      return this.readStyle.background.bookmarkColor.odd;
     },
     /**阅读样式 正在朗读段落文本色 */
     readAloudColor(): string {
-      return this.readStyle.color.readAloudColor;
+      return this.readStyle.background.readAloudColor;
     },
     /**阅读样式 字体大小*/
     fontSize(): string {
@@ -121,6 +199,10 @@ export const useSettingsStore = defineStore('Settings', {
     /**阅读样式 纹理 */
     texture(): string {
       return this.readStyle.texture === 'none' ? '' : this.readStyle.texture;
+    },
+    /**窗口不透明值 */
+    windowOpacity(): string {
+      return `${this.window.opacity}`;
     }
   },
   actions: {
@@ -128,13 +210,13 @@ export const useSettingsStore = defineStore('Settings', {
       if (!/#[a-fA-F0-9]{6}/.test(color)) {
         throw newError('Not a hex color');
       }
-      this.readStyle.color.backgroundColor = color;
+      this.readStyle.background.backgroundColor = color;
     },
     setTextColor(color: string) {
       if (!/#[a-fA-F0-9]{6}/.test(color)) {
         throw newError('Not a hex color');
       }
-      this.readStyle.color.textColor = color;
+      this.readStyle.background.textColor = color;
     },
     setDefaultReadColorById(id: string) {
       const color = DefaultReadColor.get(id);
@@ -143,12 +225,12 @@ export const useSettingsStore = defineStore('Settings', {
       }
       this.setReadColor(color);
     },
-    setReadColor(color: ReadColor) {
-      if (color.id === this.readStyle.color.id) {
+    setReadColor(color: ReadBackground) {
+      if (color.id === this.readStyle.background.id) {
         return;
       }
       document.startViewTransition(() => {
-        this.readStyle.color = cloneByJSON(color);
+        this.readStyle.background = cloneByJSON(color);
       }).ready.then(() => {
         document.documentElement.animate(null, {
           duration: 300,
@@ -160,7 +242,7 @@ export const useSettingsStore = defineStore('Settings', {
       this.readStyle.font = cloneByJSON(font);
     },
     handlerKeyboard(altKey: boolean, ctrlKey: boolean, shiftKey: boolean, metaKey: boolean, key: string) {
-      const uc = key.toUpperCase();
+      let uc = key.toUpperCase();
       if (['CONTROL', 'ALT', 'SHIFT', 'META'].includes(uc)) {
         return '';
       }
@@ -169,33 +251,65 @@ export const useSettingsStore = defineStore('Settings', {
       ctrlKey && keys.push('Ctrl');
       shiftKey && keys.push('Shift');
       altKey && keys.push('Alt');
+      switch (uc) {
+        case 'ARROWUP':
+          uc = '↑';
+          break;
+        case 'ARROWRIGHT':
+          uc = '→';
+          break;
+        case 'ARROWDOWN':
+          uc = '↓';
+          break;
+        case 'ARROWLEFT':
+          uc = '←';
+          break;
+        case ' ':
+          uc = 'Space';
+          break;
+        case 'PAGEUP':
+          uc = 'PageUp';
+          break;
+        case 'PAGEDOWN':
+          uc = 'PageDown';
+          break;
+        case 'PAUSE':
+          uc = 'Pause';
+          break;
+        case 'HOME':
+          uc = 'Home';
+          break;
+        case 'END':
+          uc = 'End';
+          break;
+        case 'INSERT':
+          uc = 'Insert';
+          break;
+        case 'DELETE':
+          uc = 'Delete';
+          break;
+        case 'ESCAPE':
+          uc = 'Esc';
+          break;
+        default:
+          break;
+      }
       keys.push(uc);
       if (keys.length > 3) {
         return '';
       }
       if (keys.length === 1) {
-        if (/F\d{1,2}/.test(uc)) {
+        if (
+          /F\d{1,2}/.test(uc) ||
+          [
+            '↑', '→', '↓', '←', 'Space', 'PageUp', 'PageDown',
+            'Home', 'End', 'Insert', 'Delete', 'Esc'
+          ].includes(uc)
+        ) {
           return uc;
         }
-        switch (uc) {
-          case 'ARROWUP':
-            return '↑';
-          case 'ARROWRIGHT':
-            return '→';
-          case 'ARROWDOWN':
-            return '↓';
-          case 'ARROWLEFT':
-            return '←';
-          case ' ':
-            return 'Space';
-          case 'PAGEUP':
-            return 'PageUp';
-          case 'PAGEDOWN':
-            return 'PageDown';
-          default:
-            return '';
-        }
       }
+
       return keys.join('+');
     },
     hasShortcutKey(key: string) {
@@ -210,17 +324,27 @@ export const useSettingsStore = defineStore('Settings', {
       return false;
     },
     setTheme(theme: SettingsTheme) {
-      const { isDark } = storeToRefs(useWindowStore());
-      const toggleDark = useToggle(isDark);
       document.startViewTransition(() => {
-        if (theme === 'dark') {
-          toggleDark(true);
-        } else if (theme === 'light') {
-          toggleDark(false);
-        } else {
-          toggleDark(matchMedia('(prefers-color-scheme: dark)').matches);
+        let dark = false;
+        switch (theme) {
+          case 'os':
+            dark = matchMedia('(prefers-color-scheme: dark)').matches;
+            break;
+          case 'light':
+            dark = false;
+            break;
+          case 'dark':
+            dark = true;
+            break;
+          default:
+            dark = false;
+            break;
         }
+        dark ?
+          document.documentElement.classList.add('dark') :
+          document.documentElement.classList.remove('dark');
         this.theme = theme;
+        useWindowStore().isDark = dark;
       }).ready.then(() => {
         document.documentElement.animate(null, {
           duration: 300,

@@ -24,6 +24,7 @@ export const get = async <T = any>(url: string, config?: RequestConfig): Promise
     httpsAgent: handlerProxy(config?.proxy),
     responseEncoding: config?.charset,
     responseType: config?.responseType || 'text',
+    maxRedirects: config?.maxRedirects,
     paramsSerializer: (params) => {
       return Object.keys(params)
         .map(key => `${key}=${encodeUrl(params[key], config?.urlencode)}`)
@@ -44,6 +45,7 @@ export const post = async <T = any>(url: string, config?: RequestConfig): Promis
     httpsAgent: handlerProxy(config?.proxy),
     responseEncoding: config?.charset,
     responseType: config?.responseType || 'text',
+    maxRedirects: config?.maxRedirects,
     paramsSerializer: (params) => {
       return Object.keys(params)
         .map(key => `${key}=${encodeUrl(params[key], config?.urlencode)}`)

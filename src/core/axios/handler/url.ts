@@ -1,17 +1,23 @@
 import { AxiosError, InternalAxiosRequestConfig, isAxiosError } from 'axios';
-import { isUndefined } from '../../is';
-import http from 'http';
-import https from 'https';
 import { toURLEncoded } from './params';
 import { newAxiosError } from '../../utils';
+import nodeHttp from 'node:http';
+import nodeHttps from 'node:https';
+import { http as httpType, https as httpsType } from 'follow-redirects';
+import { URL } from 'node:url';
+import { isUndefined } from '../../is';
+
+const { http: followHttp, https: followHttps } = require('follow-redirects');
+const fHttp = <typeof httpType>followHttp;
+const fHttps = <typeof httpsType>followHttps;
 
 export const getRequest = (protocol: string, config: InternalAxiosRequestConfig) => {
   if (protocol !== 'http:' && protocol !== 'https:') {
     throw newAxiosError(`Unsupported protocol ${protocol}`, AxiosError.ERR_NOT_SUPPORT, config);
   }
-  if (isUndefined(config.method) || ['GET', 'DOWNLOAD'].includes(config.method.toUpperCase())) {
-    return protocol === 'http:' ? http.get : https.get;
-  }
+  const isRedirects = !isUndefined(config.maxRedirects) && config.maxRedirects > 0;
+  const http = isRedirects ? fHttp : nodeHttp;
+  const https = isRedirects ? fHttps : nodeHttps;
   return protocol === 'http:' ? http.request : https.request;
 }
 

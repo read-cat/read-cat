@@ -10,15 +10,13 @@ import {
   ElInputNumber,
   ElSelect,
   ElOption,
-  ElTooltip,
   ElColorPicker,
 } from 'element-plus';
 import { useFonts } from './hooks/fonts';
-import Window, { WindowEvent } from '../../../window/index.vue';
+import { Window, WindowEvent, CloseButton } from '../../..';
 import { ref } from 'vue';
 import IconSearch from '../../../../assets/svg/icon-search.svg';
 import IconAdd from '../../../../assets/svg/icon-add.svg';
-import IconClose from '../../../../assets/svg/icon-close.svg';
 import IconEdit from '../../../../assets/svg/icon-edit.svg';
 import { isUndefined } from '../../../../core/is';
 import { useReadColorStore } from '../../../../store/read-color';
@@ -35,6 +33,8 @@ const {
   bookmarkColorEven,
   readAloudColor,
   texture,
+  previewBackgroundImage,
+  previewBackgroundSize,
 } = storeToRefs(useSettingsStore());
 const { readStyle, setReadColor } = useSettingsStore();
 
@@ -75,7 +75,7 @@ export default {
   <div class="settings-read-style">
     <div class="preview">
       <div
-        v-memo="[isDark, textColor, backgroundColor, bookmarkColorOdd, bookmarkColorEven, readAloudColor, fontWeight, fontFamily, texture]"
+        v-memo="[isDark, textColor, backgroundColor, bookmarkColorOdd, bookmarkColorEven, readAloudColor, fontWeight, fontFamily, texture, previewBackgroundImage, previewBackgroundSize]"
         :class="[
           'preview-box',
           texture,
@@ -87,6 +87,8 @@ export default {
           '--bookmark-odd': isDark ? 'var(--rc-bookmark-odd-color)' : bookmarkColorOdd,
           '--bookmark-even': isDark ? 'var(--rc-bookmark-even-color)' : bookmarkColorEven,
           '--read-aloud': isDark ? 'var(--rc-read-aloud-color)' : readAloudColor,
+          backgroundImage: previewBackgroundImage,
+          backgroundSize: previewBackgroundSize
         }">
         <p v-once>Aa</p>
         <p v-once>
@@ -101,17 +103,13 @@ export default {
       <template #header>
         <span v-once class="title">颜色</span>
         <div>
-          <ElTooltip v-once effect="light" placement="bottom-start" content="添加" :show-after="1000">
-            <ElButton circle size="small" type="primary" :icon="IconAdd" @click="showAddWindow" />
-          </ElTooltip>
-          <ElTooltip v-once effect="light" placement="bottom-start" content="编辑" :show-after="1000">
-            <ElButton circle size="small" type="primary" :icon="IconEdit" @click="showEditBtn = !showEditBtn" />
-          </ElTooltip>
+          <ElButton v-once title="添加" circle size="small" type="primary" :icon="IconAdd" @click="showAddWindow" />
+          <ElButton v-once title="编辑" circle size="small" type="primary" :icon="IconEdit" @click="showEditBtn = !showEditBtn" />
         </div>
       </template>
-      <ul class="read-colors-list">
+      <ul class="read-colors-list rc-scrollbar">
         <li v-for="item of readColors" :key="item.id">
-          <div :class="[item.id === readStyle.color.id ? 'selected' : '']" @click="setReadColor(item)">
+          <div :class="[item.id === readStyle.background.id ? 'selected' : '']" @click="setReadColor(item)">
             <div
               class="mask"
               v-show="showEditBtn && !item.builtIn"
@@ -120,7 +118,9 @@ export default {
               <IconEdit />
             </div>
             <div :style="{
-              backgroundColor: item.backgroundColor
+              backgroundColor: item.backgroundColor,
+              backgroundImage: item.backgroundImage?.image ? `url(${item.backgroundImage.image})` : '',
+              backgroundSize: item.backgroundImage?.size
             }">
               <span :style="{
                 color: item.textColor
@@ -158,9 +158,7 @@ export default {
               <span>名称</span>
               <ElInput v-model="readColorForm.name" placeholder="请输入名称" />
             </div>
-            <button v-once class="rc-close-button" @click="readColorWindow?.hide()">
-              <IconClose />
-            </button>
+            <CloseButton margin-right="20" class="read-style-close-btn" @click="readColorWindow?.hide()" />
           </header>
           <main>
             <div class="preview" @click="e => showColorPicker(e, 'backgroundColor')" :style="{
@@ -351,7 +349,7 @@ export default {
         align-items: center;
       }
 
-      .rc-close-button {
+      .read-style-close-btn {
         margin-right: 5px;
       }
       .el-input {
@@ -485,13 +483,13 @@ export default {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-
+    max-height: 178px;
     li {
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
       padding: 2px;
       width: 60px;
       height: 80px;
@@ -542,6 +540,7 @@ export default {
         padding: 0;
         height: 0;
         margin-bottom: 0;
+        width: 64px;
       }
     }
   }

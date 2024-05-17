@@ -64,10 +64,10 @@ export class BaseStoreDatabase<T> implements DatabaseStoreInterface<T> {
       }
     });
   }
-  put(val: T): Promise<void> {
+  put(val: T, revocationProxy = true): Promise<void> {
     return new Promise<void>((reso, reje) => {
       try {
-        const _val = this.revocationProxy(val);
+        const _val = revocationProxy ? this.revocationProxy(val) : val;
         const requ = this.db
           .transaction([this.storeName], 'readwrite')
           .objectStore(this.storeName)

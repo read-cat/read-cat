@@ -1,7 +1,8 @@
 import { ref, watch, watchEffect } from 'vue';
 import { WindowProps } from '../index.vue';
-import { isNumber, isString, isUndefined } from '../../../core/is';
+import { isNumber, isUndefined } from '../../../core/is';
 import { useSettingsStore } from '../../../store/settings';
+import { handlerVueProp } from '../../../core/utils';
 
 export const useHandlerProps = (props: WindowProps) => {
   const _top = ref('');
@@ -15,15 +16,6 @@ export const useHandlerProps = (props: WindowProps) => {
   const _centerY = ref(Boolean(props.centerY));
 
   const { options } = useSettingsStore();
-  const handler = (val: any, defaultVal: string) => {
-    if (isNumber(val)) {
-      return `${val}px`;
-    }
-    if (isString(val)) {
-      return /\d$/.test(val) ? `${val}px` : val;
-    }
-    return defaultVal;
-  }
 
   const handlerLeft = (left?: number | string) => {
     if (isUndefined(left)) {
@@ -32,16 +24,17 @@ export const useHandlerProps = (props: WindowProps) => {
     if (isNumber(left)) {
       return left >= 0 ? `${left}px` : '';
     }
-    return handler(left, '');
+    return handlerVueProp(left, '');
   }
 
   watch(() => props, newVal => {
     const { top, left, width, height, className } = newVal;
-    _width.value = handler(width, '400px');
-    _height.value = handler(height, '500px');
-    _top.value = _centerY.value ? `calc((100% - ${_height.value}) / 2)` : handler(top, '5px');
+    _width.value = handlerVueProp(width, '400px');
+    _height.value = handlerVueProp(height, '500px');
+    _top.value = _centerY.value ? `calc((100% - ${_height.value}) / 2)` : handlerVueProp(top, '5px');
     _left.value = _centerX.value ? `calc((100% - ${_width.value}) / 2)` : handlerLeft(left);
     _className.value = isUndefined(className) ? '' : className;
+    _toBody.value = !!newVal.toBody;
   }, {
     immediate: true,
     deep: true

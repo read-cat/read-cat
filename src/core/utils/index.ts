@@ -1,5 +1,5 @@
 import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { isError, isObject, isString } from '../is';
+import { isError, isNumber, isObject, isString } from '../is';
 import DOMPurify from 'dompurify';
 
 export function errorHandler(error: any, toString?: false): Promise<never>;
@@ -93,7 +93,9 @@ export const replaceInvisibleStr = <T extends Record<string, any>>(obj: T): T =>
 export const sanitizeHTML = (() => {
   const divContainer = document.createElement('div');
   return (html: string, removeTags = false) => {
-    let str = DOMPurify.sanitize(html);
+    let str = DOMPurify.sanitize(html, {
+      ALLOWED_ATTR: ['style', 'src']
+    });
     if (removeTags) {
       divContainer.innerHTML = str;
       str = divContainer.innerText;
@@ -136,4 +138,14 @@ export const isPluginContext = () => {
 
 export const cloneByJSON = <T>(val: T): T => {
   return JSON.parse(JSON.stringify(val));
+}
+
+export const handlerVueProp = (val: any, defaultVal = '') => {
+  if (isNumber(val)) {
+    return `${val}px`;
+  }
+  if (isString(val)) {
+    return /\d$/.test(val) ? `${val}px` : val;
+  }
+  return defaultVal;
 }

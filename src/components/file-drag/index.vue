@@ -4,18 +4,21 @@ import { useSettingsStore } from '../../store/settings';
 import IconUpload from '../../assets/svg/icon-upload.svg';
 import { ElIcon } from 'element-plus';
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   tip: string
   width?: string
   height?: string
   zIndex?: number
   toBody?: boolean
+  disable?: boolean
 }>(), {
   width: '100vw',
   height: '100vh',
   zIndex: 990,
-  toBody: true
+  toBody: true,
+  disable: false
 });
+
 const emits = defineEmits<{
   change: [files: File[]]
 }>();
@@ -30,7 +33,7 @@ const dragover = (e: DragEvent) => {
   e.preventDefault();
 }
 const dragenter = () => {
-  if (isDrag.value) return;
+  if (isDrag.value || props.disable) return;
   isDrag.value = true;
 }
 const dragleave = () => {
@@ -38,7 +41,6 @@ const dragleave = () => {
   isDrag.value = false;
 }
 const { options } = useSettingsStore();
-
 </script>
 <script lang="ts">
 export default {

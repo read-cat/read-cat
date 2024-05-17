@@ -1,15 +1,15 @@
 import { Ref, reactive, ref } from 'vue';
 import { WindowEvent } from '../../../../window/index.vue';
-import { ReadColor } from '../../../../../core/window/default-read-style';
+import { ReadBackground } from '../../../../../core/window/default-read-style';
 import { nanoid } from 'nanoid';
 import { ColorPickerInstance } from 'element-plus';
 import { useReadColorStore } from '../../../../../store/read-color';
 import { useMessage } from '../../../../../hooks/message';
 
-type Target = keyof ReadColor | 'bookmarkColor.odd' | 'bookmarkColor.even';
+type Target = keyof ReadBackground | 'bookmarkColor.odd' | 'bookmarkColor.even';
 
 export const useReadColor = (win: Ref<WindowEvent | undefined>) => {
-  const readColorForm = reactive<ReadColor>({
+  const readColorForm = reactive<ReadBackground>({
     id: '',
     name: '',
     backgroundColor: '',
@@ -69,7 +69,7 @@ export const useReadColor = (win: Ref<WindowEvent | undefined>) => {
     win.value?.show();
   }
 
-  const showEditWindow = (e: MouseEvent, readColor: ReadColor) => {
+  const showEditWindow = (e: MouseEvent, readColor: ReadBackground) => {
     e.stopPropagation();
     if (win.value?.isShow()) {
       return;

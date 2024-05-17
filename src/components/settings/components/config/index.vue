@@ -4,7 +4,8 @@ import {
   ElInputNumber,
   ElDivider,
   ElInput,
-  ElButton
+  ElButton,
+  ElSlider,
 } from 'element-plus';
 import SettingsCard from '../card/index.vue';
 import SettingsCardItem from '../card/item/index.vue';
@@ -15,13 +16,15 @@ import ThemeItem from './components/theme-item/index.vue';
 import { SettingsTheme } from '../../../../store/defined/settings';
 import { useCache } from './hooks/cache';
 import IconDelete from '../../../../assets/svg/icon-delete.svg';
+import { useWindowTransparent } from './hooks/window-transparent';
 
-const { options, setTheme } = useSettingsStore();
+
+const { options, setTheme, window: windowConfig, readAloud } = useSettingsStore();
 const {
   threadsNumber,
   maxCacheChapterNumber,
   theme,
-  scrollbarStepValue
+  scrollbarStepValue,
 } = storeToRefs(useSettingsStore());
 
 const themeChange = (val: SettingsTheme) => {
@@ -32,6 +35,13 @@ const {
   cacheSize,
   clearCache
 } = useCache();
+
+const {
+  windowTransparentSwitchIsLoading,
+  windowTransparentSwitchChange,
+  windowTransparentSwitchBeforeChange,
+  transparentWindowHelp
+} = useWindowTransparent();
 
 </script>
 <script lang="ts">
@@ -58,6 +68,11 @@ export default {
       <SettingsCardItem title="自动朗读下一章节" v-memo="[options.enableAutoReadAloudNextChapter]" help="当前章节朗读结束后自动朗读下一章节">
         <ElSwitch :validate-event="false" v-model="options.enableAutoReadAloudNextChapter" />
       </SettingsCardItem>
+      <SettingsCardItem title="最大行字数" v-memo="[readAloud.maxLineWordCount]" help="适当调节该数值可改善朗读体验, 但会导致内容衔接停顿">
+        <ElInputNumber v-model="readAloud.maxLineWordCount"
+          @change="cur => readAloud.maxLineWordCount = Math.floor(isUndefined(cur) ? 500 : cur)" size="small"
+          :value-on-clear="500" :min="100" :max="1000" :step="50" />
+      </SettingsCardItem>
     </SettingsCard>
     <SettingsCard title="界面">
       <SettingsCardItem v-memo="[options.enableBlur]" title="模糊效果" help="部分界面显示模糊效果">
@@ -78,14 +93,22 @@ export default {
       <SettingsCardItem v-memo="[options.enableAutoTextColor]" title="文本颜色自适应" help="仅阅读界面生效">
         <ElSwitch :validate-event="false" v-model="options.enableAutoTextColor" />
       </SettingsCardItem>
-      <SettingsCardItem v-memo="[options.enableScrollBottomToNextChapter]" title="滚动至底部切换下一章节" help="仅阅读界面生效">
-        <ElSwitch :validate-event="false" v-model="options.enableScrollBottomToNextChapter" />
+      <SettingsCardItem v-memo="[options.enableScrollToggleChapter]" title="滚动切换章节" help="仅阅读界面生效">
+        <ElSwitch :validate-event="false" v-model="options.enableScrollToggleChapter" />
+      </SettingsCardItem>
+      <SettingsCardItem v-memo="[options.enableTransparentWindow]" title="透明窗口" :help="transparentWindowHelp">
+        <ElSwitch :validate-event="false" :before-change="windowTransparentSwitchBeforeChange"
+          :loading="windowTransparentSwitchIsLoading" @change="windowTransparentSwitchChange" v-model="options.enableTransparentWindow" />
       </SettingsCardItem>
       <ElDivider />
       <SettingsCardItem v-memo="[scrollbarStepValue]" title="快捷键滚动步进值" help="仅快捷键向上/下滚动时生效">
         <ElInputNumber v-model="scrollbarStepValue"
           @change="cur => scrollbarStepValue = Math.floor(isUndefined(cur) ? 300 : cur)" size="small"
           :value-on-clear="300" :min="50" :max="5000" :step="50" />
+      </SettingsCardItem>
+      <SettingsCardItem v-memo="[windowConfig.opacity]" title="窗口不透明度" help="仅开启透明窗口后生效">
+        <ElSlider v-model="windowConfig.opacity" size="small" show-stops :value-on-clear="0.8" :min="0.05" :max="1"
+          :step="0.05" />
       </SettingsCardItem>
     </SettingsCard>
     <SettingsCard title="任务">
@@ -115,6 +138,7 @@ export default {
 <style scoped lang="scss">
 .theme {
   display: flex;
+  flex-wrap: wrap;
 
   &>div {
     margin-right: 10px;
@@ -144,6 +168,10 @@ export default {
 
 
     }
+  }
+
+  :deep(.el-slider) {
+    min-width: 200px;
   }
 }
 </style>

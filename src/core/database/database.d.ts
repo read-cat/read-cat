@@ -1,5 +1,6 @@
 import { Settings } from '../../store/defined/settings';
 import { DetailEntity, Chapter } from '../book/book';
+import { TxtParserType, Pattern } from '../book/txt-parser';
 
 
 export interface DatabaseStoreInterface<V> {
@@ -52,12 +53,20 @@ export type BookshelfStoreEntity = {
   searchIndex: string,
   timestamp: number,
 } & DetailEntity;
-export interface TextContentStoreEntity {
+export type TextContentStoreEntity = {
   id: string,
   pid: string,
   detailUrl: string,
   chapter: Chapter,
   textContent: string[]
+}
+export type TxtParseRuleEntity = {
+  id: string;
+  name: string;
+  value: string;
+  example: string;
+  type: TxtParserType;
+  flags: Pattern[];
 }
 
 export type BookmarkRange = {

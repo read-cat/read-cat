@@ -3,6 +3,7 @@ import { isNull, isUndefined } from '../../is';
 import { BookshelfStoreEntity } from '../database';
 import { BaseStoreDatabase } from './base-store';
 import { useMessage } from '../../../hooks/message';
+import { BookParser } from '../../book/book-parser';
 
 export class BookshelfStoreDatabase extends BaseStoreDatabase<BookshelfStoreEntity> {
   constructor(db: IDBDatabase, storeName: string) {
@@ -47,8 +48,8 @@ export class BookshelfStoreDatabase extends BaseStoreDatabase<BookshelfStoreEnti
           pluginVersionCode,
           isRunningRefresh: false,
           baseUrl,
-          group: props ? props.GROUP : 'unknown',
-          pluginName: props ? props.NAME: 'unknown'
+          group: pid === BookParser.PID ? '内置' : props ? props.GROUP : 'unknown',
+          pluginName: pid === BookParser.PID ? '本地书籍' : props ? props.NAME: 'unknown'
         });
       });
     }).catch((e: any) => {

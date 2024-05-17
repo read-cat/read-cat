@@ -61,7 +61,7 @@ export class Plugins {
   private pluginsPool: Map<PluginId, {
     enable: boolean,
     props: PluginBaseProps,
-    instance: BookSource | BookStore | null,
+    instance: BookSource | BookStore | TextToSpeechEngine | null,
     builtIn: boolean
   }> = new Map();
   public static readonly UGLIFY_JS = require('uglify-js');
@@ -149,7 +149,7 @@ export class Plugins {
       return errorHandler(e);
     }
   }
-  public getPluginInstanceById<R = BookSource | BookStore>(id: string): R | null | undefined {
+  public getPluginInstanceById<R = BookSource | BookStore | TextToSpeechEngine>(id: string): R | null | undefined {
     const val = this.pluginsPool.get(id);
     return val && (<R>val.instance);
   }
