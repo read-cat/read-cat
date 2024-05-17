@@ -7,7 +7,7 @@ import { useTextContent } from '../views/read/hooks/text-content';
 import { useSettingsStore } from './settings';
 import { errorHandler, newError, sanitizeHTML } from '../core/utils';
 import MuteMP3 from '../assets/mute.mp3';
-import { AudioChunk, TextToSpeechEngine } from '../core/plugins/defined/ttsengine';
+import { AudioChunk, TextToSpeechEngine, Voice } from '../core/plugins/defined/ttsengine';
 
 export type AudioBlob = {
   chunks: AudioChunk[]
@@ -29,6 +29,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
       },
       transformStatus: '' as 'start' | 'end' | '',
       isSelectPlay: false,
+      currentVoice: void 0 as Voice | undefined,
     }
   },
   getters: {
@@ -78,7 +79,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
         this.addReadAloudClass();
       }
     },
-    async play(start = 0, voice?: string) {
+    async play(start = 0) {
       const {
         isRunningGetTextContent,
         textContent,
@@ -148,7 +149,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
             message.info('朗读结束, 准备朗读下一章节');
             setTimeout(() => {
               nextChapter().then(() => {
-                this.play(0);
+                this.play(0).catch(e => message.error(e.message));;
               });
             }, 1000);
           } else {
@@ -177,18 +178,17 @@ export const useReadAloudStore = defineStore('ReadAloud', {
         signal: this.abortController.signal,
         rate: 0.1,
         volume: 0.5,
-        voice
+        voice: this.currentVoice?.value
       }, (chunk, index) => {
-        let blob = chunk.blob;
-        if (blob.size <= 0) {
-          GLOBAL_LOG.warn('readAloud transform content', textContent.value?.contents[index], index, 'blob size:', blob.size);
-          blob = new Blob([MuteMP3], { type: 'audio/mp3' });
+        if (chunk.blob.size <= 0) {
+          GLOBAL_LOG.warn('readAloud transform content', textContent.value?.contents[index], index, 'blob size:', chunk.blob.size);
+          chunk.blob = new Blob([MuteMP3], { type: 'audio/mp3' });
         }
         if (first) {
           this.audios = [];
           const chunks: AudioChunk[] = [];
           chunks[chunk.index] = {
-            blob,
+            blob: chunk.blob,
             index: chunk.index,
           };
           this.audios[index] = {

@@ -8,6 +8,7 @@ import { EventCode } from '../../events';
 import { GlobalShortcutKey } from '../store/defined/settings';
 import { useScrollTopStore } from '../store/scrolltop';
 import { useReadAloudStore } from '../store/read-aloud';
+import { useMessage } from './message';
 
 export const useShortcutKey = () => {
   const { nextChapter, prevChapter } = useTextContent();
@@ -17,6 +18,7 @@ export const useShortcutKey = () => {
   const { isSetShortcutKey, globalShortcutKeyRegisterError } = storeToRefs(win);
   const { mainElement } = storeToRefs(useScrollTopStore());
   const readAloud = useReadAloudStore();
+  const message = useMessage();
 
   const handler = debounce((key: string) => {
     switch (key) {
@@ -140,18 +142,18 @@ export const useShortcutKey = () => {
         if (win.currentPath !== PagePath.READ) return;
         await prevChapter(true);
         readAloud.stop();
-        readAloud.play(0);
+        readAloud.play(0).catch(e => message.error(e.message));;
         break;
       case 'globalReadAloudNextChapter':
         if (win.currentPath !== PagePath.READ) return;
         await nextChapter(true);
         readAloud.stop();
-        readAloud.play(0);
+        readAloud.play(0).catch(e => message.error(e.message));;
         break;
       case 'globalReadAloudToggle':
         if (win.currentPath !== PagePath.READ) return;
         if (readAloud.playerStatus === 'play') readAloud.pause();
-        else if (readAloud.playerStatus === 'pause') readAloud.play();
+        else if (readAloud.playerStatus === 'pause') readAloud.play().catch(e => message.error(e.message));
         break;
       case 'globalReadAloudFastForward':
         if (win.currentPath !== PagePath.READ) return;

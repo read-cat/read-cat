@@ -107,8 +107,8 @@ export default {
           :value-on-clear="300" :min="50" :max="5000" :step="50" />
       </SettingsCardItem>
       <SettingsCardItem v-memo="[windowConfig.opacity]" title="窗口不透明度" help="仅开启透明窗口后生效">
-        <ElSlider v-model="windowConfig.opacity" size="small" show-stops :value-on-clear="0.8" :min="0.05" :max="1"
-          :step="0.05" />
+        <ElSlider v-model="windowConfig.opacity" size="small" show-stops :value-on-clear="0.8" :min="0" :max="1"
+          :step="0.1" />
       </SettingsCardItem>
     </SettingsCard>
     <SettingsCard title="任务">

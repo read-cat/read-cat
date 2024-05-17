@@ -44,7 +44,7 @@ const setScrollTop = ({ target }: Event) => {
   }
 }
 
-const { options } = useSettingsStore();
+const { options, window } = useSettingsStore();
 const { platform } = process;
 const {
   backgroundColor,
@@ -68,7 +68,15 @@ onMounted(() => {
     if (!transparentWindow.value) {
       return;
     }
-    document.body.style.opacity = windowOpacity.value;
+    if (window.opacity > 0) {
+      document.body.style.opacity = windowOpacity.value;
+      document.body.style.removeProperty('--el-mask-color');
+      document.body.style.removeProperty('--rc-header-color');
+    } else {
+      document.body.style.opacity = '';
+      document.body.style.setProperty('--el-mask-color', 'transparent');
+      document.body.style.setProperty('--rc-header-color', 'transparent');
+    }
   });
 });
 
@@ -77,7 +85,7 @@ onMounted(() => {
 <template>
   <ElContainer id="container" :style="{
     '--rc-header-color': win.backgroundColor,
-    backgroundImage,
+    backgroundImage: transparentWindow && window.opacity <= 0 ? '' : backgroundImage,
     backgroundSize
   }">
     <ElHeader id="header" :class="[
@@ -87,7 +95,7 @@ onMounted(() => {
       backgroundBlur ? 'app-blur' : '',
     ]" :style="{
       '--rc-text-color': win.textColor,
-      backgroundColor: backgroundBlurBgColor
+      backgroundColor: transparentWindow && window.opacity <= 0 ? 'transparent' : backgroundBlurBgColor
     }">
       <div class="left-box">
         <div v-if="platform === 'darwin'" v-once class="window-controls-container app-no-darg"></div>
@@ -117,7 +125,7 @@ onMounted(() => {
     @scroll="(e: any) => setScrollTop(e)" :style="{
       '--rc-main-color': win.backgroundColor,
       '--rc-text-color': win.textColor,
-      backgroundColor: backgroundImage ? 'transparent' : ''
+      backgroundColor: backgroundImage || (transparentWindow && window.opacity <= 0) ? 'transparent' : ''
     }">
       <RouterView v-slot="{ Component }">
         <Transition :name="options.enableTransition ? 'router_animate' : void 0">

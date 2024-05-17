@@ -9,7 +9,7 @@ import { Voice } from '../../../core/plugins/defined/ttsengine';
 
 export const useReadAloud = () => {
   const { setPlaybackRate, play, pause, stop, fastForward, fastRewind: fastRewind, getVoices } = useReadAloudStore();
-  const { playerStatus, readAloudRef, transformStatus, isSelectPlay, currentPlayIndex } = storeToRefs(useReadAloudStore());
+  const { playerStatus, readAloudRef, transformStatus, isSelectPlay, currentPlayIndex, currentVoice } = storeToRefs(useReadAloudStore());
   const win = useWindowStore();
   const { currentChapter } = storeToRefs(useTextContentStore());
   const readAloudPlayerWindow = ref<WindowEvent>();
@@ -21,7 +21,6 @@ export const useReadAloud = () => {
   });
   const readAloudPlaybackRates = [0.5, 0.7, 1, 1.2, 1.5, 1.7, 2, 3, 4, 8, 16];
   const readAloudPlaybackRate = ref(1);
-  const readAloudCurrentVoice = ref<Voice>();
   const readAloudVoices = ref<Voice[]>([]);
   const message = useMessage();
 
@@ -46,7 +45,7 @@ export const useReadAloud = () => {
   }
 
   const readAloudPlay = (start?: number) => {
-    play(start, readAloudCurrentVoice.value?.value);
+    play(start).catch(e => message.error(e.message));
   }
 
   const contentLineClick = (e: MouseEvent) => {
@@ -88,7 +87,7 @@ export const useReadAloud = () => {
       }
       refreshReadAloudVoices(true).finally(() => {
         const voice = readAloudVoices.value[0];
-        voice && (readAloudCurrentVoice.value = voice);
+        voice && (currentVoice.value = voice);
       });
     } else {
       setTimeout(cancelSelectPlay, 300);
@@ -119,10 +118,10 @@ export const useReadAloud = () => {
   }
 
   const selectReadAloudVoice = (voice: Voice) => {
-    if (readAloudCurrentVoice.value?.name === voice.name) {
+    if (currentVoice.value?.name === voice.name) {
       return;
     }
-    readAloudCurrentVoice.value = voice;
+    currentVoice.value = voice;
     if (playerStatus.value === 'pause') {
       stop();
       return;
@@ -149,7 +148,7 @@ export const useReadAloud = () => {
     readAloudTransformStatus: transformStatus,
     readAloudSelectPlay: selectPlay,
     readAloudIsSelectPlay: isSelectPlay,
-    readAloudCurrentVoice,
+    readAloudCurrentVoice: currentVoice,
     refreshReadAloudVoices,
     readAloudVoicesWindow,
     showReadAloudVoicesWindow,

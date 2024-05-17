@@ -16,7 +16,7 @@ import { useSettingsStore } from '../../store/settings';
 
 
 const win = useWindowStore();
-const { currentPath, searchBoxHeaderText } = storeToRefs(win);
+const { currentPath, searchBoxHeaderText, transparentWindow } = storeToRefs(win);
 
 const searchKey = ref('');
 const searchProgress = ref(0);
@@ -62,7 +62,7 @@ export default {
       </div>
     </div>
     <Window
-      :to-body="!!backgroundImage"
+      :to-body="!!backgroundImage || transparentWindow"
       destroy-on-close :top="5"
       center-x
       :width="winSize.width"
