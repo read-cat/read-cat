@@ -1,6 +1,5 @@
 import { storeToRefs } from 'pinia';
 import { debounce } from '../core/utils/timer';
-import { useTextContent } from '../views/read/hooks/text-content';
 import { useSettingsStore } from '../store/settings';
 import { useWindowStore } from '../store/window';
 import { PagePath } from '../core/window';
@@ -9,9 +8,10 @@ import { GlobalShortcutKey } from '../store/defined/settings';
 import { useScrollTopStore } from '../store/scrolltop';
 import { useReadAloudStore } from '../store/read-aloud';
 import { useMessage } from './message';
+import { useTextContentStore } from '../store/text-content';
 
 export const useShortcutKey = () => {
-  const { nextChapter, prevChapter } = useTextContent();
+  const { nextChapter, prevChapter } = useTextContentStore();
   const { shortcutKey, scrollbarStepValue } = storeToRefs(useSettingsStore());
   const { handlerKeyboard, window: windowConfig } = useSettingsStore();
   const win = useWindowStore();
@@ -49,7 +49,7 @@ export const useShortcutKey = () => {
         GLOBAL_IPC.send(EventCode.ASYNC_ZOOM_WINDOW, windowConfig.zoomFactor);
         break;
       case shortcutKey.value.fullScreen:
-        GLOBAL_IPC.send(EventCode.ASYNC_WINDOW_SET_FULLSCREEN, !win.isFullScreen);
+        !win.transparentWindow && GLOBAL_IPC.send(EventCode.ASYNC_WINDOW_SET_FULLSCREEN, !win.isFullScreen);
         break;
       case shortcutKey.value.prevPage:
         win.currentPath === PagePath.READ && (mainElement.value.scrollTop -= mainElement.value.clientHeight - 10);

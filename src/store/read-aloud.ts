@@ -3,9 +3,9 @@ import { useTextContentStore } from './text-content';
 import { useMessage } from '../hooks/message';
 import { isNull } from '../core/is';
 import { useScrollTopStore } from './scrolltop';
-import { useTextContent } from '../views/read/hooks/text-content';
 import { useSettingsStore } from './settings';
-import { errorHandler, newError, sanitizeHTML } from '../core/utils';
+import { errorHandler, newError } from '../core/utils';
+import { sanitizeHTML } from '../core/utils/html';
 import MuteMP3 from '../assets/mute.mp3';
 import { AudioChunk, TextToSpeechEngine, Voice } from '../core/plugins/defined/ttsengine';
 
@@ -80,12 +80,13 @@ export const useReadAloudStore = defineStore('ReadAloud', {
       }
     },
     async play(start = 0) {
+      const textContentStore = useTextContentStore();
       const {
         isRunningGetTextContent,
         textContent,
         currentChapter
-      } = storeToRefs(useTextContentStore());
-      const { nextChapter } = useTextContent();
+      } = storeToRefs(textContentStore);
+      const { nextChapter } = textContentStore;
       const { options, readAloud } = useSettingsStore();
       const message = useMessage();
       if (isRunningGetTextContent.value) {
@@ -154,12 +155,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
             }, 1000);
           } else {
             message.info('朗读结束');
-            this.abortController?.abort();
-            this.abortController = null;
-            this.chapterUrl = null;
-            this.currentPlayIndex = -1;
-            this.currentChunkIndex = 0;
-            this.audios = [];
+            this.stop();
           }
         } else {
           this.audioPlay();
@@ -177,7 +173,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
         maxLineWordCount: readAloud.maxLineWordCount,
         signal: this.abortController.signal,
         rate: 0.1,
-        volume: 0.5,
+        volume: 1,
         voice: this.currentVoice?.value
       }, (chunk, index) => {
         if (chunk.blob.size <= 0) {
@@ -218,6 +214,13 @@ export const useReadAloudStore = defineStore('ReadAloud', {
       }, () => {
         GLOBAL_LOG.debug('transform end');
         this.transformStatus = 'end';
+      }).catch(e => {
+        if (e.name === 'CanceledError') {
+          return Promise.resolve();
+        }
+        GLOBAL_LOG.error('readAloud transform', e);
+        this.stop();
+        return Promise.reject(e);
       });
     },
     pause() {

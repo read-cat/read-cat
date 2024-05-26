@@ -8,6 +8,8 @@ import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import { useCache } from './hooks/cache';
 import { useListener } from './hooks/listener';
+import { useDialog } from './hooks/dialog';
+// import createReadAloudCapsuleWindow from './read-aloud-capsule';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public');
@@ -36,10 +38,10 @@ function createWindow(width?: number, height?: number) {
     titleBarStyle: 'hidden',
     titleBarOverlay: {
       color: '#00000000',
-      symbolColor: '#FFFFFF',
+      symbolColor: '#2D2D2D',
       height: 35
     },
-    backgroundColor: '#2980B9',
+    backgroundColor: '#E6EAEF',
     transparent: isTransparent,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -65,10 +67,12 @@ function createWindow(width?: number, height?: number) {
   
   useListener({
     win,
+    pluginDevtoolsWin,
     transparent: isTransparent,
     windowSizeConfigPath
   });
   useCache();
+  useDialog(win);
 
   (process.platform === 'win32') && ipcMain.on(EventCode.ASYNC_SET_TITLE_BAR_STYLE, (_, bgcolor, textcolor) => {
     win?.setTitleBarOverlay({
@@ -139,7 +143,6 @@ function createWindow(width?: number, height?: number) {
     win?.setBackgroundColor(color);
   });
 
-
   ipcMain.on(PluginDevtoolsEventCode.ASYNC_CREATE_PLUGIN_DEVTOOLS_WINDOW, (_, url) => {
     pluginDevtoolsWin = createPluginDevtoolsWindow(url, icon);
     pluginDevtoolsWin.on('closed', () => {
@@ -188,6 +191,8 @@ if (!app.requestSingleInstanceLock()) {
       createWindow(width, height);
     } catch (e) {
       createWindow();
+    } finally {
+      // createReadAloudCapsuleWindow(icon);
     }
   });
 }

@@ -5,7 +5,7 @@ declare const GLOBAL_PLUGINS: import('./plugins').Plugins;
 declare const GLOBAL_UPDATER: import('./updater/updater').Updater;
 
 type Metadata = {
-  branch: string
+  branch: 'dev' | 'release'
   commit: string
   date: string
   tag: string

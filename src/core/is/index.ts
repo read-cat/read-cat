@@ -16,6 +16,9 @@ export const isString = (val: any): val is string => {
 export const isNumber = (val: any): val is number => {
   return toStringCall(val) === '[object Number]';
 }
+export const isBoolean = (val: any): val is boolean => {
+  return toStringCall(val) === '[object Boolean]';
+}
 export const isArray = (val: any): val is Array<any> => {
   return toStringCall(val) === '[object Array]';
 }

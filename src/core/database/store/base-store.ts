@@ -9,7 +9,7 @@ export class BaseStoreDatabase<T> implements DatabaseStoreInterface<T> {
   constructor(db: IDBDatabase, storeName: string, tag: string) {
     this.db = db;
     this.storeName = storeName;
-    this.tag = tag; 
+    this.tag = tag;
   }
   revocationProxy<R = any>(obj: R): R {
     return cloneByJSON(obj);
@@ -64,6 +64,10 @@ export class BaseStoreDatabase<T> implements DatabaseStoreInterface<T> {
       }
     });
   }
+  /**
+   * @param revocationProxy 使用cloneByJSON撤销Proxy
+   * @default true
+   */
   put(val: T, revocationProxy = true): Promise<void> {
     return new Promise<void>((reso, reje) => {
       try {
@@ -105,5 +109,31 @@ export class BaseStoreDatabase<T> implements DatabaseStoreInterface<T> {
       }
     });
   }
-  
+  useCursorRemove(indexName: string, keys: any[]): Promise<void> {
+    return new Promise<void>((reso, reje) => {
+      try {
+        const requ = this.db
+          .transaction([this.storeName], 'readwrite')
+          .objectStore(this.storeName)
+          .index(indexName)
+          .openCursor(IDBKeyRange.only(keys));
+
+        requ.onsuccess = () => {
+          if (!requ.result) {
+            return reso();
+          }
+          requ.result.delete();
+          requ.result.continue();
+        }
+        requ.onerror = () => {
+          GLOBAL_LOG.error(this.tag, 'useCursorRemove', indexName, ...keys, requ.error);
+          return reje(requ.error);
+        }
+      } catch (e) {
+        GLOBAL_LOG.error(this.tag, 'useCursorRemove', indexName, ...keys, e);
+        return reje(e);
+      }
+    });
+  }
+
 }

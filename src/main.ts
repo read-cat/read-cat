@@ -59,10 +59,20 @@ const initHeaderColor = () => {
   }
   GLOBAL_IPC.send(EventCode.ASYNC_SET_TITLE_BAR_STYLE, headerColor, headerTextColor);
 }
-Core.initIpcRenderer();
-startListener();
+Core.initIpcRenderer().then(() => {
+  GLOBAL_IPC.once(EventCode.ASYNC_DID_FINISH_LOAD, () => {
+    startListener();
+  });
+});
+
 app.mount('#app').$nextTick().then(() => {
   Core.init().then(es => {
+    const initedEvents = useWindowStore().events.get('inited');
+    if (initedEvents) {
+      Object.keys(initedEvents).forEach(key => {
+        initedEvents[key] && initedEvents[key]();
+      });
+    }
     postMessage({ payload: 'removeLoading' }, '*');
     (process.platform === 'win32') && initHeaderColor();
     useShortcutKey();

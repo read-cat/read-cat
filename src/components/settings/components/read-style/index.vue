@@ -10,10 +10,10 @@ import {
   ElInputNumber,
   ElSelect,
   ElOption,
-  ElColorPicker,
+  ElButtonGroup,
 } from 'element-plus';
 import { useFonts } from './hooks/fonts';
-import { Window, WindowEvent, CloseButton } from '../../..';
+import { Window, WindowEvent, CloseButton, Text } from '../../..';
 import { ref } from 'vue';
 import IconSearch from '../../../../assets/svg/icon-search.svg';
 import IconAdd from '../../../../assets/svg/icon-add.svg';
@@ -21,6 +21,7 @@ import IconEdit from '../../../../assets/svg/icon-edit.svg';
 import { isUndefined } from '../../../../core/is';
 import { useReadColorStore } from '../../../../store/read-color';
 import { useReadColor } from './hooks/read-color';
+import { BackgroundSize } from '../../../../core/window/default-read-style';
 
 const { isDark } = storeToRefs(useWindowStore());
 const {
@@ -38,7 +39,9 @@ const {
 } = storeToRefs(useSettingsStore());
 const { readStyle, setReadColor } = useSettingsStore();
 
-const { readColors } = storeToRefs(useReadColorStore());
+const readColorStore = useReadColorStore();
+const { imageMap } = readColorStore;
+const { readColors } = storeToRefs(readColorStore);
 
 const fontWindow = ref<WindowEvent>();
 const fontQuery = ref('');
@@ -51,17 +54,18 @@ const {
 
 const readColorWindow = ref<WindowEvent>();
 const {
-  colorPickerModelValue,
-  colorPickerRef,
   readColorForm,
   showColorPicker,
-  colorPickerActiveChange,
+  colorPickerOnInput,
   isEdit,
   showEditBtn,
   showAddWindow,
   showEditWindow,
   putCustomReadColor,
   deleteCustomReadColor,
+  addBackgroundImage,
+  removeBackgroundImage,
+  colorInputRef,
 } = useReadColor(readColorWindow);
 
 </script>
@@ -119,7 +123,7 @@ export default {
             </div>
             <div :style="{
               backgroundColor: item.backgroundColor,
-              backgroundImage: item.backgroundImage?.image ? `url(${item.backgroundImage.image})` : '',
+              backgroundImage: imageMap.get(item.id) ? `url(${imageMap.get(item.id)?.url})` : '',
               backgroundSize: item.backgroundImage?.size
             }">
               <span :style="{
@@ -127,7 +131,7 @@ export default {
               }">Aa</span>
             </div>
           </div>
-          <p>{{ item.name }}</p>
+          <p :title="item.name">{{ item.name }}</p>
         </li>
         <li v-once class="hide"></li>
         <li v-once class="hide"></li>
@@ -144,7 +148,7 @@ export default {
       <Window
         class-name="read-color-window"
         width="300"
-        height="250"
+        height="400"
         toBody
         destroyOnClose
         :clickHide="false"
@@ -158,11 +162,13 @@ export default {
               <span>名称</span>
               <ElInput v-model="readColorForm.name" placeholder="请输入名称" />
             </div>
-            <CloseButton margin-right="20" class="read-style-close-btn" @click="readColorWindow?.hide()" />
+            <CloseButton @click="readColorWindow?.hide()" />
           </header>
           <main>
             <div class="preview" @click="e => showColorPicker(e, 'backgroundColor')" :style="{
-              backgroundColor: readColorForm.backgroundColor
+              backgroundColor: readColorForm.backgroundColor,
+              backgroundImage: readColorForm.backgroundImage ? `url(${readColorForm.backgroundImage.image})` : '',
+              backgroundSize: readColorForm.backgroundImage ? readColorForm.backgroundImage.size : '',
             }">
               <p
                 @click="e => showColorPicker(e, 'readAloudColor')"
@@ -198,14 +204,37 @@ export default {
                 >书签(even)
               </span>的文字</p>
             </div>
+            <div class="options">
+              <div class="btns">
+                <ElButtonGroup>
+                  <ElButton type="primary" @click="addBackgroundImage">添加背景图片</ElButton>
+                  <ElButton type="danger" @click="removeBackgroundImage">移除背景图片</ElButton>
+                </ElButtonGroup>
+              </div>
+              <ul v-if="readColorForm.backgroundImage?.image">
+                <li>
+                  <span>大小</span>
+                  <ElSelect v-model="readColorForm.backgroundImage.size">
+                    <ElOption label="cover" :value="BackgroundSize.COVER" />
+                    <ElOption label="contain" :value="BackgroundSize.CONTAIN" />
+                    <ElOption label="stretch" :value="BackgroundSize.STRETCH" />
+                  </ElSelect>
+                </li>
+                <li>
+                  <span>标题栏模糊</span>
+                  <ElSelect v-model="readColorForm.backgroundImage.blur">
+                    <ElOption label="none" value="" />
+                    <ElOption label="light" value="light" />
+                    <ElOption label="dark" value="dark" />
+                  </ElSelect>
+                </li>
+              </ul>
+            </div>
           </main>
           <footer>
-            <ElColorPicker
-              ref="colorPickerRef"
-              v-model="colorPickerModelValue"
-              :validate-event="false"
-              @active-change="colorPickerActiveChange"
-            />
+            <div>
+              <input type="color" ref="colorInputRef" class="color-picker" @input="colorPickerOnInput" />
+            </div>
             <div class="btns">
               <ElButton type="primary" v-if="!isEdit" @click="putCustomReadColor">添加</ElButton>
               <template v-else>
@@ -238,9 +267,9 @@ export default {
           :isLoading="isLoading" @event="e => fontWindow = e">
           <div class="fonts-window-container">
             <ElInput v-model="fontQuery" clearable :prefix-icon="IconSearch" />
-            <ul class="fonts-list rc-scrollbar">
-              <li v-for="item of showValue" :key="item.family" @click="useFont(item)">
-                <span>{{ item.fullName }}</span>
+            <ul class="fonts-list rc-scrollbar" v-memo="[showValue]">
+              <li v-for="item of showValue" :key="item.family" :class="[readStyle.font.family === item.family ? 'select-font' : '']" @click="useFont(item)">
+                <Text ellipsis max-width="100%" :title="item.fullName">{{ item.fullName }}</Text>
               </li>
             </ul>
           </div>
@@ -253,7 +282,7 @@ export default {
       </SettingsCardItem>
       <SettingsCardItem title="大小">
         <ElInputNumber v-model="readStyle.fontSize" @change="cur => readStyle.fontSize = isUndefined(cur) ? 17.5 : cur"
-          size="small" :value-on-clear="17.5" :min="12" :max="30" :step="0.5" />
+          size="small" :value-on-clear="17.5" :min="12" :max="80" :step="0.5" />
       </SettingsCardItem>
       <SettingsCardItem title="行间距">
         <ElInputNumber v-model="readStyle.lineSpacing"
@@ -311,6 +340,9 @@ export default {
         transition: all 0.3s ease;
         font-size: 14px;
 
+        &.select-font {
+          color: var(--rc-theme-color);
+        }
         &:hover {
           background-color: var(--rc-button-hover-bgcolor);
           cursor: pointer;
@@ -323,14 +355,6 @@ export default {
         &:last-child {
           margin-bottom: 0;
         }
-
-        span {
-          display: inline-block;
-          max-width: 100%;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          text-wrap: nowrap;
-        }
       }
     }
   }
@@ -338,7 +362,11 @@ export default {
 .read-color-window {
 
   section {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     padding: 10px;
+    height: calc(100% - 20px);
     header {
       display: flex;
       align-items: center;
@@ -347,10 +375,6 @@ export default {
       div.name {
         display: flex;
         align-items: center;
-      }
-
-      .read-style-close-btn {
-        margin-right: 5px;
       }
       .el-input {
         margin-left: 10px;
@@ -368,7 +392,7 @@ export default {
     main {
       margin: 10px 0;
       width: 100%;
-      height: 150px;
+      height: 300px;
 
       .preview {
         display: flex;
@@ -376,7 +400,10 @@ export default {
         align-items: center;
         justify-content: center;
         border-radius: 10px;
-        height: 100%;
+        height: 150px;
+        margin-bottom: 10px;
+        background-repeat: no-repeat;
+        background-position: center;
         cursor: pointer;
         p {
           margin-bottom: 10px;
@@ -395,10 +422,44 @@ export default {
           }
         }
       }
+      .options {
+        .btns {
+          margin-bottom: 10px;
+          .el-button-group {
+            width: 100%;
+
+            .el-button {
+              width: 50%;
+            }
+          }
+        }
+        .el-select {
+          width: calc(100% - 80px);
+        }
+        ul {
+          li {
+            display: flex;
+            align-items: center;
+            &+li {
+              margin-top: 5px;
+            }
+            span {
+              width: 80px;
+              font-size: 14px;
+            }
+          }
+        }
+      }
     }
     footer {
       display: flex;
       justify-content: space-between;
+
+      .color-picker {
+        position: absolute;
+        top: 200px;
+        visibility: hidden;
+      }
     }
   }
 
@@ -448,6 +509,8 @@ export default {
       width: 180px;
       height: 100px;
       border-radius: 10px;
+      background-repeat: no-repeat;
+      background-position: center;
 
       * {
         font-family: var(--font-family);

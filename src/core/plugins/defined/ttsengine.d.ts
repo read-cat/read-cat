@@ -37,10 +37,6 @@ export type TTSOptions = {
 }
 export interface TextToSpeechEngine {
   /**
-   * 参数
-   */
-  arguments: Record<string, string | boolean | number>
-  /**
    * 转换为音频
    */
   transform: (texts: string[], options: TTSOptions, next: NextCallback, end: EndCallback) => Promise<void>

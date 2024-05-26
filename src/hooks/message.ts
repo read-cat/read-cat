@@ -12,20 +12,23 @@ export const useMessage = () => {
       offset,
       grouping
     }
+    let msg = '';
     if (isString(options)) {
-      opts.message = options;
+      msg = options;
     } else if (isUndefined(options?.message)) {
-      opts.message = String(options);
+      msg = String(options);
     } else {
+      msg = options.message.toString();
       opts = {
         ...opts,
-        ...options,
+        ...options
       }
     }
     return ElMessage({
       type,
       ...opts,
-      showClose: settings.options.enableShowTipCloseButton
+      showClose: settings.options.enableShowTipCloseButton,
+      message: msg.length > 100 ? `${msg.slice(0, 100)}...` : msg
     });
   }
   const error = (options: MessageOptionsWithType | string) => {

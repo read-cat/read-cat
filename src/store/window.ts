@@ -2,7 +2,10 @@ import { defineStore } from 'pinia';
 import { PagePath } from '../core/window';
 import { useSettingsStore } from './settings';
 import { GlobalShortcutKey } from './defined/settings';
+import { createHash } from 'crypto';
 
+type Event = 'inited';
+type Listener = () => void;
 export const useWindowStore = defineStore('Window', {
   state: () => {
     return {
@@ -20,6 +23,7 @@ export const useWindowStore = defineStore('Window', {
       isSetShortcutKey: false,
       globalShortcutKeyRegisterError: new Map<keyof GlobalShortcutKey, string>(),
       transparentWindow: false,
+      events: new Map<Event, Record<string, Listener>>(),
     }
   },
   getters: {
@@ -52,5 +56,20 @@ export const useWindowStore = defineStore('Window', {
     onRefresh(page: PagePath, call: () => void) {
       this.refreshEventMap.set(page, call);
     },
+    addEventListener(type: Event, listener: Listener) {
+      const key = createHash('md5').update(listener.toString()).digest('hex');
+      this.events.set(type, {
+        ...(this.events.get(type) || {}),
+        [key]: listener
+      });
+    },
+    removeEventListener(type: Event, listener: Listener) {
+      const events = this.events.get(type);
+      if (!events) {
+        return;
+      }
+      const key = createHash('md5').update(listener.toString()).digest('hex');
+      delete events[key];
+    }
   }
 });

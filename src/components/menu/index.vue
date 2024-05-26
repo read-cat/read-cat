@@ -2,6 +2,8 @@
 import { useSettingsStore } from '../../store/settings';
 import { nanoid } from 'nanoid';
 import { useShowMenu } from './hooks/show';
+import { useWindowStore } from '../../store/window';
+import { storeToRefs } from 'pinia';
 
 export type MenuProps = {
   /**触发元素CSS选择器, 在哪个元素右击显示菜单则填写这个元素CSS选择器 */
@@ -16,6 +18,8 @@ const props = defineProps<MenuProps>();
 const id = `menu-${nanoid(10)}`;
 
 const { showMenu, onEnter } = useShowMenu(id, props);
+
+const { transparentWindow } = storeToRefs(useWindowStore());
 </script>
 <script lang="ts">
 export default {
@@ -34,7 +38,7 @@ export default {
         options.enableBlur ? 'app-blur' : '',
         className ? className : ''
       ]" :style="{
-        backgroundColor: options.enableBlur ? 'var(--rc-menu-window-box-blur-bgcolor)' : 'var(--rc-window-box-bgcolor)'
+        backgroundColor: options.enableBlur && !transparentWindow ? 'var(--rc-menu-window-box-blur-bgcolor)' : 'var(--rc-window-box-bgcolor)'
       }">
         <div :class="['rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
           <slot />

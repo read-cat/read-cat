@@ -134,7 +134,7 @@ const { rules: txtParseRules } = storeToRefs(useTxtParseRuleStore());
               <div>
                 <p class="bookname" v-if="item.bookname">
                   <Text v-memo="[item.bookname]" :title="item.bookname" ellipsis max-width="160">{{ item.bookname }}</Text>
-                  <ElIcon class="is-loading" v-if="item.isRunningRefresh">
+                  <ElIcon class="is-loading"  v-if="item.isRunningRefresh">
                     <IconLoading style="width: 12px;height: 12px;" />
                   </ElIcon>
                   <ElIcon v-else-if="item.error" :title="`错误 ${item.error}`">
@@ -264,7 +264,7 @@ const { rules: txtParseRules } = storeToRefs(useTxtParseRuleStore());
               :disabled="books[importBookCurrentPage - 1].importing" @click="removeImportBook">删除</ElButton>
             <ElButton v-if="books[importBookCurrentPage - 1].status.type === 'pending'" type="primary"
               :loading="books[importBookCurrentPage - 1].importing" @click="importBook">导入</ElButton>
-            <ElButton v-else-if="books[importBookCurrentPage - 1].status.type === 'fulfilled'" type="success" @click="importBooksWindow?.hide()">导入成功</ElButton>
+            <ElButton v-else-if="books[importBookCurrentPage - 1].status.type === 'fulfilled'" type="success" @click="closeImportBookWindow()">导入成功</ElButton>
             <ElButton v-else-if="books[importBookCurrentPage - 1].status.type === 'rejected'" type="danger"
               @click="useMessage().error(books[importBookCurrentPage - 1].status.msg || '导入失败')">{{
                 books[importBookCurrentPage - 1].status.msg }}</ElButton>
@@ -656,13 +656,10 @@ const { rules: txtParseRules } = storeToRefs(useTxtParseRuleStore());
       }
 
       .bookname {
+        margin-right: 3px;
         font-size: 16px;
         font-weight: bold;
         justify-content: space-between;
-
-        svg {
-          margin-right: 3px;
-        }
       }
 
       &>div:first-child {

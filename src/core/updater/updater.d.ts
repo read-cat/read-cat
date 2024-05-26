@@ -6,5 +6,6 @@ export type Version = {
   htmlUrl: string
 }
 export interface Updater {
-  getNewVersion(versionCode: number, branch: 'dev' | 'release'): Promise<Version | null>;
+  getNewVersion(branch: 'dev' | 'release'): Promise<Version | null>;
+  getUpdateLog(version: string): Promise<Version | null>;
 }

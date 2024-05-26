@@ -118,7 +118,12 @@ export type ReadAloudConfig = {
   /**正在使用的朗读引擎插件ID */
   use: string
 }
-
+export type UpdateConfig = {
+  /**更新源 */
+  source: UpdateSource,
+  /**Github加速下载代理地址 */
+  downloadProxy?: string,
+}
 
 export type Settings = {
   /**设置配置ID */
@@ -139,8 +144,8 @@ export type Settings = {
   shortcutKey: ShortcutKey
   /**主题 */
   theme: SettingsTheme
-  /**更新源 */
-  updateSource: UpdateSource
+  /**更新配置 */
+  update: UpdateConfig
   /**快捷键滚动步进值 */
   scrollbarStepValue: number
   /**窗口配置 */
@@ -148,5 +153,7 @@ export type Settings = {
   /**TXT电子书解析配置 */
   txtParse: TxtParseConfig
   /**朗读配置 */
-  readAloud: ReadAloudConfig
+  readAloud: ReadAloudConfig,
+  /**调试模式 */
+  debug: boolean
 }

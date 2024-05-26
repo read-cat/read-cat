@@ -6,25 +6,29 @@ import {
   ElInput,
   ElButton,
   ElSlider,
+  ElAutocomplete,
 } from 'element-plus';
 import SettingsCard from '../card/index.vue';
 import SettingsCardItem from '../card/item/index.vue';
 import { useSettingsStore } from '../../../../store/settings';
 import { storeToRefs } from 'pinia';
-import { isUndefined } from '../../../../core/is';
+import { isBoolean, isUndefined } from '../../../../core/is';
 import ThemeItem from './components/theme-item/index.vue';
 import { SettingsTheme } from '../../../../store/defined/settings';
 import { useCache } from './hooks/cache';
 import IconDelete from '../../../../assets/svg/icon-delete.svg';
 import { useWindowTransparent } from './hooks/window-transparent';
+import { Core } from '../../../../core';
+import { useGithubDownloadProxy } from './hooks/github-download-proxy';
 
-
-const { options, setTheme, window: windowConfig, readAloud } = useSettingsStore();
+const { platform } = process;
+const { options, setTheme, window: windowConfig, readAloud, update } = useSettingsStore();
 const {
   threadsNumber,
   maxCacheChapterNumber,
   theme,
   scrollbarStepValue,
+  debug,
 } = storeToRefs(useSettingsStore());
 
 const themeChange = (val: SettingsTheme) => {
@@ -43,6 +47,13 @@ const {
   transparentWindowHelp
 } = useWindowTransparent();
 
+const debugChange = (val: string | number | boolean) => {
+  const is = isBoolean(val) ? val : !!val;
+  Core.isDev = is;
+  Core.logger.setDebug(is);
+}
+
+const { querySearch } = useGithubDownloadProxy();
 </script>
 <script lang="ts">
 export default {
@@ -62,6 +73,13 @@ export default {
     <SettingsCard title="软件更新">
       <SettingsCardItem title="启动时检测更新" v-memo="[options.enableAppStartedFindNewVersion]">
         <ElSwitch :validate-event="false" v-model="options.enableAppStartedFindNewVersion" />
+      </SettingsCardItem>
+      <SettingsCardItem v-if="platform === 'win32'" title="Github加速下载" help="若开启代理，则优先走代理连接" v-memo="[update.downloadProxy]">
+        <ElAutocomplete
+          v-model="update.downloadProxy"
+          :fetch-suggestions="querySearch"
+          clearable
+        />
       </SettingsCardItem>
     </SettingsCard>
     <SettingsCard title="朗读">
@@ -106,7 +124,7 @@ export default {
           @change="cur => scrollbarStepValue = Math.floor(isUndefined(cur) ? 300 : cur)" size="small"
           :value-on-clear="300" :min="50" :max="5000" :step="50" />
       </SettingsCardItem>
-      <SettingsCardItem v-memo="[windowConfig.opacity]" title="窗口不透明度" help="仅开启透明窗口后生效">
+      <SettingsCardItem v-memo="[windowConfig.opacity]" title="窗口不透明度" help="仅开启透明窗口后生效, 为0时只背景透明">
         <ElSlider v-model="windowConfig.opacity" size="small" show-stops :value-on-clear="0.8" :min="0" :max="1"
           :step="0.1" />
       </SettingsCardItem>
@@ -130,6 +148,11 @@ export default {
       </template>
       <SettingsCardItem v-memo="[cacheSize]" title="当前缓存大小">
         <ElInput v-model="cacheSize" readonly :formatter="(size: number) => (size / 1024 / 1024).toFixed(2) + ' MB'" />
+      </SettingsCardItem>
+    </SettingsCard>
+    <SettingsCard title="高级">
+      <SettingsCardItem title="调试模式">
+        <ElSwitch :validate-event="false" v-model="debug" @change="debugChange" />
       </SettingsCardItem>
     </SettingsCard>
   </div>
@@ -165,11 +188,11 @@ export default {
           font-size: 14px;
         }
       }
-
-
     }
   }
-
+  :deep(.el-autocomplete) {
+    width: 200px;
+  }
   :deep(.el-slider) {
     min-width: 200px;
   }

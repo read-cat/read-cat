@@ -102,7 +102,8 @@ export default (config: CustomInternalAxiosRequestConfig) => {
               total: length,
               bytes: chunk.byteLength,
               progress: currentSize / length,
-              download: true
+              download: true,
+              lengthComputable: true
             });
           }
         });
@@ -134,7 +135,8 @@ export default (config: CustomInternalAxiosRequestConfig) => {
                 total: length,
                 bytes: 0,
                 upload: true,
-                progress: 1
+                progress: 1,
+                lengthComputable: true
               });
             }
           } catch (e) {
@@ -239,7 +241,8 @@ export default (config: CustomInternalAxiosRequestConfig) => {
             total: length,
             bytes: chunk.byteLength,
             upload: true,
-            progress: progress >= 0.98 ? 0.98 : progress
+            progress: progress >= 0.98 ? 0.98 : progress,
+            lengthComputable: true
           });
         });
       }

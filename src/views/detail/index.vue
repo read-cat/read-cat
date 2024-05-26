@@ -85,7 +85,7 @@ const bookmarkWindow = ref<WindowEvent>();
             <div class="col">
               <p v-memo="[detailResult.bookname]" class="bookname rc-text-ellipsis">{{ detailResult.bookname }}</p>
               <div class="btn" v-memo="[exist]">
-                <ElCheckTag v-if="exist && pid !== BookParser.PID" type="primary" size="small" :checked="true">
+                <ElCheckTag v-if="false && exist && pid !== BookParser.PID" type="primary" size="small" :checked="true">
                   <IconMore /><span>换源</span>
                 </ElCheckTag>
                 <ElCheckTag v-if="exist" type="warning" size="small" :checked="true" @click="bookmarkWindow?.show()">

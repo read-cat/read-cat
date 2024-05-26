@@ -72,19 +72,7 @@ export class BookmarkStoreDatabase extends BaseStoreDatabase<BookmarkStoreEntity
       }
     });
   }
-  async removeByDetailUrl(detailUrl: string): Promise<void> {
-    const entitys = await this.getByDetailUrl(detailUrl);
-    if (isNull(entitys) || entitys.length <= 0) {
-      return;
-    }
-    const ps: Promise<void>[] = [];
-    entitys.forEach(e => {
-      ps.push(super.remove(e.id));
-    });
-    (await Promise.allSettled(ps)).forEach(r => {
-      if (r.status === 'rejected') {
-        GLOBAL_LOG.error(this.tag, 'removeByDetailUrl', r.reason);
-      }
-    });
+  removeByDetailUrl(detailUrl: string): Promise<void> {
+    return super.useCursorRemove('index_detailUrl', [detailUrl]);
   }
 }

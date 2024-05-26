@@ -1,6 +1,5 @@
 import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { isError, isNumber, isObject, isString } from '../is';
-import DOMPurify from 'dompurify';
+import { isDOMException, isError, isNumber, isObject, isString } from '../is';
 
 export function errorHandler(error: any, toString?: false): Promise<never>;
 export function errorHandler(error: any, toString: true): string;
@@ -10,6 +9,8 @@ export function errorHandler(error: any, toString: any): Promise<never> | string
     err = error;
   } else if (isString(error)) {
     err = newError(error);
+  } else if (isDOMException(error)) {
+    err = newError(error.message);
   } else {
     err = newError(String(error));
   }
@@ -86,26 +87,6 @@ export const replaceInvisibleStr = <T extends Record<string, any>>(obj: T): T =>
   return val;
 }
 
-/**
- * 对HTML字符串消毒
- * @param removeTags 是否移除HTML标签
- */
-export const sanitizeHTML = (() => {
-  const divContainer = document.createElement('div');
-  return (html: string, removeTags = false) => {
-    let str = DOMPurify.sanitize(html, {
-      ALLOWED_ATTR: ['style', 'src']
-    });
-    if (removeTags) {
-      divContainer.innerHTML = str;
-      str = divContainer.innerText;
-      divContainer.innerHTML = '';
-    }
-    return str.trim();
-  }
-})();
-
-
 export const newError = (message?: string) => new Error(message);
 export const newAxiosError = <T = any, D = any>(
   message?: string,
@@ -148,4 +129,21 @@ export const handlerVueProp = (val: any, defaultVal = '') => {
     return /\d$/.test(val) ? `${val}px` : val;
   }
   return defaultVal;
+}
+
+
+export const base64ToBlob = (base64: string) => {
+  const data = base64.split(',');
+  let header, body, type;
+  if (data.length > 1) {
+    header = data[0].trim();
+    body = data[1].trim();
+  } else {
+    body = data[0].trim();
+  }
+  if (header) {
+    const res = /data:([a-z0-9\-\+]+\/[a-z0-9\-\+]+);?/i.exec(header);
+    type = res ? res[1] : '';
+  }
+  return new Blob([Buffer.from(body, 'base64')], { type: type || void 0 });
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElContainer, ElHeader, ElMain } from 'element-plus';
-import { Transition, onMounted, watchEffect } from 'vue';
+import { Transition, computed, onMounted, watchEffect } from 'vue';
 import Toolbar from './components/toolbar/index.vue';
 import { useRouter } from 'vue-router';
 import GoBack from './components/go-back/index.vue';
@@ -13,7 +13,8 @@ import { PagePath } from './core/window';
 import { useSettingsStore } from './store/settings';
 import { storeToRefs } from 'pinia';
 import { colorIsLight, getColorRGB } from './core/utils';
-import { Backtop } from './components';
+import { Backtop, CloseButton, Window } from './components';
+import { useUpdateStore } from './store/update';
 
 const win = useWindowStore();
 const { transparentWindow } = storeToRefs(win);
@@ -55,12 +56,30 @@ const {
   backgroundBlurBgColor,
   backgroundSize,
 } = storeToRefs(useSettingsStore());
+
+const updateStore = useUpdateStore();
+const { updateWindowRef, version } = storeToRefs(updateStore);
+const updateListener = () => {
+  updateStore.deleteUpdaterFile();
+  updateStore.update().finally(() => {
+    win.removeEventListener('inited', updateListener);
+  });
+}
+options.enableAppStartedFindNewVersion && win.addEventListener('inited', updateListener);
+
 onMounted(() => {
   watchEffect(() => {
     let val = 'var(--rc-button-hover-bgcolor)';
     if (win.currentPath === PagePath.READ && !win.isDark) {
       const [r, g, b] = getColorRGB(backgroundColor.value);
       val = colorIsLight(r, g, b) ? 'var(--rc-button-hover-bgcolor-light)' : 'var(--rc-button-hover-bgcolor-dark)';
+    }
+    if (backgroundImage.value) {
+      if (backgroundBlur.value === 'dark') {
+        val = 'var(--rc-button-hover-bgcolor-dark)';
+      } else if (backgroundBlur.value === 'light') {
+        val = 'var(--rc-button-hover-bgcolor-light)';
+      }
     }
     document.body.style.setProperty('--rc-button-hover-background-color', val);
   });
@@ -80,33 +99,51 @@ onMounted(() => {
   });
 });
 
+
+const backgroundImageComputed = computed(() => {
+  return transparentWindow.value && window.opacity <= 0 ? '' : backgroundImage.value;
+});
+const backgroundColorComputed = computed(() => {
+  return transparentWindow.value ? '' : backgroundColor.value;
+});
+const backgroundBlurBgColorComputed = computed(() => {
+  return transparentWindow.value && window.opacity <= 0 ? 'transparent' : backgroundBlurBgColor.value;
+});
+const mainBackgroundColorComputed = computed(() => {
+  return backgroundImage.value || (transparentWindow.value && window.opacity <= 0) ? 'transparent' : '';
+});
+/**当前是否为阅读界面 */
+const isReadPageComputed = computed(() => {
+  return win.currentPath === PagePath.READ;
+});
 </script>
 
 <template>
   <ElContainer id="container" :style="{
     '--rc-header-color': win.backgroundColor,
-    backgroundImage: transparentWindow && window.opacity <= 0 ? '' : backgroundImage,
-    backgroundSize
+    backgroundImage: backgroundImageComputed,
+    backgroundSize,
+    backgroundColor: backgroundColorComputed,
   }">
     <ElHeader id="header" :class="[
       'app-drag',
       platform, win.isFullScreen ? 'fullscreen' : '',
-      win.currentPath === PagePath.READ ? texture : '',
+      isReadPageComputed ? texture : '',
       backgroundBlur ? 'app-blur' : '',
     ]" :style="{
       '--rc-text-color': win.textColor,
-      backgroundColor: transparentWindow && window.opacity <= 0 ? 'transparent' : backgroundBlurBgColor
+      backgroundColor: backgroundBlurBgColorComputed
     }">
       <div class="left-box">
         <div v-if="platform === 'darwin'" v-once class="window-controls-container app-no-darg"></div>
-        <div v-show="win.currentPath !== PagePath.READ" id="logo">
+        <div v-show="!isReadPageComputed" id="logo">
           <img class="app-drag" src="/icons/512x512.png" alt="ReadCat">
         </div>
-        <Navigation v-show="win.currentPath !== PagePath.READ" :path="win.currentPath" class="navigation app-no-drag" />
+        <Navigation v-show="!isReadPageComputed" :path="win.currentPath" class="navigation app-no-drag" />
         <GoBack id="goback" class="app-no-drag" :style="{
-          marginLeft: win.currentPath === PagePath.READ ? '0' : '10px'
+          marginLeft: isReadPageComputed ? '0' : '10px'
         }" />
-        <ReadState id="read-state" v-if="win.currentPath === PagePath.READ" />
+        <ReadState id="read-state" v-if="isReadPageComputed" />
       </div>
       <div class="center-box">
         <Search :path="win.currentPath" class="app-no-drag" />
@@ -120,12 +157,11 @@ onMounted(() => {
     <ElMain id="main" :class="[
       'rc-scrollbar',
       options.enableTransition ? 'rc-scrollbar-behavior' : '',
-      win.currentPath === PagePath.READ ? texture : '',
-    ]"
-    @scroll="(e: any) => setScrollTop(e)" :style="{
+      isReadPageComputed ? texture : '',
+    ]" @scroll="(e: any) => setScrollTop(e)" :style="{
       '--rc-main-color': win.backgroundColor,
       '--rc-text-color': win.textColor,
-      backgroundColor: backgroundImage || (transparentWindow && window.opacity <= 0) ? 'transparent' : ''
+      backgroundColor: mainBackgroundColorComputed
     }">
       <RouterView v-slot="{ Component }">
         <Transition :name="options.enableTransition ? 'router_animate' : void 0">
@@ -133,21 +169,183 @@ onMounted(() => {
         </Transition>
       </RouterView>
       <Backtop
-        v-if="win.currentPath !== PagePath.READ || (win.currentPath === PagePath.READ && options.enableReadBacktop)"  
-        target="#main"
-      />
+        v-if="!isReadPageComputed || (isReadPageComputed && options.enableReadBacktop)"
+        target="#main" />
     </ElMain>
+    <Window class-name="update-window" center-x center-y destroy-on-close :z-index="1001" :click-hide="false"
+      @event="e => updateWindowRef = e">
+      <section :class="[version?.htmlUrl ? '' : 'update-log']">
+        <header>
+          <div class="info">
+            <CloseButton @click="updateStore.closeUpdateWindow" />
+            <img src="/public/icons/512x512.png" alt="logo">
+            <h3>ReadCat</h3>
+            <p class="version">{{ version?.newVersion }}</p>
+          </div>
+        </header>
+        <main class="rc-scrollbar" v-html="version?.body"></main>
+        <footer>
+          <button v-if="version?.downloadUrl" class="download" :style="{
+            backgroundColor: updateStore.isDownloading ? 'rgba(30,120,235,0.3)' : '',
+          }" @click="updateStore.download()">
+            <div class="progress" :style="{
+              '--download-progress': updateStore.progress
+            }"></div>
+            <span>{{ updateStore.isDownloading ? '下载中' : '下载' }}</span>
+          </button>
+          <button v-else @click="updateStore.openHtmlUrl()">下载</button>
+        </footer>
+      </section>
+    </Window>
   </ElContainer>
 </template>
 
+<style lang="scss">
+.update-window {
+  section {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px 0 10px 10px;
+    height: calc(100% - 20px);
+
+    &.update-log {
+      main {
+        height: calc(100% - 135px - 20px);
+      }
+      footer {
+        display: none;
+      }
+    }
+
+    header,
+    footer {
+      margin-right: 10px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 135px;
+
+      .info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .close-button {
+          position: absolute;
+          right: 10px;
+        }
+
+        img {
+          margin: 10px 0;
+          width: 60px;
+          height: 60px;
+          border-radius: 21px;
+          box-shadow: 0 12px 32px 4px #1e78eb80, 0 8px 20px #1e78eb14;
+        }
+
+        h3 {
+          color: var(--rc-theme-color);
+        }
+
+        p.desc {
+          color: #A1A1A1;
+          font-size: 12px;
+        }
+
+        p.version {
+          margin-top: 5px;
+          font-size: 14px;
+          color: var(--rc-text-color);
+        }
+      }
+    }
+
+    main {
+      padding-left: 10px;
+      height: calc(100% - 135px - 30px - 20px);
+
+      &>* {
+        margin-bottom: 10px;
+      }
+
+      * {
+        user-select: text;
+        cursor: default;
+      }
+
+      h3 {
+        font-size: 16px;
+      }
+
+      ul {
+        padding: 0 20px 10px 20px;
+        list-style: initial;
+
+        li {
+          font-size: 14px;
+        }
+      }
+    }
+
+    footer {
+      height: 30px;
+
+      button {
+        width: 100%;
+        height: 30px;
+        color: #FFFFFF;
+        font-size: 16px;
+        background-color: #1E78EB;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        &:hover {
+          cursor: pointer;
+          background-color: rgba(30, 120, 235, 0.7);
+        }
+
+        &:active {
+          transform: scale(0.98);
+        }
+      }
+      button.download {
+        position: relative;
+        div.progress{
+          width: calc(var(--download-progress) * 100%);
+          height: 100%;
+          background-color: var(--rc-theme-color);
+          transition: width 0.2s ease;
+        }
+        span {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: currentColor;
+          z-index: 10;
+        }
+      }
+    }
+  }
+}
+</style>
 
 <style scoped lang="scss">
 .router_animate-enter-active {
-  animation: slideInLeft 0.5s;
+  animation: slideInLeft 0.4s;
 }
 
 .router_animate-leave-active {
   animation: slideOutLeft 0.1s;
+}
+
+#container {
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 #header {
@@ -191,7 +389,8 @@ onMounted(() => {
 
   .center-box {
     width: calc(100% - $left-right-box-zoom-width * 2 - 11px);
-    min-width: calc(100% - $left-right-box-zoom-min-width * 2 - 11px);
+    max-width: 500px;
+    min-width: 120px;
   }
 
   .right-box {
@@ -259,8 +458,10 @@ onMounted(() => {
     min-height: calc(100% - 10px);
   }
 }
+
 @media screen and (max-width: 800px) {
   #header {
+
     .left-box,
     .right-box {
       width: auto;

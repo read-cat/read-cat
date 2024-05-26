@@ -7,6 +7,11 @@ import { cloneByJSON, newError } from '../core/utils';
 import { Font, FontData } from '../core/font';
 import { PagePath } from '../core/window';
 import { EdgeTTSEngine } from '../core/plugins/built-in/tts/edge';
+import { base64ToBlob } from '../core/utils';
+import { useReadColorStore } from './read-color';
+import { Core } from '../core';
+
+let oldImageUrl = '';
 
 export const useSettingsStore = defineStore('Settings', {
   state: (): Settings => {
@@ -69,7 +74,10 @@ export const useSettingsStore = defineStore('Settings', {
         globalReadAloudFastForward: 'Ctrl+Shift+C',
       },
       theme: 'os',
-      updateSource: 'Github',
+      update: {
+        source: 'Github',
+        downloadProxy: 'https://mirror.ghproxy.com',
+      },
       scrollbarStepValue: 300,
       window: {
         zoomFactor: 1,
@@ -81,7 +89,8 @@ export const useSettingsStore = defineStore('Settings', {
       readAloud: {
         maxLineWordCount: 800,
         use: EdgeTTSEngine.ID
-      }
+      },
+      debug: Core.isDev,
     }
   },
   getters: {
@@ -94,8 +103,20 @@ export const useSettingsStore = defineStore('Settings', {
       if (win.isDark) {
         return void 0;
       }
+      const img = useReadColorStore().imageMap.get(this.readStyle.background.id);
+      if (img) {
+        return `url(${img.url})`;
+      }
       const image = this.readStyle.background.backgroundImage?.image;
-      return image ? `url(${image})` : void 0;
+      if (!image) {
+        return void 0;
+      }
+      if (oldImageUrl) {
+        URL.revokeObjectURL(oldImageUrl);
+      }
+      const url = URL.createObjectURL(base64ToBlob(image));
+      oldImageUrl = url;
+      return `url(${url})`;
     },
     /**阅读样式 背景图片 */
     backgroundImage(): string | undefined {
@@ -203,7 +224,7 @@ export const useSettingsStore = defineStore('Settings', {
     /**窗口不透明值 */
     windowOpacity(): string {
       return `${this.window.opacity}`;
-    }
+    },
   },
   actions: {
     setBackgroundColor(color: string) {

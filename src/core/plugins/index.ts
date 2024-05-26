@@ -1,10 +1,10 @@
 import { existsSync, readFileSync } from 'fs';
-import { chunkArray, errorHandler, newError, sanitizeHTML } from '../utils';
-import { isArray, isDate, isFunction, isNull, isNumber, isObject, isString, isUndefined } from '../is';
+import { chunkArray, errorHandler, newError } from '../utils';
+import { isArray, isDate, isFunction, isNull, isNumber, isString, isUndefined } from '../is';
 import { load } from 'cheerio';
 import { usePluginsStore } from '../../store/plugins';
 import { timeout, interval } from '../utils/timer';
-import { nanoid as _nanoid } from 'nanoid';
+import { nanoid } from 'nanoid';
 import { storeToRefs } from 'pinia';
 import { createPluginStore } from './store';
 import { useSettingsStore } from '../../store/settings';
@@ -29,13 +29,15 @@ import { isBookStore } from './bookstore';
 import { isTTSEngine } from './ttsengine';
 import { TextToSpeechEngine } from './defined/ttsengine';
 import { EdgeTTSEngine } from './built-in/tts/edge';
+import { AliyunTTSEngine } from './built-in/tts/aliyun';
 import { Chapter } from '../book/book';
 import type { VM } from 'vm2';
 import NodeCrypto from 'crypto';
+import { uuid, sanitizeHTML, escapeHTML } from '../utils/html';
+import { BaiduTTSEngine } from './built-in/tts/baidu';
+import { WebSocket } from 'ws';
 
-const { WebSocket: WebSocketClient } = require('ws');
-const nanoid = () => _nanoid();
-const uuid = () => window.crypto.randomUUID().replaceAll('-', '').toUpperCase();
+const WebSocketClient: WebSocket = require('ws').WebSocket;
 
 export enum PluginType {
   BOOK_SOURCE,
@@ -60,7 +62,8 @@ export namespace PluginType {
 export class Plugins {
   private pluginsPool: Map<PluginId, {
     enable: boolean,
-    props: PluginBaseProps,
+    // props: PluginBaseProps,
+    pluginClass: PluginInterface,
     instance: BookSource | BookStore | TextToSpeechEngine | null,
     builtIn: boolean
   }> = new Map();
@@ -117,7 +120,7 @@ export class Plugins {
       });
       this.pluginsPool.set(id, {
         enable: false,
-        props: p.props,
+        pluginClass: p.pluginClass,
         instance: null,
         builtIn: false
       });
@@ -153,12 +156,45 @@ export class Plugins {
     const val = this.pluginsPool.get(id);
     return val && (<R>val.instance);
   }
+  public getPluginClassById(id: string) {
+    const val = this.pluginsPool.get(id);
+    return val?.pluginClass;
+  }
   public getAllPlugins() {
     return Array.from(this.pluginsPool.values());
   }
-  public getPluginPropsById(id: string) {
+
+  private getProps(pluginClass: PluginInterface): PluginBaseProps {
+    const {
+      ID,
+      TYPE,
+      NAME,
+      GROUP,
+      VERSION,
+      VERSION_CODE,
+      PLUGIN_FILE_URL,
+      BASE_URL,
+      REQUIRE
+    } = pluginClass;
+    return {
+      ID,
+      TYPE,
+      NAME,
+      GROUP,
+      VERSION,
+      VERSION_CODE,
+      PLUGIN_FILE_URL,
+      BASE_URL,
+      REQUIRE
+    }
+  }
+
+  public getPluginPropsById(id: string): PluginBaseProps | undefined {
     const val = this.pluginsPool.get(id);
-    return val && val.props;
+    if (!val) {
+      return void 0;
+    }
+    return this.getProps(val.pluginClass);
   }
 
   public getPluginById<R>(id: string): {
@@ -169,7 +205,8 @@ export class Plugins {
     if (isUndefined(plugin)) {
       return;
     }
-    const { props, instance } = plugin;
+    const { pluginClass, instance } = plugin;
+    const props = this.getProps(pluginClass);
     return { props, instance: (<R>instance) }
   }
   public getPluginsByType(type: PluginType.BOOK_SOURCE, filter?: PluginFilter): {
@@ -186,7 +223,7 @@ export class Plugins {
   }[];
   public getPluginsByType(type: PluginType, filter?: PluginFilter): {
     props: PluginBaseProps,
-    instance: BookSource | BookStore | null
+    instance: BookSource | BookStore | TextToSpeechEngine | null
   }[] {
     filter = {
       enable: true,
@@ -194,21 +231,21 @@ export class Plugins {
       ...filter
     }
     return Array.from(this.pluginsPool.values())
-      .filter(({ props }) => {
-        if (props.TYPE !== type) {
+      .filter(({ pluginClass }) => {
+        if (pluginClass.TYPE !== type) {
           return false;
         }
-        if (filter.group && filter.group !== props.GROUP) {
+        if (filter.group && filter.group !== pluginClass.GROUP) {
           return false;
         }
         return true;
       })
       .filter(({ enable }) => enable === filter.enable)
       .filter(({ instance }) => !isNull(instance))
-      .map(({ props, instance }) => {
+      .map(({ pluginClass, instance }) => {
         return {
-          props,
-          instance: <BookSource | BookStore>instance
+          props: this.getProps(pluginClass),
+          instance: <BookSource | BookStore | TextToSpeechEngine>instance
         }
       });
   }
@@ -227,6 +264,8 @@ export class Plugins {
       throw newError('无法删除内置插件');
     }
     await GLOBAL_DB.store.pluginsJSCode.remove(id);
+    usePluginsStore().removeRequire(id);
+    GLOBAL_DB.store.pluginsStore.removeByPid(id);
     this.pluginsPool.delete(id);
   }
 
@@ -267,16 +306,24 @@ export class Plugins {
     }
   }
 
-  public async importJSCode(jscode: string, options?: PluginImportOptions): Promise<BookSource | BookStore> {
+  public async importJSCode(jscode: string, options?: PluginImportOptions): Promise<BookSource | BookStore | TextToSpeechEngine> {
     return this.import(null, jscode, options);
   }
-  public async importPluginFile(pluginFilePath: string, options?: PluginImportOptions): Promise<BookSource | BookStore> {
+  public async importPluginFile(pluginFilePath: string, options?: PluginImportOptions): Promise<BookSource | BookStore | TextToSpeechEngine> {
     return this.import(pluginFilePath, null, options);
   }
 
   private createPluginClassInstance(cls: PluginInterface) {
     const store = this.getPluginStore(cls.ID);
     const settings = useSettingsStore();
+    const require = usePluginsStore().getRequire(cls.ID);
+    if (cls.REQUIRE && require && Object.keys(require).length > 0) {
+      for (const key of Object.keys(require)) {
+        if (Object.hasOwn(cls.REQUIRE, key)) {
+          cls.REQUIRE[key] = require[key];
+        }
+      }
+    }
     return new cls({
       request: {
         async get(url: string, config?: PluginRequestConfig) {
@@ -314,38 +361,22 @@ export class Plugins {
         removeStoreValue: store.removeStoreValue.bind(store),
       },
       cheerio: load,
-      nanoid,
+      nanoid: () => nanoid(),
       uuid
     });
   }
 
   private importBuiltIn() {
-    const instance = this.createPluginClassInstance(EdgeTTSEngine);
-    const {
-      ID,
-      TYPE,
-      GROUP,
-      NAME,
-      VERSION,
-      VERSION_CODE,
-      PLUGIN_FILE_URL,
-      TTS_ENGINE_REQUIRE
-    } = EdgeTTSEngine;
-    this.pluginsPool.set(ID, {
-      enable: true,
-      props: {
-        ID,
-        TYPE,
-        GROUP,
-        NAME,
-        VERSION,
-        VERSION_CODE,
-        PLUGIN_FILE_URL,
-        TTS_ENGINE_REQUIRE
-      },
-      instance,
-      builtIn: true
-    });
+    const engines = [EdgeTTSEngine, AliyunTTSEngine, BaiduTTSEngine];
+    for (const Engine of engines) {
+      const instance = this.createPluginClassInstance(Engine);
+      this.pluginsPool.set(Engine.ID, {
+        enable: true,
+        pluginClass: Engine,
+        instance,
+        builtIn: true
+      });
+    }
   }
 
   private async import(pluginFilePath: string | null, jscode: string | null, options?: PluginImportOptions): Promise<BookSource | BookStore> {
@@ -359,17 +390,13 @@ export class Plugins {
       if (isNull(jscode)) {
         throw newError('Plugin jscode not found');
       }
-      const { PluginClass, code } = await this.check(jscode, options);
+      const { PluginClass, code } = await this.checkout(jscode, options);
+      if (!options?.force && this.pluginsPool.has(PluginClass.ID)) {
+        throw newError(`Plugin exists ID:${PluginClass.ID}`);
+      }
       const {
         ID,
         TYPE,
-        GROUP,
-        NAME,
-        VERSION,
-        VERSION_CODE,
-        PLUGIN_FILE_URL,
-        BASE_URL,
-        TTS_ENGINE_REQUIRE
       } = PluginClass;
       const instance = this.createPluginClassInstance(PluginClass);
 
@@ -391,17 +418,7 @@ export class Plugins {
       }
       this.pluginsPool.set(ID, {
         enable: !!options?.enable,
-        props: {
-          ID,
-          TYPE,
-          GROUP,
-          NAME,
-          VERSION,
-          VERSION_CODE,
-          PLUGIN_FILE_URL,
-          BASE_URL,
-          TTS_ENGINE_REQUIRE
-        },
+        pluginClass: PluginClass,
         instance: options?.enable ? instance : null,
         builtIn: false
       });
@@ -412,7 +429,7 @@ export class Plugins {
     }
   }
   /**校验插件 */
-  private async check(jscode: string, options?: PluginImportOptions) {
+  public async checkout(jscode: string, options?: PluginImportOptions) {
     try {
       if (!options || options.minify) {
         const { error, code } = Plugins.UGLIFY_JS.minify(jscode, {
@@ -425,9 +442,6 @@ export class Plugins {
       }
       const plugin = await this.pluginExports(jscode);
       this._isPlugin(plugin);
-      if (!options?.force && this.pluginsPool.has(plugin.ID)) {
-        throw newError(`Plugin exists ID:${plugin.ID}`);
-      }
       return { PluginClass: plugin, code: jscode };
     } catch (e) {
       return errorHandler(e);
@@ -527,21 +541,6 @@ export class Plugins {
         throw newError('The [BASE_URL] format is not standard');
       }
     }
-    if (PluginType.TTS_ENGINE === plugin.TYPE) {
-      if (isUndefined(plugin.TTS_ENGINE_REQUIRE)) {
-        throw newError('Static property [TTS_ENGINE_REQUIRE] not found');
-      }
-      if (!isObject(plugin.TTS_ENGINE_REQUIRE)) {
-        throw newError('Static property [BASE_URL] is not of object type');
-      }
-    }
-    
-    /* if (plugin.PLUGIN_FILE_URL.trim() !== plugin.PLUGIN_FILE_URL) {
-      throw 'The PLUGIN_FILE_URL format is not standard';
-    } */
-    /* if (plugin.PLUGIN_FILE_URL.length <= 0) {
-      throw `Static property [PLUGIN_FILE_URL] Length:${plugin.VERSION.length}, PLUGIN_FILE_URL is empty`;
-    } */
 
     switch (plugin.TYPE) {
       case PluginType.BOOK_STORE:
@@ -566,7 +565,7 @@ export class Plugins {
     }
   }
 
-  
+
 
   private runPluginScript(script: string) {
     const sandbox = {
@@ -603,9 +602,14 @@ export class Plugins {
       DOMParser,
       XPathResult,
       XPathEvaluator,
-      XPathExpression
+      XPathExpression,
+      Error,
+      AbortSignal,
+      AbortController,
+      URL,
+      escapeHTML,
     };
-    
+
     new this.VM({
       timeout: 1 * 1000,
       allowAsync: true,

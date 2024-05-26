@@ -9,6 +9,7 @@ import { BookParser } from '../../../core/book/book-parser';
 import { nanoid } from 'nanoid';
 import CoverImage from '../../../assets/cover.jpg';
 import { newError } from '../../../core/utils';
+import { showOpenFileDialog } from '../../../core/utils/file';
 
 export type Book = {
   id: string
@@ -231,7 +232,7 @@ export const useImportBooks = () => {
   }
 
   const openBookFile = () => {
-    showOpenFilePicker({
+    showOpenFileDialog({
       multiple: true,
       types: [{
         accept: {
@@ -241,16 +242,9 @@ export const useImportBooks = () => {
         description: '电子书籍'
       }],
       excludeAcceptAllOption: true
-    }).catch(e => {
-      message.warning(e.message);
-      return null;
     }).then(async handles => {
-      if (!handles) {
-        return;
-      }
       const files = [];
-      for (const handle of handles) {
-        const file = await handle.getFile();
+      for (const file of handles) {
         if (file.name.endsWith('.txt') || file.name.endsWith('.text')) {
           files.push(file);
         }
@@ -266,12 +260,15 @@ export const useImportBooks = () => {
       for (const file of files) {
         const { name } = file;
         if (name.endsWith('.txt') || name.endsWith('.text')) {
-          const book = await handlerTxtBook(name, void 0, Buffer.from(await file.arrayBuffer()));
+          const book = await handlerTxtBook(name, void 0, await file.buffer());
           tempBooks.push(book);
         }
       }
       books.value = tempBooks;
     }).catch(e => {
+      if (e.name === 'CanceledError') {
+        return;
+      }
       message.error(e.message);
       GLOBAL_LOG.error('import book open file', e);
     }).finally(() => {

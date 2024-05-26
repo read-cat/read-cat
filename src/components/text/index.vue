@@ -35,6 +35,6 @@ export default {
 <style scoped lang="scss">
 .rc-text:is(.rc-text-ellipsis) {
   display: inline-block;
-  line-height: 100%;
+  line-height: calc(100% + 5px);
 }
 </style>

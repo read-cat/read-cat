@@ -3,12 +3,17 @@ import { ref, watch } from 'vue';
 import { useBookshelfStore } from '../../../store/bookshelf';
 import { CheckboxValueType, ElMessageBox } from 'element-plus';
 import { useMessage } from '../../../hooks/message';
+import { useTextContentStore } from '../../../store/text-content';
+import { useBookmarkStore } from '../../../store/bookmark';
+import IconLoadingPlay from '../../../assets/svg/icon-loading-play.svg';
 
 export const useBookshelfCheckbox = () => {
   const checkAll = ref(false);
   const isIndeterminate = ref(false);
   const checkedCities = ref<string[]>([]);
   const bookshelf = useBookshelfStore();
+  const bookmark = useBookmarkStore();
+  const textContent = useTextContentStore();
   const { books } = storeToRefs(bookshelf);
   const message = useMessage();
   const cities = ref(books.value.map(b => b.id));
@@ -43,19 +48,30 @@ export const useBookshelfCheckbox = () => {
       type: 'info'
     }).then(async () => {
       let error = 0;
+      const info = message.info({
+        icon: IconLoadingPlay,
+        message: '正在将选中书本移出书架',
+        duration: 0
+      });
       for (const id of checkedCities.value) {
         const book = bookshelf._books.find(b => b.id === id);
         if (!book) {
           continue;
         }
         const { pid, detailPageUrl } = book;
-        GLOBAL_DB.store.textContentStore.removeByPidAndDetailUrl(pid, detailPageUrl);
-        await bookshelf.remove(id).catch(() => error++);
+        await bookshelf.remove(id).then(() => {
+          return Promise.allSettled([
+            textContent.removeTextContentsByPidAndDetailUrl(pid, detailPageUrl),
+            bookmark.removeBookmarksByDetailUrl(detailPageUrl)
+          ]);
+        }).catch(() => error++);
       }
       if (error > 0) {
+        info.close();
         message.info(`已移出${checkedCities.value.length - error}本书, ${error}本移出失败`);
         return;
       }
+      info.close();
       message.success('已将选中书本移出书架');
     }).catch(() => { });
   }

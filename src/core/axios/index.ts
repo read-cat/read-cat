@@ -1,7 +1,7 @@
 import { Logger } from '../logger';
 import adapter from './adapter';
 import { createWriteStream, existsSync, WriteStream } from 'fs';
-import FormDataType from 'form-data';
+
 import {
   CustomAxiosRequestConfig,
   CustomAxiosStatic,
@@ -9,18 +9,6 @@ import {
 } from './defined/axios';
 import { newError } from '../utils';
 
-
-const NodeFormData: typeof FormDataType = require('form-data');
-Object.defineProperty(NodeFormData.prototype, Symbol.toStringTag, {
-  value: 'NodeFormData',
-  configurable: false,
-  writable: false
-});
-Object.defineProperty(window, 'NodeFormData', {
-  value: NodeFormData,
-  configurable: false,
-  writable: false
-});
 const axios: CustomAxiosStatic = require('axios');
 
 const customAxios = axios.create({
@@ -123,12 +111,14 @@ customAxios.interceptors.response.use(resp => {
   if ([2, 3].includes(Math.floor(resp.status / 100))) {
     return Promise.resolve(resp);
   }
-  return Promise.reject(newError(
+  const err = newError(
     `Status:${resp.status}, ${resp.statusText}\n\n` +
     `RequestHeaders: \n${Logger.toString(resp.config.headers, 2, true)}\n\n` +
     `ResponseHeaders: \n${Logger.toString(resp.headers, 2, true)}\n\n` +
-    resp.data.toString()
-  ));
+    Logger.toString(resp.data, 2, true)
+  );
+  (<any>err).responseBody = resp.data;
+  return Promise.reject(err);
 }, err => {
   return Promise.reject(err);
 });

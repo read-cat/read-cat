@@ -1,43 +1,65 @@
+import { chunkArray } from '../../../utils';
+
+const escape = (str: string) => {
+  return str.replaceAll('\\', '\\\\')
+    .replaceAll('^', '\\^')
+    .replaceAll('$', '\\$')
+    .replaceAll('*', '\\*')
+    .replaceAll('+', '\\+')
+    .replaceAll('?', '\\?')
+    .replaceAll('.', '\\.')
+    .replaceAll('|', '\\|')
+    .replaceAll('{', '\\{')
+    .replaceAll('}', '\\}')
+    .replaceAll('(', '\\(')
+    .replaceAll(')', '\\)')
+    .replaceAll('-', '\\-')
+    ;
+}
 self.onmessage = e => {
-  const chunkArray = <T>(array: T[], size = 1) => {
-    size = Math.max(Math.ceil(Number(size)), 0);
-    const length = array == null ? 0 : array.length;
-    if (!length || size < 1) {
-      return [];
-    }
-    let index = 0;
-    let resIndex = 0;
-    const result = new Array<T[]>(Math.ceil(length / size));
-  
-    while (index < length) {
-      result[resIndex++] = array.slice(index, (index += size));
-    }
-    return result;
-  }
   try {
-    const content: string = e.data.content.replaceAll('\r', '');
+    let content: string = e.data.content.replaceAll('\r', '');
     const maxLines: number = e.data.maxLines || 300;
     const chapterTitleList: string[] = e.data.chapterTitleList;
     const arr = [];
-    let pos = 0;
     let count = 1;
-    for (let i = 0; i < chapterTitleList.length; i++) {
-      const start = content.indexOf(chapterTitleList[i] + '\n', pos) + chapterTitleList[i].length;
-      pos = start;
-      const end = i + 1 === chapterTitleList.length ? void 0 : content.indexOf(chapterTitleList[i + 1] + '\n');
-      const contents = content.substring(start, end).split('\n').map(c => c.trim()).filter(c => c);
-      if (contents.length > maxLines) {
-        for (const item of chunkArray(contents, maxLines)) {
+    //未匹配到章节目录，以最大行数分割
+    if (chapterTitleList.length === 1 && chapterTitleList[0] === 'guIDQ99PelX2-XTHD1eo6') {
+      const contents = content.split('\n').map(c => c.trim()).filter(c => c);
+      for (const item of chunkArray(contents, maxLines)) {
+        arr.push({
+          title: `第${count++}章`,
+          contents: item
+        });
+      }
+    } else {
+      for (let i = 0; i < chapterTitleList.length; i++) {
+        let start, end;
+        const startRegExp = new RegExp(`(${escape(chapterTitleList[i])}.*)\n`, 'gm');
+        const startExec = (startRegExp).exec(content);
+        start = startExec ? startExec[1].length + startExec.index : -1;
+        if (i + 1 === chapterTitleList.length) {
+          end = void 0;
+        } else {
+          const nextRegExp = new RegExp(`${escape(chapterTitleList[i + 1])}.*\n`, 'gm');
+          end = content.search(nextRegExp);
+          end = end >= 0 ? end : void 0;
+        }
+        const contents = content.substring(start, end).split('\n').map(c => c.trim()).filter(c => c);
+        content = content.slice(start);
+        if (contents.length > maxLines) {
+          for (const item of chunkArray(contents, maxLines)) {
+            arr.push({
+              title: `第${count++}章`,
+              contents: item
+            });
+          }
+        } else {
           arr.push({
-            title: `第${count++}章`,
-            contents: item
+            title: chapterTitleList[i].trim(),
+            contents
           });
         }
-      } else {
-        arr.push({
-          title: chapterTitleList[i].trim(),
-          contents
-        });
       }
     }
     self.postMessage({

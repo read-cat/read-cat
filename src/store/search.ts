@@ -9,6 +9,7 @@ import { PagePath } from '../core/window';
 import { SearchEntity } from '../core/book/book';
 import { useMessage } from '../hooks/message';
 import { nextTick } from 'vue';
+import { sanitizeHTML } from '../core/utils/html';
 
 export interface SearchResult extends SearchEntity {
   pid: string,
@@ -82,11 +83,11 @@ export const useSearchStore = defineStore('Search', {
                   return v.author.trim().includes(author);
                 }
               }).map<SearchResult>(e => ({
-                bookname: e.bookname?.trim(),
-                author: e.author?.trim(),
-                coverImageUrl: e.coverImageUrl?.trim(),
-                detailPageUrl: e.detailPageUrl?.trim(),
-                latestChapterTitle: e.latestChapterTitle?.trim(),
+                bookname: e.bookname ? sanitizeHTML(e.bookname, true).trim() : '',
+                author: e.author ? sanitizeHTML(e.author, true).trim() : '',
+                coverImageUrl: e.coverImageUrl ? sanitizeHTML(e.coverImageUrl, true).trim() : '',
+                detailPageUrl: e.detailPageUrl ? sanitizeHTML(e.detailPageUrl).trim() : '',
+                latestChapterTitle: e.latestChapterTitle ? sanitizeHTML(e.latestChapterTitle).trim() : '',
                 sourceName: props.NAME,
                 group: props.GROUP,
                 pid: props.ID,

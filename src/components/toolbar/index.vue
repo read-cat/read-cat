@@ -21,9 +21,11 @@ import IconPlayerPlay from '../../assets/svg/player/icon-player-play.svg';
 import IconPlayerPause from '../../assets/svg/player/icon-player-pause.svg';
 import IconPlayerFastRewind from '../../assets/svg/player/icon-player-rewind.svg';
 import IconPlayerFastForWard from '../../assets/svg/player/icon-player-forward.svg';
-import IconPlayerLoading from '../../assets/svg/player/icon-player-loading.svg';
+import IconLoadingPlay from '../../assets/svg/icon-loading-play.svg';
 import IconPlayerPoint from '../../assets/svg/player/icon-player-point.svg';
 import IconPlayerSpeak from '../../assets/svg/player/icon-player-speak.svg';
+import IconPin from '../../assets/svg/icon-pin.svg';
+import IconPinSlash from '../../assets/svg/icon-pin-slash.svg';
 import { Window, WindowEvent, Text } from '..';
 import Settings from '../settings/index.vue'
 
@@ -79,6 +81,8 @@ const {
   readAloudVoices,
   readAloudCurrentVoice,
   selectReadAloudVoice,
+  readAloudIsPin,
+  isRefreshReadAloudVoices,
 } = useReadAloud();
 
 
@@ -101,7 +105,7 @@ export default {
       </button>
       <Window :width="readAloudPlayerWindowConfig.width" :height="readAloudPlayerWindowConfig.height"
         :top="readAloudPlayerWindowConfig.y" :left="readAloudPlayerWindowConfig.x" destroy-on-close
-        @event="e => readAloudPlayerWindow = e" class-name="read-aloud-player-window">
+        :click-hide="!readAloudIsPin" @event="e => readAloudPlayerWindow = e" class-name="read-aloud-player-window">
         <div>
           <div class="btns">
             <button v-memo="[readAloudIsSelectPlay]" :title="readAloudIsSelectPlay ? '取选择取' : '选择播放'"
@@ -116,9 +120,7 @@ export default {
             </button>
             <button v-if="readAloudStatus === 'wait' && readAloudTransformStatus && readAloudTransformStatus !== 'end'"
               v-memo="[readAloudStatus, readAloudTransformStatus]" disable class="play loading" title="缓存中">
-              <ElIcon class="is-loading" size="20">
-                <IconPlayerLoading />
-              </ElIcon>
+              <IconLoadingPlay />
             </button>
             <button v-else v-memo="[readAloudStatus]" effect="light" :title="readAloudStatus === 'play' ? '暂停' : '播放'"
               class="play" @click="readAloudStatus === 'play' ? readAloudPause() : readAloudPlay()">
@@ -131,21 +133,28 @@ export default {
             <button v-once title="停止" @click="readAloudStop">
               <IconPlayerStop />
             </button>
-            
+            <button v-memo="[readAloudIsPin]" :title="readAloudIsPin ? '取消固定' : '固定'" @click="() => readAloudIsPin = !readAloudIsPin">
+              <ElIcon size="17">
+                <IconPin v-if="!readAloudIsPin" />
+                <IconPinSlash v-else />
+              </ElIcon>
+            </button>
           </div>
           <ElSelect v-model="readAloudPlaybackRate" suffix-icon="" popper-class="playback-rate-select" size="small"
             style="width: 70px;" @change="readAloudPlaybackRateChange">
-            <ElOption v-for="rate of readAloudPlaybackRates" :key="rate" :label="`${rate} X`" :value="rate" />
+            <ElOption v-for="rate of readAloudPlaybackRates" :key="rate" :label="`${rate} X`" :value="rate">
+              <span disable-click-hide>{{ `${rate} X` }}</span>
+            </ElOption>
           </ElSelect>
         </div>
       </Window>
       <Window width="300" height="300" center-x center-y destroy-on-close @event="e => readAloudVoicesWindow = e"
-        class-name="read-aloud-voices-window">
+        class-name="read-aloud-voices-window" :is-loading="isRefreshReadAloudVoices">
         <ul class="rc-scrollbar">
-          <li v-for="voice of readAloudVoices" :key="voice.name"
-            :class="[readAloudCurrentVoice?.name === voice.name ? 'select-voice' : '', 'rc-button']"
-            @click="selectReadAloudVoice(voice)">
-            <Text ellipsis :title="voice.name">{{ voice.name }}</Text>
+          <li v-for="voice of readAloudVoices[1]" :key="voice.value"
+            :class="[readAloudCurrentVoice?.value === voice.value ? 'select-voice' : '', 'rc-button']"
+            @click="selectReadAloudVoice(voice)" disable-click-hide>
+            <Text ellipsis :title="voice.name" disable-click-hide>{{ voice.name }}</Text>
           </li>
         </ul>
       </Window>
@@ -177,11 +186,11 @@ export default {
           <IconMinimize />
         </button>
         <button v-memo="[win.isFullScreen, win.isMaximize]" v-if="!win.isFullScreen" class="rc-button"
-          @click="maximizeOrRestore" :title="win.isFullScreen ? '退出全屏' : (win.isMaximize ? '还原' : '最大化')">
+          @click="maximizeOrRestore" :title="win.isMaximize ? '还原' : '最大化'">
           <IconMaximize v-if="!win.isMaximize" />
           <IconMaximizeRestore v-else />
         </button>
-        <button v-else class="rc-button" @click="exitFullScreen">
+        <button v-else class="rc-button" @click="exitFullScreen" title="退出全屏">
           <IconExitFullScreen />
         </button>
         <button v-once title="关闭" class="rc-button" @click="close">
@@ -237,11 +246,14 @@ export default {
           border-radius: 50%;
         }
         &.loading {
+          svg {
+            width: 20px;
+            height: 20px;
+          }
           &:hover,
           &:active {
             transform: none;
           }
-          
         }
         &.is-select {
           color: var(--rc-theme-color);
@@ -275,9 +287,16 @@ export default {
 .playback-rate-select {
   .el-select-dropdown__list {
     li {
-      padding: 0 15px;
+      padding: 0;
       height: 25px;
       line-height: 25px;
+
+      span {
+        display: inline-block;
+        padding: 0 15px;
+        width: calc(100% - 30px);
+        height: 100%;
+      }
     }
   }
 }
@@ -290,6 +309,7 @@ export default {
     height: 300px;
 
     li {
+      justify-content: flex-start;
       padding: 0 5px;
       height: 25px;
       font-size: 13px;

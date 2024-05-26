@@ -46,7 +46,7 @@ export const useScrollTopStore = defineStore('ScrollTop', {
       nextTick(() => {
         const { currentReadScrollTop } = useDetailStore();
         const { currentChapter } = useTextContentStore();
-        let top =  this.textContentOffsetTop();
+        let top = this.textContentOffsetTop();
         if (!toTop && currentReadScrollTop.chapterIndex === currentChapter?.index) {
           currentReadScrollTop.scrollTop > 0 && (top = currentReadScrollTop.scrollTop);
         }

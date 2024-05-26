@@ -18,7 +18,6 @@ import { isNull, isUndefined } from '../../core/is';
 import { useDetailStore } from '../../store/detail';
 import { Menu, MenuItem } from '../../components';
 import { useBookmarks } from './hooks/bookmarks';
-import { useTextContent } from './hooks/text-content';
 import IconArrowLineUp from '../../assets/svg/icon-arrow-line-up.svg';
 import IconArrowLineDown from '../../assets/svg/icon-arrow-line-down.svg';
 import { useReadAloudStore } from '../../store/read-aloud';
@@ -50,8 +49,6 @@ const {
   readAloudColor,
 } = storeToRefs(useSettingsStore());
 
-const { nextChapter, prevChapter } = useTextContent();
-
 const {
   pageHeight,
 } = useScrollToggleChapter();
@@ -62,7 +59,7 @@ onMounted(() => {
   });
 });
 const { isRunningGetTextContent } = storeToRefs(useTextContentStore());
-const { getTextContent } = useTextContentStore();
+const { getTextContent, nextChapter, prevChapter } = useTextContentStore();
 
 useScrollTop(pid, detailUrl);
 

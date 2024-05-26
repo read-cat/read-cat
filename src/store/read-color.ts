@@ -3,6 +3,8 @@ import { DefaultReadColor, ReadBackground } from '../core/window/default-read-st
 import { cloneByJSON, errorHandler, isHexColor, newError, replaceInvisibleStr } from '../core/utils';
 import { useSettingsStore } from './settings';
 import { Core } from '../core';
+import { base64ToBlob } from '../core/utils';
+import { createHash } from 'crypto';
 
 export type CustomReadColor = ReadBackground & {
   builtIn?: boolean
@@ -11,7 +13,8 @@ export type CustomReadColor = ReadBackground & {
 export const useReadColorStore = defineStore('ReadColor', {
   state: () => {
     return {
-      customReadColor: [] as CustomReadColor[]
+      customReadColor: [] as CustomReadColor[],
+      imageMap: new Map<string, { md5: string, url: string, element: HTMLImageElement }>(),
     }
   },
   getters: {
@@ -32,6 +35,9 @@ export const useReadColorStore = defineStore('ReadColor', {
   actions: {
     async put(color: ReadBackground): Promise<void> {
       try {
+        if (this.customReadColor.length > 20) {
+          throw newError('自定义样式已超过20个');
+        }
         const _color = replaceInvisibleStr(cloneByJSON(color));
         if (!_color.id) {
           throw newError('id为空');
@@ -80,6 +86,23 @@ export const useReadColorStore = defineStore('ReadColor', {
         } else {
           this.customReadColor.push(_color);
         }
+        if (!color.backgroundImage?.image) {
+          return;
+        }
+        const old = this.imageMap.get(color.id);
+        const md5 = createHash('md5').update(color.backgroundImage.image).digest('hex');
+        if (old && old.md5 === md5) {
+          return;
+        }
+        old && URL.revokeObjectURL(old.url);
+        const url = URL.createObjectURL(base64ToBlob(color.backgroundImage.image));
+        const element = new Image();
+        element.src = url;
+        this.imageMap.set(color.id, {
+          md5,
+          url,
+          element
+        });
       } catch (e: any) {
         return errorHandler(e);
       }
@@ -93,6 +116,11 @@ export const useReadColorStore = defineStore('ReadColor', {
         const i = this.customReadColor.findIndex(v => v.id === id);
         if (i > -1) {
           this.customReadColor.splice(i, 1);
+        }
+        const img = this.imageMap.get(id);
+        if (img) {
+          URL.revokeObjectURL(img.md5);
+          this.imageMap.delete(id);
         }
         await GLOBAL_DB.store.readColorStore.remove(id);
       } catch (e: any) {

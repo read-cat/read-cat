@@ -104,20 +104,7 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
     }
     await this.remove(val.id);
   }
-  async removeByPidAndDetailUrl(pid: string, detailUrl: string): Promise<void> {
-    const entitys = await this.getByPidAndDetailUrl(pid, detailUrl);
-    if (isNull(entitys) || entitys.length <= 0) {
-      return;
-    }
-    const ps: Promise<void>[] = [];
-    entitys.forEach(e => {
-      ps.push(super.remove(e.id));
-    });
-    (await Promise.allSettled(ps)).forEach(r => {
-      if (r.status === 'rejected') {
-        GLOBAL_LOG.error(this.tag, 'removeByPidAndDetailUrl', r.reason);
-      }
-    });
+  removeByPidAndDetailUrl(pid: string, detailUrl: string): Promise<void> {
+    return super.useCursorRemove('index_pid_detailUrl', [pid, detailUrl]);
   }
-
 }

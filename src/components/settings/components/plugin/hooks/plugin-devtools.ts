@@ -7,12 +7,14 @@ import fs from 'fs/promises';
 import { useSettingsStore } from '../../../../../store/settings';
 import { isUndefined } from 'element-plus/es/utils/types.mjs';
 import { PluginDevtools } from '../../../../../core/plugin-devtools';
+import { newError } from '../../../../../core/utils';
+import { showOpenFileDialog } from '../../../../../core/utils/file';
 
 export const usePluginDevtools = () => {
   const message = useMessage();
   const { pluginDevtools } = useSettingsStore();
   const openPluginDevtoolsKit = () => {
-    showOpenFilePicker({
+    showOpenFileDialog({
       excludeAcceptAllOption: true,
       types: [{
         description: '插件开发工具包',
@@ -20,22 +22,20 @@ export const usePluginDevtools = () => {
           'application/gzip': ['.rpdt']
         }
       }]
-    }).catch(e => {
-      message.warning(e.message);
-      return Promise.resolve(null);
-    }).then(async (handle) => {
-      if (isNull(handle)) {
-        return;
+    }).then(async ([file]) => {
+      if (!Core.userDataPath) {
+        return Promise.reject(newError('userDataPath is undefined'));
       }
-      const file = await handle[0].getFile();
-      const buf = await file.arrayBuffer();
+      const buf = await file.buffer();
       const path = join(Core.userDataPath, 'plugin-devtools');
       return {
         dir: path,
-        target: await decompress(Buffer.from(buf), path)
+        target: await decompress(buf, path)
       };
     }).catch(e => {
-      message.error(e.message);
+      if (e.name !== 'CanceledError') {
+        message.error(e.message);
+      }
       return Promise.resolve(void 0);
     }).then(async path => {
       if (isUndefined(path)) {

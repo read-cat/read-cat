@@ -6,6 +6,7 @@ import { ref } from 'vue';
 import { useSettingsStore } from '../../../../../store/settings';
 import { ElMessageBox } from 'element-plus';
 import { EventCode } from '../../../../../../events';
+import { newError } from '../../../../../core/utils';
 
 export const useWindowTransparent = () => {
   const windowTransparentSwitchIsLoading = ref(false);
@@ -24,6 +25,9 @@ export const useWindowTransparent = () => {
   `;
   const windowTransparentSwitchBeforeChange = async () => {
     try {
+      if (!Core.userDataPath) {
+        throw newError('userDataPath is undefined');
+      }
       const filename = path.join(Core.userDataPath, 'window_transparent');
       if (!options.enableTransparentWindow) {
         await fsp.writeFile(filename, '');

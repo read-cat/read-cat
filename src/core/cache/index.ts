@@ -1,19 +1,16 @@
+import { Core } from '..';
 import { EventCode } from '../../../events';
+import { getDirectorySize } from '../../worker';
 import { newError } from '../utils';
 
 export class Cache {
 
 
   public static async getCacheSize() {
-    return new Promise<number>((reso, reje) => {
-      GLOBAL_IPC.once(EventCode.ASYNC_GET_CACHE_SIZE, (_, { error, size }) => {
-        if (error) {
-          return reje(newError(error));
-        }
-        return reso(size);
-      });
-      GLOBAL_IPC.send(EventCode.ASYNC_GET_CACHE_SIZE);
-    });
+    if (!Core.userDataPath) {
+      throw newError('userDataPath is undefined');
+    }
+    return await getDirectorySize(Core.userDataPath);
   }
 
   public static async clearCache() {

@@ -3,6 +3,7 @@ import { WindowProps } from '../index.vue';
 import { isNumber, isUndefined } from '../../../core/is';
 import { useSettingsStore } from '../../../store/settings';
 import { handlerVueProp } from '../../../core/utils';
+import { useWindowStore } from '../../../store/window';
 
 export const useHandlerProps = (props: WindowProps) => {
   const _top = ref('');
@@ -15,7 +16,8 @@ export const useHandlerProps = (props: WindowProps) => {
   const _centerX = ref(Boolean(props.centerX));
   const _centerY = ref(Boolean(props.centerY));
 
-  const { options } = useSettingsStore();
+  const { options, window } = useSettingsStore();
+  const win = useWindowStore();
 
   const handlerLeft = (left?: number | string) => {
     if (isUndefined(left)) {
@@ -40,7 +42,7 @@ export const useHandlerProps = (props: WindowProps) => {
     deep: true
   });
   watchEffect(() => {
-    if (!options.enableBlur || props.disableBlur) {
+    if (!options.enableBlur || props.disableBlur || (win.transparentWindow && window.opacity < 1)) {
       _backgroundColor.value = 'var(--rc-window-box-bgcolor)';
       return;
     }

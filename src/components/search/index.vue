@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ElIcon } from 'element-plus';
 import { Window, WindowEvent, WindowSize } from '..';
 import IconSearch from '../../assets/svg/icon-search.svg';
 import IconOpenBook from '../../assets/svg/icon-open-book.svg';
-import IconLoading from '../../assets/svg/icon-loading.svg';
+import IconLoadingPlay from '../../assets/svg/icon-loading-play.svg';
 import { useSearchStore } from '../../store/search';
 import { PagePath } from '../../core/window';
 import { storeToRefs } from 'pinia';
@@ -54,9 +53,7 @@ export default {
     <div id="search" @click="showSearchBox">
       <div class="title">
         <IconOpenBook v-if="currentPath === PagePath.READ" />
-        <ElIcon v-else-if="isRunningSearch && currentPath === PagePath.SEARCH" class="is-loading">
-          <IconLoading />
-        </ElIcon>
+        <IconLoadingPlay v-else-if="isRunningSearch && currentPath === PagePath.SEARCH" />
         <IconSearch v-else />
         <span v-memo="[searchBoxHeaderText]">{{ searchBoxHeaderText }}</span>
       </div>

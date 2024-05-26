@@ -26,6 +26,7 @@ import { useSettingsStore } from '../../../../store/settings';
 import { useWindowStore } from '../../../../store/window';
 import { useScrollTopStore } from '../../../../store/scrolltop';
 import { Text } from '../../..';
+import { useReadAloudStore } from '../../../../store/read-aloud';
 
 const props = defineProps<{
   windowEvent?: WindowEvent
@@ -57,6 +58,7 @@ const directoryItemClick = (chapter: Chapter) => {
     return;
   }
   props.windowEvent?.hide();
+  const { playerStatus, play, stop } = useReadAloudStore();
   getTextContent(pid.value, chapter).then(() => {
     scrollToTextContent(void 0, 'instant');
     if (isUndefined(chapter.index)) {
@@ -78,6 +80,10 @@ const directoryItemClick = (chapter: Chapter) => {
           readIndex: chapter.index
         });
       });
+    }
+    stop();
+    if (playerStatus !== 'pause') {
+      play(0);
     }
   }).catch(e => {
     message.error(e.message);

@@ -4,12 +4,17 @@ import fs from 'fs/promises';
 
 export const useListener = (options: {
   win: BrowserWindow,
+  pluginDevtoolsWin: BrowserWindow | null,
   transparent: boolean,
   windowSizeConfigPath: string
 }) => {
-  const { win, transparent, windowSizeConfigPath } = options;
+  const { win, pluginDevtoolsWin, transparent, windowSizeConfigPath } = options;
   win.webContents.on('did-finish-load', () => {
+    win.webContents.send(EventCode.ASYNC_DID_FINISH_LOAD);
     win.webContents.send(EventCode.ASYNC_WINDOW_IS_TRANSPARENT, transparent);
+  });
+  win.on('close', () => {
+    pluginDevtoolsWin?.destroy();
   });
   win.on('closed', () => {
     app.quit();
@@ -28,7 +33,10 @@ export const useListener = (options: {
     win.webContents.send(EventCode.ASYNC_WINDOW_IS_MAXIMIZE, false);
   });
   win.on('page-title-updated', (_, title) => {
-    if (title === '阅读 | ReadCat') {
+    if (!title.trim()) {
+      return;
+    }
+    if (title.includes('阅读 |')) {
       win.setMinimumSize(640, 520);
     } else {
       win.setMinimumSize(950, 650);

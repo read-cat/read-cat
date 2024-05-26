@@ -2,6 +2,7 @@ import { Ref, ref, watchEffect } from 'vue';
 import { Font, FontData } from '../../../../../core/font';
 import { WindowEvent } from '../../../../window/index.vue';
 import { useMessage } from '../../../../../hooks/message';
+import { isUndefined } from '../../../../../core/is';
 
 export const useFonts = (win: Ref<WindowEvent | undefined>, query: Ref<string>) => {
   const systemFonts = ref<FontData[]>([]);
@@ -27,7 +28,10 @@ export const useFonts = (win: Ref<WindowEvent | undefined>, query: Ref<string>) 
   });
 
   const openFontSelectWindow = () => {
-    !win.value?.isShow() && win.value?.show();
+    if (win.value?.isShow()) {
+      return;
+    }
+    win.value?.show();
     if (isLoading.value) {
       return;
     }
@@ -39,6 +43,16 @@ export const useFonts = (win: Ref<WindowEvent | undefined>, query: Ref<string>) 
       })
       .finally(() => {
         isLoading.value = false;
+        const el = win.value?.el();
+        if (!el) {
+          return;
+        }
+        const oTop = el.querySelector<HTMLElement>('.select-font')?.offsetTop;
+        if (isUndefined(oTop)) {
+          return;
+        }
+        const list = el.querySelector<HTMLElement>('.fonts-list');
+        list && (list.scrollTop = oTop - list.clientHeight / 3);
       });
   }
 

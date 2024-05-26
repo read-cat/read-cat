@@ -34,19 +34,49 @@ const getBranch = (branch) => {
   }
 }
 
-module.exports = () => {
+module.exports = (tag) => {
+  if (!tag) {
+    throw new Error('tag not found');
+  }
   const pkg = require('./package.json');
-  const { branch } = pkg;
+  const branch = getBranch(pkg.branch);
+  const isDev = branch === 'dev';
+
+  let versionCode, date;
+  if (tag === 'test') {
+    date = format(new Date, 'yyMMdd');
+    const vs = pkg.version.split('.');
+    versionCode = `${vs[0]}.${vs[1]}${vs[1]}${date}`;
+    tag = `v${pkg.version}-dev.${date}`;
+  } else if (isDev) {
+    const reg = /v(\d+)\.(\d+)\.(\d+)\-dev\.(\d+)/.exec(tag);
+    console.log('tag parse:', reg);
+    if (!reg) throw new Error('tag parse error');
+    tag = reg[0];
+    const v = `${reg[1]}.${reg[2]}${reg[3]}${reg[4]}`;
+    console.log(v);
+    versionCode = Number(v);
+    date = reg[4];
+  } else {
+    const reg = /v(\d+)\.(\d+)\.(\d+)/.exec(tag);
+    console.log('tag parse:', reg);
+    if (!reg) throw new Error('tag parse error');
+    tag = reg[0];
+    const v = `${reg[1]}.${reg[2]}${reg[3]}`;
+    console.log(v);
+    versionCode = Number(v);
+    date = format(new Date, 'yyMMdd');
+  }
+  if (isNaN(versionCode)) {
+    throw new Error('versionCode is NaN');
+  }
   const commit = execSync('git log -1 --pretty=format:%H', { encoding: 'utf-8' }).trim();
   console.log('branch:', branch, '\ncommit:', commit);
-  const date = format(new Date(), 'yyMMdd');
-  const vs = pkg.version.split('.');
-  const versionCode = Number(`${vs[0]}.${vs.slice(1).join('')}`);
-  const b = getBranch(branch);
-  const isDev = b === 'dev';
-  const version = `${pkg.version}${isDev ? '-' + b : ''}`;
+
+  const version = `${pkg.version}${isDev ? '-' + branch : ''}`;
+
   return {
-    tag: `v${version}${isDev && (`.${date}`)}`,
+    tag,
     version,
     versionCode,
     branch,

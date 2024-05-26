@@ -19,7 +19,7 @@ class PluginStore implements PluginStoreInterface {
     let size = 0;
     const obj = await GLOBAL_DB.store.pluginsStore.getById(this.pid);
     if (!isNull(obj)) {
-      size += obj.data.byteLength;
+      size += (new Uint8Array(obj.data)).byteLength;
     }
     return size;
   }
@@ -32,7 +32,7 @@ class PluginStore implements PluginStoreInterface {
       if (isUndefined(val.data)) {
         return null;
       }
-      return deserialize(val.data);
+      return deserialize(new Uint8Array(val.data));
     } catch (e) {
       GLOBAL_LOG.error(`Plugin getStoreValue PLUGIN_ID:${this.pid}, error:`, e);
       return errorHandler(e);
@@ -40,9 +40,10 @@ class PluginStore implements PluginStoreInterface {
   }
   async setStoreValue<V = any>(key: string, value: V): Promise<void> {
     try {
-      const data = new Uint8Array(serialize(cloneByJSON(value)));
+      const buffer = serialize(cloneByJSON(value));
+      const data = Array.from(buffer);
       const csize = await this.currentSize();
-      if (csize >= this.maxByteLength || (csize + data.byteLength) >= this.maxByteLength) {
+      if (csize >= this.maxByteLength || (csize + buffer.byteLength) >= this.maxByteLength) {
         throw newError(`The current store size is ${csize} bytes, and the maximum support is ${this.maxByteLength} bytes`);
       }
       await GLOBAL_DB.store.pluginsStore.put({

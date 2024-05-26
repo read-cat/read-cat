@@ -37,6 +37,7 @@ export default {
   height: 20px;
   transition: all 0.3s ease;
   border-radius: 5px;
+  color: var(--rc-text-color);
   cursor: pointer;
 
   &:hover {

@@ -1,4 +1,4 @@
-import { Charset, Params } from '../../request/defined/request';
+import { Charset, Params, ResponseType } from '../../request/defined/request';
 import { IncomingHttpHeaders } from 'http';
 import { BookSource } from './booksource';
 import { BookStore } from './bookstore';
@@ -33,15 +33,15 @@ export type Console = {
   debug: (...args: any[]) => void;
 }
 export interface PluginRequestMethod {
-  get(url: string, config?: PluginRequestConfig): Promise<{ body: any, code?: number, headers: any }>;
-  post(url: string, config?: PluginRequestConfig): Promise<{ body: any, code?: number, headers: any }>;
+  get(url: string, config?: PluginRequestConfig): Promise<{ body: any, code?: number, headers: IncomingHttpHeaders }>;
+  post(url: string, config?: PluginRequestConfig): Promise<{ body: any, code?: number, headers: IncomingHttpHeaders }>;
 }
 export type PluginConstructorParams = {
   request: PluginRequestMethod,
   store: BasePluginStoreInterface,
   cheerio,
   nanoid: () => string,
-  uuid: () => string
+  uuid: (noDash?: boolean) => string
 }
 export interface PluginBaseProps {
   /**插件ID */
@@ -60,7 +60,8 @@ export interface PluginBaseProps {
   readonly PLUGIN_FILE_URL: string;
   /**书源、书城的请求链接 */
   readonly BASE_URL?: string;
-  readonly TTS_ENGINE_REQUIRE?: Record<string, string>;
+  /**需要的参数 */
+  readonly REQUIRE?: Record<string, string>;
 }
 export interface PluginInterface extends PluginBaseProps {
   new(params: PluginConstructorParams): BookSource | BookStore | TextToSpeechEngine;
@@ -77,7 +78,9 @@ export type PluginRequestConfig = {
   headers?: IncomingHttpHeaders,
   proxy?: boolean,
   urlencode?: Charset,
-  charset?: Charset
+  charset?: Charset,
+  signal?: AbortSignal,
+  responseType?: ResponseType
 }
 
 export type PluginsOptions = {

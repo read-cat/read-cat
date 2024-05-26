@@ -9,7 +9,6 @@ import {
   ElPagination,
   ElPopover,
   ElTag,
-  ElIcon
 } from 'element-plus';
 import SettingsCard from '../card/index.vue';
 import SettingsCardItem from '../card/item/index.vue';
@@ -18,17 +17,17 @@ import { isUndefined } from '../../../../core/is';
 import IconRedo from '../../../../assets/svg/icon-redo.svg';
 import { usePlugin } from './hooks/plugin';
 import { PluginType } from '../../../../core/plugins';
-import IconLoading from '../../../../assets/svg/icon-loading.svg';
+import IconLoadingPlay from '../../../../assets/svg/icon-loading-play.svg';
 import IconImport from '../../../../assets/svg/icon-import.svg';
 import IconDelete from '../../../../assets/svg/icon-delete.svg';
 import IconUpdate from '../../../../assets/svg/icon-update.svg';
 import IconSearch from '../../../../assets/svg/icon-search.svg';
-import { Window, FileDrag, Text } from '../../../../components';
+import { Window, FileDrag, Text, CloseButton } from '../../../../components';
 import { usePluginDevtools } from './hooks/plugin-devtools';
 import { useDefaultSearch } from '../../../../hooks/default-search';
 import { useDefaultPagination } from '../../../../hooks/default-pagination';
 
-const { pluginDevtools } = useSettingsStore();
+const { pluginDevtools, readAloud } = useSettingsStore();
 const {
   plugins,
   refresh,
@@ -43,6 +42,13 @@ const {
   importErrorList,
   importErrorWindow,
   importPluginsFileDragChange,
+  useTTSEngine,
+  showPluginSettingWindow,
+  pluginSettingWindow,
+  pluginSettingForm,
+  pluginSettingFormKeys,
+  pluginSettingName,
+  settingPluginRequire,
 } = usePlugin();
 const { searchKey, searchResult } = useDefaultSearch(plugins);
 
@@ -100,7 +106,7 @@ export default {
         <ElTable v-memo="[showValue]" :data="showValue" height="215" @selection-change="handleSelectionChange"
           empty-text="暂无插件">
           <ElTableColumn type="selection" width="30" :selectable="checkSelectable" />
-          <ElTableColumn label="ID" width="90">
+          <ElTableColumn label="ID" width="80">
             <template #default="{ row }">
               <Text :title="row.id" ellipsis max-width="100%">{{ row.id }}</Text>
             </template>
@@ -130,16 +136,17 @@ export default {
           </ElTableColumn>
           <ElTableColumn label="版本号" width="70">
             <template #default="{ row }">
-              <ElIcon class="is-loading" v-if="row.updating">
-                <IconLoading />
-              </ElIcon>
+              <IconLoadingPlay v-if="row.updating" />
               <Text v-else :title="row.version" ellipsis max-width="100%">{{ row.version }}</Text>
             </template>
           </ElTableColumn>
-          <ElTableColumn label="操作" fixed="right">
+          <ElTableColumn label="操作" fixed="right" width="100">
             <template #default="{ row }">
-              <ElButton v-if="row.ttsEngineRequire && Object.keys(row.ttsEngineRequire).length > 0" link size="small"
-                type="info" @click="">设置</ElButton>
+              <ElButton v-if="row.require && Object.keys(row.require).length > 0" link size="small"
+                type="info" @click="showPluginSettingWindow(row.id)">设置</ElButton>
+              <ElButton v-if="row.type === PluginType.TTS_ENGINE" link size="small" type="primary" @click="useTTSEngine(row.id)">
+                {{ row.id === readAloud.use ? '使用中' : '使用' }}
+              </ElButton>
               <template v-if="!row.builtIn">
                 <ElButton link size="small" type="danger" @click="deletePlugin(row)">删除</ElButton>
                 <ElButton link size="small" type="success" @click="updatePlugin(row)">更新</ElButton>
@@ -151,6 +158,25 @@ export default {
       <ElPagination v-memo="[totalPage, currentPage]" layout="prev, pager, next" :page-count="totalPage"
         :current-page="currentPage" @current-change="currentPageChange" hide-on-single-page />
     </SettingsCard>
+    <Window width="400" height="400" center-x center-y destroy-on-close :click-hide="false" :z-index="1000" class-name="plugin-setting-window" @event="e => pluginSettingWindow = e">
+      <section>
+        <header>
+          <Text ellipsis max-width="370" :title="pluginSettingName">{{ pluginSettingName }}</Text>
+          <CloseButton @click="pluginSettingWindow?.hide()" />
+        </header>
+        <main class="rc-scrollbar">
+          <ul>
+            <li v-for="key of pluginSettingFormKeys" :key="key">
+              <Text ellipsis max-width="120" :title="key">{{ key }}</Text>
+              <ElInput v-model="pluginSettingForm[key]" :placeholder="`请输入${key}`" />
+            </li>
+          </ul>
+        </main>
+        <footer>
+          <ElButton type="primary" @click="settingPluginRequire">保存</ElButton>
+        </footer>
+      </section>
+    </Window>
     <Window width="400" height="400" centerX centerY destroy-on-close :z-index="1000" @event="e => importErrorWindow = e">
       <p v-once style="margin: 5px 0;font-size: 12px; text-align: center; color: var(--rc-error-color)">插件导入失败列表</p>
       <ElTable v-memo="[importErrorList]" :data="importErrorList" height="380">
@@ -241,6 +267,59 @@ export default {
     position: relative;
   }
 }
+.plugin-setting-window {
+  section {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px 0 10px 10px;
+    height: 380px;
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-right: 10px;
+      span {
+        font-size: 14px;
+      }
+    }
+    main {
+      
+      height: 300px;
+      ul {
+        padding-right: 10px;
+        li {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          &+li {
+            margin-top: 10px;
+          }
+          span {
+            font-size: 13px;
+          }
+          .el-input {
+            width: 230px;
+            .el-input__wrapper {
+              height: 30px;
+              padding: 0 5px;
+              .el-input__inner {
+                height: 20px;
+              }
+            }
+          }
+        }
+      }
+    }
+    footer {
+      padding-right: 10px;
+      .el-button {
+        width: 100%;
+      }
+    }
+  }
+}
 </style>
 <style scoped lang="scss">
 .settings-plugin {
@@ -277,7 +356,9 @@ export default {
       align-items: center;
       font-size: 12px;
       padding: 0 0 0 10px;
-
+      span {
+        line-height: 15px;
+      }
       .el-button+.el-button {
         margin-left: 2px;
       }

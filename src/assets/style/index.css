@@ -28,9 +28,9 @@
   --rc-window-box-blur-bgcolor: var(--rc-window-box-blur-bgcolor-light);
   --rc-window-close-btn-color: #F56C6C;
 
-  --rc-scrollbar-hove-bgcolor: rgba(0, 0, 0, 0.1);
-  --rc-scrollbar-thumb-bgcolor: rgba(0, 0, 0, 0.15);
-  --rc-scrollbar-thumb-hover-bgcolor: rgba(0, 0, 0, 0.2);
+  --rc-scrollbar-hove-bgcolor: rgba(0, 0, 0, 0.2);
+  --rc-scrollbar-thumb-bgcolor: rgba(0, 0, 0, 0.25);
+  --rc-scrollbar-thumb-hover-bgcolor: rgba(0, 0, 0, 0.3);
 
   --rc-button-hover-bgcolor: var(--rc-button-hover-bgcolor-light);
 

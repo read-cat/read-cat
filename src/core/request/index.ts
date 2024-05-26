@@ -4,15 +4,19 @@ import { SocksProxyAgent } from 'socks-proxy-agent';
 import { RequestConfig, RequestProxy, Response } from './defined/request';
 import axios from '../axios';
 import { isUndefined } from '../is';
+import { newError } from '../utils';
 
-const handlerProxy = (proxy?: RequestProxy) => {
+export const handlerProxy = (proxy?: RequestProxy) => {
   if (isUndefined(proxy)) {
     return void 0;
   }
   const { protocol, host, port, username, password } = proxy;
-  const url = new URL(`${protocol}://${host}:${port}`);
-  url.username = username || '';
-  url.password = password || '';
+  if (!host.trim()) {
+    throw newError('host is empty');
+  }
+  const url = new URL(`${protocol}://${host.trim()}:${port}`);
+  url.username = username?.trim() || '';
+  url.password = password?.trim() || '';
   return new (protocol.includes('socks') ? SocksProxyAgent : HttpsProxyAgent)(url);
 }
 
@@ -25,6 +29,7 @@ export const get = async <T = any>(url: string, config?: RequestConfig): Promise
     responseEncoding: config?.charset,
     responseType: config?.responseType || 'text',
     maxRedirects: config?.maxRedirects,
+    signal: config?.signal,
     paramsSerializer: (params) => {
       return Object.keys(params)
         .map(key => `${key}=${encodeUrl(params[key], config?.urlencode)}`)
@@ -46,6 +51,7 @@ export const post = async <T = any>(url: string, config?: RequestConfig): Promis
     responseEncoding: config?.charset,
     responseType: config?.responseType || 'text',
     maxRedirects: config?.maxRedirects,
+    signal: config?.signal,
     paramsSerializer: (params) => {
       return Object.keys(params)
         .map(key => `${key}=${encodeUrl(params[key], config?.urlencode)}`)

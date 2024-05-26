@@ -126,6 +126,8 @@ export const useHeaderStyle = (searchkey: Ref<string>, progress: Ref<number>) =>
       return;
     }
     searchBoxHeaderText.value = currentChapter.value.title;
+    const title = document.head.querySelector('title');
+    title && (title.innerText = `阅读 | ${currentChapter.value.title}`);
   });
 
   watch(() => win.isDark, (newVal, _) => {

@@ -28,9 +28,14 @@ export class SettingsStoreDatabase extends BaseStoreDatabase<SettingsEntity> {
     const settings = useSettingsStore();
     settings.$patch({
       ...use.settings,
+      debug: Core.isDev
     });
     settings.setTheme(use.settings.theme);
 
+    if (!Core.userDataPath) {
+      GLOBAL_LOG.error('window_transparent, userDataPath is undefined');
+      return;
+    }
     const filename = path.join(Core.userDataPath, 'window_transparent');
     if (use.settings.options.enableTransparentWindow) {
       !existsSync(filename) && fsp.writeFile(filename, '');

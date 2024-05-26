@@ -8,7 +8,12 @@ import { EventCode } from '../../../../../../events';
 export const useCache = () => {
   const cacheSize = ref(0);
   const message = useMessage();
+  let running = false;
   let timer = interval(() => {
+    if (running) {
+      return;
+    }
+    running = true;
     Cache.getCacheSize().then(size => {
       if (cacheSize.value === size) {
         return;
@@ -16,6 +21,8 @@ export const useCache = () => {
       cacheSize.value = size;
     }).catch(e => {
       GLOBAL_LOG.error('get cache size', e);
+    }).finally(() => {
+      running = false;
     });
   }, 30000);
 

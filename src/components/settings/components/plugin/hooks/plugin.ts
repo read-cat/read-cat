@@ -1,13 +1,18 @@
 import { ref } from 'vue';
-import { isNull, isUndefined } from '../../../../../core/is';
+import { isUndefined } from '../../../../../core/is';
 import { useMessage } from '../../../../../hooks/message';
 import { ElMessageBox } from 'element-plus';
 import { PluginType } from '../../../../../core/plugins';
 import { WindowEvent } from '../../../../window/index.vue';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../../../../../store/settings';
-import { chunkArray } from '../../../../../core/utils';
+import { chunkArray, cloneByJSON } from '../../../../../core/utils';
 import { readFile } from 'fs/promises';
+import { usePluginsStore } from '../../../../../store/plugins';
+import { showOpenFileDialog } from '../../../../../core/utils/file';
+import { useReadAloudStore } from '../../../../../store/read-aloud';
+import axios from '../../../../../core/axios';
+import { sleep } from '../../../../../core/utils/timer';
 
 export type Plugin = {
   enable: boolean
@@ -19,14 +24,14 @@ export type Plugin = {
   updating: boolean
   searchIndex: string
   builtIn: boolean
-  ttsEngineRequire?: Record<string, string>
+  require?: Record<string, string>
 }
 
 export const usePlugin = () => {
   const handler = () => {
-    return GLOBAL_PLUGINS.getAllPlugins().map<Plugin>(({ enable, props, builtIn }) => {
+    return GLOBAL_PLUGINS.getAllPlugins().map<Plugin>(({ enable, pluginClass, builtIn }) => {
       let typeLabel: string;
-      switch (props.TYPE) {
+      switch (pluginClass.TYPE) {
         case PluginType.BOOK_SOURCE:
           typeLabel = '书源';
           break;
@@ -43,21 +48,23 @@ export const usePlugin = () => {
       return {
         enable,
         builtIn,
-        id: props.ID,
-        type: props.TYPE,
-        group: props.GROUP,
-        name: props.NAME,
-        version: props.VERSION,
-        ttsEngineRequire: props.TTS_ENGINE_REQUIRE,
+        id: pluginClass.ID,
+        type: pluginClass.TYPE,
+        group: pluginClass.GROUP,
+        name: pluginClass.NAME,
+        version: pluginClass.VERSION,
+        require: pluginClass.REQUIRE,
         updating: false,
-        searchIndex: `${props.ID} ${typeLabel} ${props.GROUP} ${props.NAME} ${enable ? '启用' : '禁用'}`
+        searchIndex: `${pluginClass.ID} ${typeLabel} ${pluginClass.GROUP} ${pluginClass.NAME} ${enable ? '启用' : '禁用'}`
       }
     });
   }
   const message = useMessage();
   const plugins = ref<Plugin[]>(handler());
   const checked = ref<string[]>([]);
-  const { threadsNumber } = storeToRefs(useSettingsStore());
+  const settingsStore = useSettingsStore();
+  const { threadsNumber } = storeToRefs(settingsStore);
+  const { setRequire, getRequire } = usePluginsStore();
   const importErrorList = ref<{ name: string, error: string }[]>();
   const importErrorWindow = ref<WindowEvent>();
   const refresh = () => {
@@ -105,15 +112,38 @@ export const usePlugin = () => {
       });
     }).catch(() => { });
   }
-  const updatePlugin = (val: Plugin) => {
+  const updatePlugin = async (val: Plugin) => {
     const { id } = val;
     const p = plugins.value.find(p => p.id === id);
-    if (isUndefined(p)) {
-      message.error(`无法获取插件, 插件ID:${id}`);
-      return;
+    try {
+      const props = GLOBAL_PLUGINS.getPluginPropsById(id);
+      if (isUndefined(p) || !props) {
+        message.error(`无法获取插件, 插件ID:${id}`);
+        return;
+      }
+      if (!props.PLUGIN_FILE_URL.trim() || p.updating) {
+        return;
+      }
+      p.updating = true;
+      await sleep(1000);
+      const { data } = await axios.get<string>(props.PLUGIN_FILE_URL, {
+        responseType: 'text'
+      });
+      const { PluginClass } = await GLOBAL_PLUGINS.checkout(data);
+      if (props.VERSION_CODE >= PluginClass.VERSION_CODE) {
+        return;
+      }
+      await GLOBAL_PLUGINS.importJSCode(data, {
+        force: true,
+        enable: true,
+        minify: true
+      });
+    } catch (e: any) {
+      message.error(e.message);
+    } finally {
+      p && (p.updating = false);
+      refresh();
     }
-    p.updating = true;
-    setTimeout(() => p.updating = false, 3000);
   }
 
   const updateChecked = () => {
@@ -194,7 +224,7 @@ export const usePlugin = () => {
   }
 
   const importPlugin = () => {
-    showOpenFilePicker({
+    showOpenFileDialog({
       multiple: true,
       excludeAcceptAllOption: true,
       types: [{
@@ -203,14 +233,13 @@ export const usePlugin = () => {
           'text/javascript': ['.js'],
         }
       }],
-    }).catch(e => {
-      message.warning(e.message);
-      return Promise.resolve(null);
     }).then(async handles => {
-      if (isNull(handles)) {
+      await imports(handles.map(h => ([h.name, h.text()])));
+    }).catch(e => {
+      if (e.name === 'CanceledError') {
         return;
       }
-      await imports(handles.map(h => ([h.name, h.getFile().then(f => f.text())])));
+      message.error(e.message);
     }).finally(() => {
       refresh();
     });
@@ -227,6 +256,48 @@ export const usePlugin = () => {
     });
   }
 
+  const { stop } = useReadAloudStore();
+  const useTTSEngine = (id: string) => {
+    if (id === settingsStore.readAloud.use) {
+      return;
+    }
+    stop();
+    settingsStore.readAloud.use = id;
+  }
+
+  const pluginSettingWindow = ref<WindowEvent>();
+  const pluginSettingForm = ref<Record<string, string>>({});
+  const pluginSettingFormKeys = ref<string[]>([]);
+  const pluginSettingName = ref('');
+  const pluginSettingId = ref('');
+  const showPluginSettingWindow = (id: string) => {
+    const props = GLOBAL_PLUGINS.getPluginPropsById(id);
+    if (!props?.REQUIRE || Object.keys(props.REQUIRE).length < 1) {
+      return;
+    }
+    pluginSettingForm.value = {};
+    pluginSettingId.value = id;
+    pluginSettingName.value = props.NAME;
+    pluginSettingFormKeys.value = Object.keys(props.REQUIRE);
+    for (const key of pluginSettingFormKeys.value) {
+      pluginSettingForm.value[key] = '';
+      const item = getRequire(id);
+      if (!item) {
+        continue;
+      }
+      pluginSettingForm.value[key] = item[key] || '';
+    }
+    pluginSettingWindow.value?.show();
+  }
+
+  const settingPluginRequire = () => {
+    if (!pluginSettingId.value) {
+      return;
+    }
+    setRequire(pluginSettingId.value.trim(), cloneByJSON(pluginSettingForm.value));
+    pluginSettingWindow.value?.hide();
+  }
+
   return {
     plugins,
     refresh,
@@ -240,6 +311,13 @@ export const usePlugin = () => {
     importPlugin,
     importErrorList,
     importErrorWindow,
-    importPluginsFileDragChange
+    importPluginsFileDragChange,
+    useTTSEngine,
+    settingPluginRequire,
+    showPluginSettingWindow,
+    pluginSettingWindow,
+    pluginSettingForm,
+    pluginSettingFormKeys,
+    pluginSettingName,
   }
 }

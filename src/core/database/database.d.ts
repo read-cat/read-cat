@@ -32,7 +32,7 @@ export interface PluginsStoreEntity {
   /**插件ID */
   pid: string;
   key: string;
-  data: Uint8Array;
+  data: number[];
 }
 export interface HistoryStoreEntity {
 
@@ -91,6 +91,11 @@ export type SettingsEntity = {
   id: string,
   use: boolean,
   settings: Settings
+}
+
+export interface PluginRequireEntity {
+  id: string,
+  require: Record<string, string>
 }
 
 export interface DatabaseClassEntity {

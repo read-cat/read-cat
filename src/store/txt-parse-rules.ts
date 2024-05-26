@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { Pattern, TxtParseRule, TxtParserType } from '../core/book/txt-parser';
+import { LINE_SPLIT_RULE, Pattern, TxtParseRule, TxtParserType } from '../core/book/txt-parser';
 import { cloneByJSON, errorHandler, newError, replaceInvisibleStr } from '../core/utils';
 import { TxtParseRuleEntity } from '../core/database/database';
 
@@ -11,7 +11,7 @@ const DEFAULT_RULES: TxtParseRule[] = [{
   flags: [Pattern.IGNORE_CASE, Pattern.MULTI_LINE, Pattern.GLOBAL],
   example: '第一章 标题',
   builtIn: true
-}, {
+}, LINE_SPLIT_RULE, {
   id: 'SfwXQ2qb6TVPKo4G6ug4v',
   name: '内置',
   type: TxtParserType.CHAPTER_LIST,

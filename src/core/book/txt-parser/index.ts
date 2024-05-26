@@ -37,6 +37,16 @@ export type Rule = {
   chapterList?: TxtParseRule
 }
 
+export const LINE_SPLIT_RULE = {
+  id: 'guIDQ99PelX2-XTHD1eo6',
+  name: '内置',
+  type: TxtParserType.CHAPTER_LIST,
+  value: '按最大行数分割',
+  flags: [],
+  example: '按最大行数分割',
+  builtIn: true
+}
+
 
 export class TxtParser extends BookParser {
   private content: string;
@@ -132,6 +142,9 @@ export class TxtParser extends BookParser {
       try {
         if (!this.rule.chapterList) {
           return reso([]);
+        }
+        if (this.rule.chapterList.id === LINE_SPLIT_RULE.id) {
+          return reso([LINE_SPLIT_RULE.id]);
         }
         const worker = new ParseChapterListWorker();
         const pattern = this.createRegExp(this.rule.chapterList);

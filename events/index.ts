@@ -41,8 +41,6 @@ export class EventCode {
   /**插件开发窗口被关闭 */
   static ASYNC_PLUGIN_WINDOW_CLOSED: string
 
-  /**获取缓存大小 */
-  static ASYNC_GET_CACHE_SIZE: string
   /**清除缓存 */
   static ASYNC_CLEAR_CACHE: string
 
@@ -53,6 +51,14 @@ export class EventCode {
   static ASYNC_SET_WINDOW_BACKGROUND_COLOR: string
   /**是否为透明窗口 */
   static ASYNC_WINDOW_IS_TRANSPARENT: string
+
+  /**显示打开文件对话框 */
+  static ASYNC_SHOW_OPEN_FILE_DIALOG: string
+  /**显示保存文件对话框 */
+  static ASYNC_SHOW_SAVE_FILE_DIALOG: string
+
+  /**页面加载完成 */
+  static ASYNC_DID_FINISH_LOAD: string
 
   /**
    * 开发环境

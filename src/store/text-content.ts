@@ -12,11 +12,15 @@ import { useWindowStore } from './window';
 import { PagePath } from '../core/window';
 import { BookParser } from '../core/book/book-parser';
 import { useScrollTopStore } from './scrolltop';
+import { useBookshelfStore } from './bookshelf';
+import { useReadAloudStore } from './read-aloud';
 
 export type TextContent = {
   contents: string[],
   length: number
 }
+
+export type TextContentEvent = 'chapterchange';
 
 export const useTextContentStore = defineStore('TextContent', {
   state: () => {
@@ -24,11 +28,100 @@ export const useTextContentStore = defineStore('TextContent', {
       textContent: null as TextContent | null,
       isRunningGetTextContent: false,
       currentChapter: null as Chapter | null,
+      events: new Map<TextContentEvent, () => void>(),
     }
   },
   getters: {
   },
   actions: {
+    on(type: TextContentEvent, listener: () => void) {
+      this.events.set(type, listener);
+    },
+    async handlerChapter(type: 'next' | 'prev') {
+      const detailStore = useDetailStore();
+      const { setCurrentReadIndex, currentReadScrollTop } = detailStore;
+      const { detailResult, currentDetailUrl, currentPid } = storeToRefs(detailStore);
+      const { exist, getBookshelfEntity, put } = useBookshelfStore();
+      const { calcReadProgress } = useWindowStore();
+      const { scrollToTextContent } = useScrollTopStore();
+      const readAloud = useReadAloudStore();
+      const isPause = readAloud.playerStatus === 'pause';
+      const message = useMessage();
+      try {
+        if (this.isRunningGetTextContent) {
+          throw newError('正在获取章节正文');
+        }
+        if (isNull(detailResult.value) || detailResult.value.chapterList.length <= 0) {
+          throw newError('无法获取章节列表');
+        }
+        if (isNull(this.currentChapter)) {
+          throw newError('无法获取当前章节信息');
+        }
+        if (isNull(currentPid.value)) {
+          throw newError('无法获取插件ID');
+        }
+        let index;
+        if (type === 'next') {
+          index = this.currentChapter.index + 1;
+          if (index >= detailResult.value.chapterList.length) {
+            message.warning('当前已是最后一章');
+            throw null;
+          }
+        } else if (type === 'prev') {
+          index = this.currentChapter.index - 1;
+          if (index < 0) {
+            message.warning('当前已是第一章');
+            throw null;
+          }
+        } else {
+          throw newError('未知类型');
+        }
+        const chapter = detailResult.value.chapterList[index];
+        await this.getTextContent(currentPid.value, chapter);
+        calcReadProgress();
+        setCurrentReadIndex(index);
+        currentReadScrollTop.chapterIndex = index;
+        currentReadScrollTop.scrollTop = 0;
+        readAloud.stop();
+        if (!isPause) {
+          readAloud.play(0);
+        }
+        if (isNull(currentPid.value) || isNull(currentDetailUrl.value) || isNull(detailResult.value)) {
+          return;
+        }
+        if (!exist(currentPid.value, currentDetailUrl.value)) {
+          return;
+        }
+        this.cache(currentPid.value, currentDetailUrl.value, detailResult.value.chapterList, index);
+        getBookshelfEntity(currentPid.value, currentDetailUrl.value).then(entity => {
+          if (!entity) {
+            return;
+          }
+          put({
+            ...entity,
+            readIndex: chapter.index,
+            readScrollTop: 0
+          });
+        });
+      } catch (e) {
+        e && message.error(errorHandler(e, true));
+        return e ? errorHandler(e) : Promise.reject();
+      } finally {
+        scrollToTextContent();
+      }
+    },
+    async nextChapter(ignoreError = false) {
+      const listener = this.events.get('chapterchange');
+      await this.handlerChapter('next')
+        .then(() => listener && listener())
+        .catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
+    },
+    async prevChapter(ignoreError = false) {
+      const listener = this.events.get('chapterchange');
+      await this.handlerChapter('prev')
+        .then(() => listener && listener())
+        .catch(e => ignoreError ? Promise.resolve() : Promise.reject(e));
+    },
     async getTextContent(pid: string, chapter: Chapter, refresh = false): Promise<void> {
       const win = useWindowStore();
       try {
