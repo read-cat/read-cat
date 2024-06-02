@@ -8,7 +8,7 @@ import { createHash } from 'crypto';
 import { WebSocketServer, WebSocket } from 'ws';
 import { PluginDevtoolsEventCode } from '../../../events/plugin-devtools';
 import { EventCode } from '../../../events';
-import { runCompile, runGetDetail, runGetTextContent, runSearch, sendLog } from './event/handler';
+import { runCompile, runGetDetail, runGetTextContent, runGetVoiceList, runSearch, runTransform, sendLog } from './event/handler';
 import { Plugins } from '../plugins';
 import { BasePluginStoreInterface } from '../plugins/defined/plugins';
 import { Logger, LogType } from '../logger';
@@ -182,6 +182,12 @@ export class PluginDevtools {
         break;
       case PluginDevtoolsEventCode.PLUGIN_COMPILE:
         runCompile(this, code, args[0], args[1]);
+        break;
+      case PluginDevtoolsEventCode.PLUGIN_TTS_ENGINE_RUN_TRANSFORM:
+        runTransform(this, code, args[0], args[1], args[2]);
+        break;
+      case PluginDevtoolsEventCode.PLUGIN_TTS_ENGINE_RUN_GET_VOICE_LIST:
+        runGetVoiceList(this, code, args[0]);
         break;
       default:
         break;

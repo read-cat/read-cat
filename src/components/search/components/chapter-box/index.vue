@@ -185,6 +185,7 @@ export default {
           justify-content: flex-start;
           color: currentColor;
           border-radius: 5px;
+          contain: layout;
 
           &:active {
             transform: scale(0.95);

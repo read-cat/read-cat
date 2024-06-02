@@ -48,10 +48,12 @@ self.onmessage = e => {
         const contents = content.substring(start, end).split('\n').map(c => c.trim()).filter(c => c);
         content = content.slice(start);
         if (contents.length > maxLines) {
-          for (const item of chunkArray(contents, maxLines)) {
+          const chunks = chunkArray(contents, maxLines);
+          for (let j = 0; j < chunks.length; j++) {
+            let title: string = (j === 0 && chapterTitleList[i].trim()) ? chapterTitleList[i].trim() : `第${arr.length + 1}章`;
             arr.push({
-              title: `第${count++}章`,
-              contents: item
+              title,
+              contents: chunks[j]
             });
           }
         } else {

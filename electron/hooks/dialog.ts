@@ -1,7 +1,7 @@
 import { BrowserWindow, FileFilter, ipcMain, dialog } from 'electron';
 import { EventCode } from '../../events';
 
-export const useDialog = (win: BrowserWindow) => {
+export const useDialog = () => {
 
   const handlerTypes = (types: FileType[]) => {
     const filters: FileFilter[] = [];
@@ -19,8 +19,12 @@ export const useDialog = (win: BrowserWindow) => {
   }
 
   ipcMain.on(EventCode.ASYNC_SHOW_OPEN_FILE_DIALOG, (e, options: OpenFilePickerOptions) => {
+    const win = BrowserWindow.fromId(e.frameId);
+    if (!win) {
+      return e.sender.send(EventCode.ASYNC_SHOW_OPEN_FILE_DIALOG, { error: `BrowserWindow is null, frameId:${e.frameId}` });
+    }
     const { multiple, excludeAcceptAllOption, types } = options;
-    const properties: any[] = [];
+    const properties: any[] = ['openFile'];
     multiple && (properties.push('multiSelections'));
     const filters: FileFilter[] = types ? handlerTypes(types) : [];
     if (!excludeAcceptAllOption || filters.length < 1) {
@@ -31,8 +35,7 @@ export const useDialog = (win: BrowserWindow) => {
     }
     dialog.showOpenDialog(win, { properties, filters }).then(res => {
       if (res.canceled) {
-        e.sender.send(EventCode.ASYNC_SHOW_OPEN_FILE_DIALOG, { error: 'cancel' });
-        return;
+        return e.sender.send(EventCode.ASYNC_SHOW_OPEN_FILE_DIALOG, { error: 'cancel' });
       }
       e.sender.send(EventCode.ASYNC_SHOW_OPEN_FILE_DIALOG, { paths: res.filePaths });
     }).catch(err => {
@@ -41,6 +44,10 @@ export const useDialog = (win: BrowserWindow) => {
   });
 
   ipcMain.on(EventCode.ASYNC_SHOW_SAVE_FILE_DIALOG, (e, options: SaveFilePickerOptions) => {
+    const win = BrowserWindow.fromId(e.frameId);
+    if (!win) {
+      return e.sender.send(EventCode.ASYNC_SHOW_OPEN_FILE_DIALOG, { error: `BrowserWindow is null, frameId:${e.frameId}` });
+    }
     const { suggestedName, excludeAcceptAllOption, types } = options;
     const filters: FileFilter[] = types ? handlerTypes(types) : [];
     if (!excludeAcceptAllOption || filters.length < 1) {
@@ -55,8 +62,7 @@ export const useDialog = (win: BrowserWindow) => {
       defaultPath: suggestedName
     }).then(res => {
       if (res.canceled) {
-        e.sender.send(EventCode.ASYNC_SHOW_SAVE_FILE_DIALOG, { error: 'cancel' });
-        return;
+        return e.sender.send(EventCode.ASYNC_SHOW_SAVE_FILE_DIALOG, { error: 'cancel' });
       }
       e.sender.send(EventCode.ASYNC_SHOW_SAVE_FILE_DIALOG, { path: res.filePath });
     }).catch(err => {

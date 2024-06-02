@@ -181,8 +181,6 @@ export default (config: CustomInternalAxiosRequestConfig) => {
             if (isDownload) {
               config.onData && config.onData(void 0);
               data = 'downloaded';
-            } else if (method === 'HEAD') {
-              data = '';
             }
             return reso({
               data,

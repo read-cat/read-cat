@@ -50,8 +50,6 @@ const {
 } = useEvent();
 
 const settingsWindow = ref<WindowEvent>();
-const { platform } = process;
-
 
 const showReadAloud = () => {
   return GLOBAL_PLUGINS.getPluginsByType(PluginType.TTS_ENGINE, {
@@ -84,8 +82,6 @@ const {
   readAloudIsPin,
   isRefreshReadAloudVoices,
 } = useReadAloud();
-
-
 </script>
 <script lang="ts">
 export default {
@@ -108,7 +104,7 @@ export default {
         :click-hide="!readAloudIsPin" @event="e => readAloudPlayerWindow = e" class-name="read-aloud-player-window">
         <div>
           <div class="btns">
-            <button v-memo="[readAloudIsSelectPlay]" :title="readAloudIsSelectPlay ? '取选择取' : '选择播放'"
+            <button v-memo="[readAloudIsSelectPlay]" :title="readAloudIsSelectPlay ? '取消选择' : '选择播放'"
               :class="[readAloudIsSelectPlay ? 'is-select' : '']" @click="readAloudSelectPlay">
               <IconPlayerPoint />
             </button>
@@ -177,7 +173,7 @@ export default {
         <Settings :window="settingsWindow" />
       </Window>
     </div>
-    <template v-if="platform === 'linux'">
+    <template v-if="win.isOverwriteTitleBar">
       <ElDivider v-memo="[win.currentPath, win.isDark]" direction="vertical" :style="{
         '--el-border-color': win.currentPath === PagePath.READ && !win.isDark ? 'var(--rc-text-color)' : '',
       }" />
@@ -185,7 +181,7 @@ export default {
         <button v-once title="最小化" class="rc-button" @click="minimize">
           <IconMinimize />
         </button>
-        <button v-memo="[win.isFullScreen, win.isMaximize]" v-if="!win.isFullScreen" class="rc-button"
+        <button v-if="!win.isFullScreen" class="rc-button"
           @click="maximizeOrRestore" :title="win.isMaximize ? '还原' : '最大化'">
           <IconMaximize v-if="!win.isMaximize" />
           <IconMaximizeRestore v-else />

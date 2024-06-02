@@ -13,7 +13,7 @@ import { useTextContentStore } from '../store/text-content';
 export const useShortcutKey = () => {
   const { nextChapter, prevChapter } = useTextContentStore();
   const { shortcutKey, scrollbarStepValue } = storeToRefs(useSettingsStore());
-  const { handlerKeyboard, window: windowConfig } = useSettingsStore();
+  const { handlerKeyboard, window: windowConfig, readStyle } = useSettingsStore();
   const win = useWindowStore();
   const { isSetShortcutKey, globalShortcutKeyRegisterError } = storeToRefs(win);
   const { mainElement } = storeToRefs(useScrollTopStore());
@@ -52,10 +52,10 @@ export const useShortcutKey = () => {
         !win.transparentWindow && GLOBAL_IPC.send(EventCode.ASYNC_WINDOW_SET_FULLSCREEN, !win.isFullScreen);
         break;
       case shortcutKey.value.prevPage:
-        win.currentPath === PagePath.READ && (mainElement.value.scrollTop -= mainElement.value.clientHeight - 10);
+        win.currentPath === PagePath.READ && (mainElement.value.scrollTop -= mainElement.value.clientHeight - readStyle.fontSize);
         break;
       case shortcutKey.value.nextPage:
-        win.currentPath === PagePath.READ && (mainElement.value.scrollTop += mainElement.value.clientHeight - 10);
+        win.currentPath === PagePath.READ && (mainElement.value.scrollTop += mainElement.value.clientHeight - readStyle.fontSize);
         break;
       default:
         break;

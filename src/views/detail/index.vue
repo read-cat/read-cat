@@ -292,7 +292,6 @@ const bookmarkWindow = ref<WindowEvent>();
             height: 80px;
             font-size: 12px;
             overflow-y: scroll;
-            text-wrap: wrap;
             text-indent: 2em;
           }
         }
@@ -327,7 +326,7 @@ const bookmarkWindow = ref<WindowEvent>();
           :deep(.el-row) {
             margin-bottom: 5px;
             margin-right: 10px;
-
+            contain: layout;
             .el-col {
               display: flex;
               padding: 0 10px;

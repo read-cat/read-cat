@@ -56,30 +56,30 @@ function useLoading() {
     height: 100vh;
     background-color: #E6EAEF;
     z-index: 99999;
-    .lds-ripple {
-      /* change color here */
-      color: #134478
-    }
-    .lds-ripple,
-    .lds-ripple div {
-      box-sizing: border-box;
-    }
-    .lds-ripple {
-      display: inline-block;
-      position: relative;
-      width: 80px;
-      height: 80px;
-    }
-    .lds-ripple div {
-      position: absolute;
-      border: 4px solid currentColor;
-      opacity: 1;
-      border-radius: 50%;
-      animation: lds-ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
-    }
-    .lds-ripple div:nth-child(2) {
-      animation-delay: -0.5s;
-    }
+  }
+  #app-loading-container .lds-ripple {
+    /* change color here */
+    color: #134478
+  }
+  #app-loading-container .lds-ripple,
+  #app-loading-container .lds-ripple div {
+    box-sizing: border-box;
+  }
+  #app-loading-container .lds-ripple {
+    display: inline-block;
+    position: relative;
+    width: 80px;
+    height: 80px;
+  }
+  #app-loading-container .lds-ripple div {
+    position: absolute;
+    border: 4px solid currentColor;
+    opacity: 1;
+    border-radius: 50%;
+    animation: lds-ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+  }
+  #app-loading-container .lds-ripple div:nth-child(2) {
+    animation-delay: -0.5s;
   }
   
   @keyframes lds-ripple {

@@ -112,6 +112,7 @@ export class Plugins {
       }
       if (isNull(plugin)) {
         p.enable = false;
+        p.instance = null;
         return;
       }
       await GLOBAL_DB.store.pluginsJSCode.put({
@@ -137,6 +138,7 @@ export class Plugins {
       }
       if (isNull(plugin)) {
         p.enable = true;
+        p.instance = this.createPluginClassInstance(p.pluginClass);
         return;
       }
       await GLOBAL_DB.store.pluginsJSCode.put({
@@ -147,7 +149,7 @@ export class Plugins {
         force: true,
         minify: true,
         enable: true
-      })
+      });
     } catch (e) {
       return errorHandler(e);
     }
@@ -608,6 +610,7 @@ export class Plugins {
       AbortController,
       URL,
       escapeHTML,
+      chunkArray,
     };
 
     new this.VM({

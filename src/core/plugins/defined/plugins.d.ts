@@ -3,6 +3,7 @@ import { IncomingHttpHeaders } from 'http';
 import { BookSource } from './booksource';
 import { BookStore } from './bookstore';
 import { TextToSpeechEngine } from './ttsengine';
+import { SearchEntity } from '../../book/book';
 export type PluginId = string;
 
 export interface PluginImportOptions {
@@ -43,6 +44,7 @@ export type PluginConstructorParams = {
   nanoid: () => string,
   uuid: (noDash?: boolean) => string
 }
+export type SearchFilter = boolean | ((entity: SearchEntity, searchKey: string, author?: string) => boolean);
 export interface PluginBaseProps {
   /**插件ID */
   readonly ID: PluginId;
@@ -62,6 +64,8 @@ export interface PluginBaseProps {
   readonly BASE_URL?: string;
   /**需要的参数 */
   readonly REQUIRE?: Record<string, string>;
+  /**书源搜索结果过滤器 */
+  readonly SEARCH_FILTER?: SearchFilter;
 }
 export interface PluginInterface extends PluginBaseProps {
   new(params: PluginConstructorParams): BookSource | BookStore | TextToSpeechEngine;

@@ -36,7 +36,7 @@ li {
   }
 
   &:active {
-    transform: scale(0.96);
+    transform: scale(0.98);
   }
   &:last-child {
     margin-bottom: 0;

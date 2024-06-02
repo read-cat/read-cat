@@ -106,24 +106,24 @@ export default {
         <ElTable v-memo="[showValue]" :data="showValue" height="215" @selection-change="handleSelectionChange"
           empty-text="暂无插件">
           <ElTableColumn type="selection" width="30" :selectable="checkSelectable" />
-          <ElTableColumn label="ID" width="80">
+          <ElTableColumn label="ID" width="65">
             <template #default="{ row }">
               <Text :title="row.id" ellipsis max-width="100%">{{ row.id }}</Text>
             </template>
           </ElTableColumn>
-          <ElTableColumn label="类型" width="70">
+          <ElTableColumn label="类型" width="65">
             <template #default="{ row }">
               <ElTag v-if="row.type === PluginType.BOOK_SOURCE">书源</ElTag>
               <ElTag v-else-if="row.type === PluginType.BOOK_STORE">书城</ElTag>
               <ElTag v-else-if="row.type === PluginType.TTS_ENGINE">TTS</ElTag>
             </template>
           </ElTableColumn>
-          <ElTableColumn label="分组" width="80">
+          <ElTableColumn label="分组" width="70">
             <template #default="{ row }">
               <Text :title="row.group" ellipsis max-width="100%">{{ row.group }}</Text>
             </template>
           </ElTableColumn>
-          <ElTableColumn label="名称" width="90">
+          <ElTableColumn label="名称" width="85">
             <template #default="{ row }">
               <Text :title="row.name" ellipsis max-width="100%">{{ row.name }}</Text>
             </template>
@@ -134,13 +134,13 @@ export default {
                 @click="toggleState(row)">{{ row.enable ? '已启用' : '已禁用' }}</ElCheckTag>
             </template>
           </ElTableColumn>
-          <ElTableColumn label="版本号" width="70">
+          <ElTableColumn label="版本号">
             <template #default="{ row }">
               <IconLoadingPlay v-if="row.updating" />
               <Text v-else :title="row.version" ellipsis max-width="100%">{{ row.version }}</Text>
             </template>
           </ElTableColumn>
-          <ElTableColumn label="操作" fixed="right" width="100">
+          <ElTableColumn label="操作" fixed="right" width="150">
             <template #default="{ row }">
               <ElButton v-if="row.require && Object.keys(row.require).length > 0" link size="small"
                 type="info" @click="showPluginSettingWindow(row.id)">设置</ElButton>
@@ -182,7 +182,7 @@ export default {
       <ElTable v-memo="[importErrorList]" :data="importErrorList" height="380">
         <ElTableColumn label="文件名" width="150">
           <template #default="{ row }">
-            <ElPopover trigger="hover" title="文件名" :content="row.name" width="200">
+            <ElPopover trigger="hover" title="文件名" :content="row.name" width="200" :persistent="false">
               <template #reference>
                 <span class="settings-card-item-plugin-label">{{ row.name }}</span>
               </template>
@@ -191,7 +191,7 @@ export default {
         </ElTableColumn>
         <ElTableColumn label="错误原因" width="250">
           <template #default="{ row }">
-            <ElPopover trigger="hover" title="错误原因" width="350">
+            <ElPopover trigger="hover" title="错误原因" width="350" :persistent="false">
               <template #reference>
                 <span class="settings-card-item-plugin-label">{{ row.error }}</span>
               </template>

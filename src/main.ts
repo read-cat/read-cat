@@ -7,7 +7,7 @@ import { useWindowStore } from './store/window';
 import { EventCode } from '../events';
 import 'animate.css/animate.min.css';
 import 'element-plus/theme-chalk/dark/css-vars.css';
-import './assets/style/index.css';
+import './assets/style/index.scss';
 import './assets/style/dark/index.css';
 import './assets/style/font/HarmonyOS_Sans_SC/index.css';
 import { isUndefined } from './core/is';
@@ -44,6 +44,9 @@ const startListener = () => {
     }
     win.transparentWindow = true;
     GLOBAL_IPC.send(EventCode.ASYNC_SET_WINDOW_BACKGROUND_COLOR, '#00000000');
+  });
+  GLOBAL_IPC.once(EventCode.ASYNC_WINDOW_IS_OVERWRITE_TITLE_BAR, (_, is: boolean) => {
+    win.isOverwriteTitleBar = is;
   });
 }
 

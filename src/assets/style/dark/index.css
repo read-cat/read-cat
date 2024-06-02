@@ -46,4 +46,7 @@
 
   --rc-menu-window-box-blur-bgcolor: rgba(34, 34, 34, 0.8);
   --rc-menu-item-hover-bgcolor: rgba(255, 255, 255, 0.2);
+
+  --rc-blockquote-border-color: #656565;
+  --rc-blockquote-color: #AAAAB5;
 }

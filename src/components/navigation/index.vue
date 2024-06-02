@@ -23,7 +23,7 @@ export default {
   </nav>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .container {
   display: flex;
   flex-direction: row;

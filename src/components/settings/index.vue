@@ -80,7 +80,7 @@ export default {
           <ElIcon size="18"><IconSettingsAbout /></ElIcon>
         </SettingsNavItem>
       </ul>
-      <ElPopover v-once placement="bottom-start" trigger="hover" :width="350" title="提示">
+      <ElPopover v-once placement="bottom-start" trigger="hover" :width="350" title="提示" :persistent="false">
         <template #reference>
           <IconAttention />
         </template>

@@ -5,7 +5,6 @@ import { CheckboxValueType, ElMessageBox } from 'element-plus';
 import { useMessage } from '../../../hooks/message';
 import { useTextContentStore } from '../../../store/text-content';
 import { useBookmarkStore } from '../../../store/bookmark';
-import IconLoadingPlay from '../../../assets/svg/icon-loading-play.svg';
 
 export const useBookshelfCheckbox = () => {
   const checkAll = ref(false);
@@ -48,11 +47,7 @@ export const useBookshelfCheckbox = () => {
       type: 'info'
     }).then(async () => {
       let error = 0;
-      const info = message.info({
-        icon: IconLoadingPlay,
-        message: '正在将选中书本移出书架',
-        duration: 0
-      });
+      const loading = message.loading('正在将选中书本移出书架');
       for (const id of checkedCities.value) {
         const book = bookshelf._books.find(b => b.id === id);
         if (!book) {
@@ -67,11 +62,11 @@ export const useBookshelfCheckbox = () => {
         }).catch(() => error++);
       }
       if (error > 0) {
-        info.close();
+        loading.close();
         message.info(`已移出${checkedCities.value.length - error}本书, ${error}本移出失败`);
         return;
       }
-      info.close();
+      loading.close();
       message.success('已将选中书本移出书架');
     }).catch(() => { });
   }

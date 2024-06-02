@@ -1,5 +1,5 @@
 import { defineStore, storeToRefs } from 'pinia';
-import { isNull } from '../core/is';
+import { isBoolean, isFunction, isNull } from '../core/is';
 import { PluginType } from '../core/plugins';
 import { chunkArray, errorHandler } from '../core/utils';
 import { useWindowStore } from './window';
@@ -74,15 +74,21 @@ export const useSearchStore = defineStore('Search', {
           for (const { props, instance } of bookSources) {
             const start = Date.now();
             if (isNull(instance)) continue;
+            let filter = (entity: SearchEntity, searchKey: string, author?: string) => {
+              if (!author) {
+                return entity.bookname.includes(searchKey) || entity.author.includes(searchKey);
+              } else {
+                return entity.author.trim().includes(author);
+              }
+            }
+            if (isBoolean(props.SEARCH_FILTER) && !props.SEARCH_FILTER) {
+              filter = (_, __, ___) => true;
+            } else if (isFunction(props.SEARCH_FILTER)) {
+              filter = props.SEARCH_FILTER;
+            }
             p.push(instance.search(searchkey).then(vs => {
               const end = Date.now();
-              this.searchResult.push(...vs.filter(v => {
-                if (isNull(author)) {
-                  return v.bookname.includes(searchkey) || v.author.includes(searchkey);
-                } else {
-                  return v.author.trim().includes(author);
-                }
-              }).map<SearchResult>(e => ({
+              this.searchResult.push(...vs.filter(v => filter(v, searchkey, author || void 0)).map<SearchResult>(e => ({
                 bookname: e.bookname ? sanitizeHTML(e.bookname, true).trim() : '',
                 author: e.author ? sanitizeHTML(e.author, true).trim() : '',
                 coverImageUrl: e.coverImageUrl ? sanitizeHTML(e.coverImageUrl, true).trim() : '',

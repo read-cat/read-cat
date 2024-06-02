@@ -1,4 +1,4 @@
-import { Ref, ref, watchEffect } from 'vue';
+import { computed, Ref, ref } from 'vue';
 import { Font, FontData } from '../../../../../core/font';
 import { WindowEvent } from '../../../../window/index.vue';
 import { useMessage } from '../../../../../hooks/message';
@@ -6,18 +6,17 @@ import { isUndefined } from '../../../../../core/is';
 
 export const useFonts = (win: Ref<WindowEvent | undefined>, query: Ref<string>) => {
   const systemFonts = ref<FontData[]>([]);
-  const showValue = ref<FontData[]>([]);
   const isLoading = ref(false);
+  const isPinFontWindow = ref(false);
   const message = useMessage();
 
-  watchEffect(() => {
+  const showValue = computed(() => {
     if (!query.value.trim()) {
-      showValue.value = [...systemFonts.value, Font.default].sort((a, b) => {
+      return [...systemFonts.value, Font.default].sort((a, b) => {
         return a.family[0].toLowerCase().charCodeAt(0) - b.family[0].toLowerCase().charCodeAt(0);
       });
-      return;
     }
-    showValue.value = [...systemFonts.value, Font.default].filter(v => {
+    return [...systemFonts.value, Font.default].filter(v => {
       return (
         v.family.toLowerCase().includes(query.value.toLowerCase().trim()) ||
         v.fullName.toLowerCase().includes(query.value.toLowerCase().trim())
@@ -58,13 +57,14 @@ export const useFonts = (win: Ref<WindowEvent | undefined>, query: Ref<string>) 
 
   const use = (font: FontData) => {
     Font.use(font);
-    win.value?.hide();
+    !isPinFontWindow.value && win.value?.hide();
   }
 
   return {
     showValue,
     isLoading,
     openFontSelectWindow,
-    use
+    use,
+    isPinFontWindow
   }
 }

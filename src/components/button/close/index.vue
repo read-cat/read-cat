@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
+import { computed } from 'vue';
 import IconClose from '../../../assets/svg/icon-close.svg';
 import { handlerVueProp } from '../../../core/utils';
 
@@ -7,13 +7,7 @@ const props = defineProps<{
   marginRight?: number | string
 }>();
 
-const _marginRight = ref('');
-watch(() => props, newVal => {
-  const { marginRight } = newVal;
-  _marginRight.value = handlerVueProp(marginRight);
-}, {
-  immediate: true
-});
+const _marginRight = computed(() => handlerVueProp(props.marginRight));
 
 </script>
 <script lang="ts">

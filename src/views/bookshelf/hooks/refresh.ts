@@ -1,15 +1,9 @@
 import { storeToRefs } from 'pinia';
 import { useBookshelfStore } from '../../../store/bookshelf';
-import { ref, watch } from 'vue';
 
 export const useRefresh = () => {
   const { books, refreshed } = storeToRefs(useBookshelfStore());
-  const refreshValues = ref(books.value);
   const { refreshAll } = useBookshelfStore();
-
-  watch(() => books.value, newVal => {
-    refreshValues.value = newVal;
-  });
 
   const refresh = () => {
     refreshAll();
@@ -22,6 +16,6 @@ export const useRefresh = () => {
 
   return {
     refresh,
-    refreshValues
+    refreshValues: books
   }
 }

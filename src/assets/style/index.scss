@@ -48,6 +48,9 @@
 
   --rc-menu-window-box-blur-bgcolor: rgba(255, 255, 255, 0.8);
   --rc-menu-item-hover-bgcolor: rgba(30, 30, 30, 0.2);
+
+  --rc-blockquote-border-color: #DADADA;
+  --rc-blockquote-color: #353535;
 }
 
 html,
@@ -162,7 +165,7 @@ button {
 .rc-text-ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;
-  text-wrap: nowrap;
+  white-space: nowrap;
 }
 
 ul.rc-help {

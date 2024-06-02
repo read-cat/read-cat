@@ -16,7 +16,10 @@ process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
+const lowElectronVersion = Number(process.versions.electron.split('.')[0]) <= 22;
+
 app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
+lowElectronVersion && app.commandLine.appendSwitch('enable-experimental-web-platform-features');
 
 let win: BrowserWindow | null;
 let pluginDevtoolsWin: BrowserWindow | null = null;
@@ -25,6 +28,7 @@ const icon = path.join(process.env.VITE_PUBLIC, 'icons/icon.ico');
 const windowSizeConfigPath = path.join(app.getPath('userData'), 'window_size');
 const windowTransparentPath = path.join(app.getPath('userData'), 'window_transparent');
 const isTransparent = existsSync(windowTransparentPath);
+const isOverwriteTitleBar = process.platform === 'linux' || lowElectronVersion;
 
 function createWindow(width?: number, height?: number) {
   win = new BrowserWindow({
@@ -33,11 +37,11 @@ function createWindow(width?: number, height?: number) {
     height: (height === void 0 || height < 650) ? 650 : height,
     minWidth: 950,
     minHeight: 650,
-    frame: process.platform !== 'linux',
+    frame: !isOverwriteTitleBar,
     icon,
-    titleBarStyle: 'hidden',
-    titleBarOverlay: {
-      color: '#00000000',
+    titleBarStyle: isOverwriteTitleBar ? void 0 : 'hidden',
+    titleBarOverlay: isOverwriteTitleBar ? void 0 : {
+      color: lowElectronVersion ? '#E6EAEF' : '#00000000',
       symbolColor: '#2D2D2D',
       height: 35
     },
@@ -64,23 +68,27 @@ function createWindow(width?: number, height?: number) {
       action: 'deny'
     }
   });
-  
+
   useListener({
     win,
     pluginDevtoolsWin,
     transparent: isTransparent,
-    windowSizeConfigPath
+    windowSizeConfigPath,
+    isOverwriteTitleBar
   });
   useCache();
-  useDialog(win);
+  useDialog();
 
   (process.platform === 'win32') && ipcMain.on(EventCode.ASYNC_SET_TITLE_BAR_STYLE, (_, bgcolor, textcolor) => {
+    if (isOverwriteTitleBar) {
+      return;
+    }
     win?.setTitleBarOverlay({
-      color: `${bgcolor}00`.slice(0, 9),
-      symbolColor: textcolor
+      color: `${bgcolor.trim()}00`.slice(0, lowElectronVersion ? 7 : 9),
+      symbolColor: textcolor.trim()
     });
   });
-  if (process.platform === 'linux') {
+  if (isOverwriteTitleBar) {
     win.on('close', e => {
       e.preventDefault();
       win?.webContents.send(EventCode.ASYNC_CLOSE_WINDOW);

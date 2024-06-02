@@ -24,6 +24,7 @@ export const useWindowStore = defineStore('Window', {
       globalShortcutKeyRegisterError: new Map<keyof GlobalShortcutKey, string>(),
       transparentWindow: false,
       events: new Map<Event, Record<string, Listener>>(),
+      isOverwriteTitleBar: false,
     }
   },
   getters: {

@@ -1,6 +1,7 @@
 import { ElMessage, MessageOptionsWithType } from 'element-plus'
 import { isString, isUndefined } from '../core/is';
 import { useSettingsStore } from '../store/settings';
+import IconLoadingPlay from '../assets/svg/icon-loading-play.svg';
 
 type MessageType = 'error' | 'success' | 'warning' | 'info';
 export const useMessage = () => {
@@ -43,11 +44,19 @@ export const useMessage = () => {
   const info = (options: MessageOptionsWithType | string) => {
     return showMessage(options, 'info');
   }
+  const loading = (message: string) => {
+    return showMessage({
+      icon: IconLoadingPlay,
+      message,
+      duration: 0
+    }, 'info');
+  }
 
   return {
     success,
     error,
     warning,
-    info
+    info,
+    loading
   }
 }

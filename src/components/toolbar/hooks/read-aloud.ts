@@ -128,7 +128,7 @@ export const useReadAloud = () => {
     try {
       isRefreshReadAloudVoices.value = true;
       const voices = await getVoices();
-      if (voices.length > 1) {
+      if (voices.length > 0) {
         readAloudVoices.value[0] = readAloud.use;
         readAloudVoices.value[1] = voices;
       }

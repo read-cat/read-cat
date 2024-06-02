@@ -1,4 +1,4 @@
-import { ref, watch, watchEffect } from 'vue';
+import { computed } from 'vue';
 import { WindowProps } from '../index.vue';
 import { isNumber, isUndefined } from '../../../core/is';
 import { useSettingsStore } from '../../../store/settings';
@@ -6,16 +6,6 @@ import { handlerVueProp } from '../../../core/utils';
 import { useWindowStore } from '../../../store/window';
 
 export const useHandlerProps = (props: WindowProps) => {
-  const _top = ref('');
-  const _left = ref('');
-  const _width = ref('');
-  const _height = ref('');
-  const _backgroundColor = ref('');
-  const _className = ref('');
-  const _toBody = ref(isUndefined(props.toBody) ? true : props.toBody);
-  const _centerX = ref(Boolean(props.centerX));
-  const _centerY = ref(Boolean(props.centerY));
-
   const { options, window } = useSettingsStore();
   const win = useWindowStore();
 
@@ -29,29 +19,23 @@ export const useHandlerProps = (props: WindowProps) => {
     return handlerVueProp(left, '');
   }
 
-  watch(() => props, newVal => {
-    const { top, left, width, height, className } = newVal;
-    _width.value = handlerVueProp(width, '400px');
-    _height.value = handlerVueProp(height, '500px');
-    _top.value = _centerY.value ? `calc((100% - ${_height.value}) / 2)` : handlerVueProp(top, '5px');
-    _left.value = _centerX.value ? `calc((100% - ${_width.value}) / 2)` : handlerLeft(left);
-    _className.value = isUndefined(className) ? '' : className;
-    _toBody.value = !!newVal.toBody;
-  }, {
-    immediate: true,
-    deep: true
-  });
-  watchEffect(() => {
+  const _width = computed(() => handlerVueProp(props.width, '400px'));
+  const _height = computed(() => handlerVueProp(props.height, '500px'));
+  const _top = computed(() => props.centerY ? `calc((100% - ${_height.value}) / 2)` : handlerVueProp(props.top, '5px'));
+  const _left = computed(() => props.centerX ? `calc((100% - ${_width.value}) / 2)` : handlerLeft(props.left));
+  const _className = computed(() => props.className || '');
+  const _toBody = computed(() => !!props.toBody);
+  const _backgroundColor = computed(() => {
     if (!options.enableBlur || props.disableBlur || (win.transparentWindow && window.opacity < 1)) {
-      _backgroundColor.value = 'var(--rc-window-box-bgcolor)';
-      return;
+      return 'var(--rc-window-box-bgcolor)';
     }
     if (props.backgroundColor) {
-      _backgroundColor.value = props.backgroundColor;
-      return;
+      return props.backgroundColor;
     }
-    _backgroundColor.value = 'var(--rc-window-box-blur-bgcolor)';
+    return 'var(--rc-window-box-blur-bgcolor)';
   });
+  const _centerX = computed(() => !!props.centerX);
+  const _centerY = computed(() => !!props.centerY);
 
   return {
     _top,

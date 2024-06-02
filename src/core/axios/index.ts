@@ -8,6 +8,7 @@ import {
   CustomDownloadAxiosRequestConfig
 } from './defined/axios';
 import { newError } from '../utils';
+import { createHash, Hash } from 'crypto';
 
 const axios: CustomAxiosStatic = require('axios');
 
@@ -31,6 +32,7 @@ customAxios.download = (() => {
   const download = async (
     url: string,
     stream: WriteStream,
+    hash: Hash,
     config?: CustomAxiosRequestConfig,
     range?: {
       start: number,
@@ -44,7 +46,12 @@ customAxios.download = (() => {
         method: 'download',
         url,
         onData(next) {
-          next ? stream.write(next) : stream.close();
+          if (next) {
+            stream.write(next);
+            hash.update(next);
+          } else {
+            stream.close();
+          }
         }
       });
     }
@@ -61,7 +68,12 @@ customAxios.download = (() => {
         total
       },
       onData(next) {
-        next ? stream.write(next) : stream.close();
+        if (next) {
+          stream.write(next);
+          hash.update(next);
+        } else {
+          stream.close();
+        }
       }
     });
   }
@@ -69,12 +81,13 @@ customAxios.download = (() => {
     const { headers } = await customAxios.head(url, config);
     const isRange = headers['accept-ranges'] === 'bytes';
     const total = Number(headers['content-length']);
+    const hash = createHash('sha256');
     if (existsSync(target)) {
       throw newError(`target exist: ${target}`);
     }
     if (!isRange || isNaN(total)) {
-      await download(url, createWriteStream(target), config);
-      return;
+      await download(url, createWriteStream(target), hash, config);
+      return hash.digest('hex');
     }
     const num = 64;
     const dsize = Math.floor((total - 1) / num);
@@ -88,12 +101,13 @@ customAxios.download = (() => {
       await download(url, createWriteStream(target, {
         flags: 'a',
         start,
-      }), config, {
+      }), hash, config, {
         start,
         end,
         total
       });
     }
+    return hash.digest('hex');
   }
 })();
 customAxios.test = async (url, config) => {

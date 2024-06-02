@@ -18,6 +18,8 @@ import { ref } from 'vue';
 import IconSearch from '../../../../assets/svg/icon-search.svg';
 import IconAdd from '../../../../assets/svg/icon-add.svg';
 import IconEdit from '../../../../assets/svg/icon-edit.svg';
+import IconPin from '../../../../assets/svg/icon-pin.svg';
+import IconPinSlash from '../../../../assets/svg/icon-pin-slash.svg';
 import { isUndefined } from '../../../../core/is';
 import { useReadColorStore } from '../../../../store/read-color';
 import { useReadColor } from './hooks/read-color';
@@ -49,7 +51,8 @@ const {
   showValue,
   isLoading,
   openFontSelectWindow,
-  use: useFont
+  use: useFont,
+  isPinFontWindow,
 } = useFonts(fontWindow, fontQuery);
 
 const readColorWindow = ref<WindowEvent>();
@@ -131,7 +134,7 @@ export default {
               }">Aa</span>
             </div>
           </div>
-          <p :title="item.name">{{ item.name }}</p>
+          <p class="rc-text-ellipsis" :title="item.name">{{ item.name }}</p>
         </li>
         <li v-once class="hide"></li>
         <li v-once class="hide"></li>
@@ -263,11 +266,17 @@ export default {
             <ElButton @click="openFontSelectWindow">选择</ElButton>
           </template>
         </ElInput>
-        <Window class-name="fonts-window" width="300" height="250" toBody destroyOnClose clickHide centerX centerY
-          :isLoading="isLoading" @event="e => fontWindow = e">
+        <Window class-name="fonts-window" width="300" height="250" toBody destroyOnClose centerX centerY
+          :isLoading="isLoading" @event="e => fontWindow = e" :click-hide="!isPinFontWindow">
           <div class="fonts-window-container">
-            <ElInput v-model="fontQuery" clearable :prefix-icon="IconSearch" />
-            <ul class="fonts-list rc-scrollbar" v-memo="[showValue]">
+            <header>
+              <ElInput v-model="fontQuery" clearable :prefix-icon="IconSearch" />
+              <button :title="isPinFontWindow ? '取消固定' : '固定'" @click="isPinFontWindow = !isPinFontWindow">
+                <IconPin v-if="!isPinFontWindow" />
+                <IconPinSlash v-else />
+              </button>
+            </header>
+            <ul class="fonts-list rc-scrollbar" v-memo="[showValue, readStyle.font.family]">
               <li v-for="item of showValue" :key="item.family" :class="[readStyle.font.family === item.family ? 'select-font' : '']" @click="useFont(item)">
                 <Text ellipsis max-width="100%" :title="item.fullName">{{ item.fullName }}</Text>
               </li>
@@ -315,17 +324,44 @@ export default {
     $padding: 10px;
     padding: $padding 0 $padding $padding;
 
-    .el-input {
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: $padding;
       width: calc(100% - $padding);
-      height: $input-height;
 
-      .el-input__wrapper {
-        .el-input__inner[type="text"] {
-          height: $input-height - $padding !important;
+      .el-input {
+        width: calc(100% - 30px);
+        height: $input-height;
+
+        .el-input__wrapper {
+          .el-input__inner[type="text"] {
+            height: $input-height - $padding !important;
+          }
+        }
+      }
+      button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: scale(1.15);
+        }
+        &:active {
+          transform: scale(0.95);
+        }
+
+        svg {
+          width: 18px;
+          height: 18px;
         }
       }
     }
+    
 
     .fonts-list {
       padding-right: $padding - 7px;
@@ -521,9 +557,6 @@ export default {
         display: flex;
         justify-content: center;
         width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        text-wrap: nowrap;
       }
 
       p.read-aloud {
@@ -595,9 +628,6 @@ export default {
       & > p {
         margin-top: 5px;
         max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        text-wrap: nowrap;
       }
       &.hide {
         padding: 0;

@@ -4,7 +4,6 @@ export interface BookSource {
   /**
    * 搜索书本
    * @param searchkey 搜索关键词
-   * @param author 作者(可选)
    * @returns 
    */
   search: (searchkey: string) => Promise<SearchEntity[]>;

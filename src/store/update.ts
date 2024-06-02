@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
 import { WindowEvent } from '../components';
-import IconLoadingPlay from '../assets/svg/icon-loading-play.svg';
 import { useMessage } from '../hooks/message';
 import { newError } from '../core/utils';
 import { sleep } from '../core/utils/timer';
@@ -14,6 +13,7 @@ import { unlink } from 'fs/promises';
 import { existsSync } from 'fs';
 import { spawn } from 'child_process';
 import { handlerProxy } from '../core/request';
+import { isUndefined } from '../core/is';
 
 
 export const useUpdateStore = defineStore('Update', {
@@ -38,11 +38,7 @@ export const useUpdateStore = defineStore('Update', {
       }
       this.isUpdating = true;
       const message = useMessage();
-      const info = showInfo ? message.info({
-        icon: IconLoadingPlay,
-        message: '检测更新中',
-        duration: 0
-      }) : null;
+      const loading = showInfo ? message.loading('检测更新中') : null;
       try {
         GLOBAL_LOG.info('检测更新');
         await sleep(3000);
@@ -81,7 +77,7 @@ export const useUpdateStore = defineStore('Update', {
         GLOBAL_LOG.error('update', e);
         showInfo && message.error(e.message);
       } finally {
-        info?.close();
+        loading?.close();
         this.isUpdating = false;
       }
     },
@@ -91,14 +87,10 @@ export const useUpdateStore = defineStore('Update', {
       }
       this.isUpdating = true;
       const message = useMessage();
-      const info = message.info({
-        icon: IconLoadingPlay,
-        message: '正在获取更新日志',
-        duration: 0
-      });
+      const loading = message.loading('正在获取更新日志');
       try {
         await sleep(3000);
-        const version = await GLOBAL_UPDATER.getUpdateLog(METADATA.version);
+        const version = await GLOBAL_UPDATER.getUpdateLog(METADATA.tag);
         if (!version) {
           message.warning('该版本暂无更新日志');
           return;
@@ -111,7 +103,7 @@ export const useUpdateStore = defineStore('Update', {
         message.error(e.message);
       } finally {
         this.isUpdating = false;
-        info.close();
+        loading.close();
       }
     },
     async closeUpdateWindow() {
@@ -173,13 +165,29 @@ export const useUpdateStore = defineStore('Update', {
         const { update, proxy, options } = useSettingsStore();
         let proxyUrl = update.downloadProxy?.trim() ? update.downloadProxy.trim() : '';
         proxyUrl && (proxyUrl = proxyUrl.endsWith('/') ? proxyUrl : proxyUrl + '/');
-        const agent = options.enableProxy ? handlerProxy(proxy) : void 0;
 
+        let agent;
+        if (options.enableProxy) {
+          agent = handlerProxy(proxy);
+        } else {
+          await axios.head(proxyUrl).catch(e => {
+            GLOBAL_LOG.error('无法连接Github加速下载链接', proxyUrl, e);
+            return Promise.reject(newError('无法连接Github加速下载链接'));
+          });
+        }
         const filepath = join(Core.userDataPath, this.updaterName);
         if (existsSync(filepath)) {
           await unlink(filepath);
         }
-        await axios.download(`${agent ? '' : proxyUrl}${this.version.downloadUrl}`, filepath, {
+        let sha256_1, sha256_2;
+        if (this.version.hashDownloadUrl) {
+          const { data } = await axios.get<string>(`${agent ? '' : proxyUrl}${this.version.hashDownloadUrl}`, {
+            responseType: 'text'
+          });
+          sha256_1 = data;
+          GLOBAL_LOG.debug('update download, hash', this.version.hashDownloadUrl, sha256_1);
+        }
+        sha256_2 = await axios.download(`${agent ? '' : proxyUrl}${this.version.downloadUrl}`, filepath, {
           httpAgent: agent,
           httpsAgent: agent,
           signal: this.abortController.signal,
@@ -191,6 +199,13 @@ export const useUpdateStore = defineStore('Update', {
             this.progress = progress;
           },
         });
+        GLOBAL_LOG.debug('update download, hash', this.version.downloadUrl, sha256_2);
+        if (!isUndefined(sha256_1) && sha256_1.trim() !== sha256_2.trim()) {
+          unlink(filepath).catch(e => {
+            GLOBAL_LOG.error('update download, unlink', e);
+          });
+          throw newError('文件损坏');
+        }
         this.abortController = null;
         this.isDownloading = false;
         this.progress = 0;

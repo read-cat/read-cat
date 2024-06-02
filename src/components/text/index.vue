@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
+import { computed } from 'vue';
 import { handlerVueProp } from '../../core/utils';
 
 
@@ -8,11 +8,7 @@ const props = defineProps<{
   maxWidth?: number | string
 }>();
 
-const _maxWidth = ref('');
-watch(() => props, newVal => {
-  const { maxWidth } = newVal;
-  _maxWidth.value = handlerVueProp(maxWidth);
-}, { immediate: true });
+const _maxWidth = computed(() => handlerVueProp(props.maxWidth));
 
 </script>
 <script lang="ts">

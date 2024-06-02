@@ -10,6 +10,7 @@ import { EdgeTTSEngine } from '../core/plugins/built-in/tts/edge';
 import { base64ToBlob } from '../core/utils';
 import { useReadColorStore } from './read-color';
 import { Core } from '../core';
+import { isUndefined } from '../core/is';
 
 let oldImageUrl = '';
 
@@ -46,7 +47,8 @@ export const useSettingsStore = defineStore('Settings', {
         port: 7890,
         protocol: 'http',
         username: '',
-        password: ''
+        password: '',
+        testUrl: 'https://www.google.com/generate_204'
       },
       threadsNumber: 8,
       maxCacheChapterNumber: 10,
@@ -250,6 +252,10 @@ export const useSettingsStore = defineStore('Settings', {
       if (color.id === this.readStyle.background.id) {
         return;
       }
+      if (isUndefined(document.startViewTransition)) {
+        this.readStyle.background = cloneByJSON(color);
+        return;
+      }
       document.startViewTransition(() => {
         this.readStyle.background = cloneByJSON(color);
       }).ready.then(() => {
@@ -345,7 +351,7 @@ export const useSettingsStore = defineStore('Settings', {
       return false;
     },
     setTheme(theme: SettingsTheme) {
-      document.startViewTransition(() => {
+      const toggle = () => {
         let dark = false;
         switch (theme) {
           case 'os':
@@ -366,7 +372,11 @@ export const useSettingsStore = defineStore('Settings', {
           document.documentElement.classList.remove('dark');
         this.theme = theme;
         useWindowStore().isDark = dark;
-      }).ready.then(() => {
+      };
+      if (isUndefined(document.startViewTransition)) {
+        return toggle();
+      }
+      document.startViewTransition(toggle).ready.then(() => {
         document.documentElement.animate(null, {
           duration: 300,
           easing: 'ease'

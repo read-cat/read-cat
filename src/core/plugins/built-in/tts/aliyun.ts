@@ -147,7 +147,7 @@ export class AliyunTTSEngine {
     end();
   }
   async getVoiceList(): Promise<Voice[]> {
-    return Promise.resolve([{
+    return [{
       name: '阿斌(中文及中英文混合)',
       value: 'abin'
     }, {
@@ -471,6 +471,6 @@ export class AliyunTTSEngine {
     }, {
       name: 'brian(美式英文)',
       value: 'brian'
-    }]);
+    }];
   }
 }

@@ -1,4 +1,4 @@
-import { Ref, reactive, ref, watch, watchEffect } from 'vue';
+import { Ref, computed, reactive, watch, watchEffect } from 'vue';
 import { useWindowStore } from '../store/window';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../store/settings';
@@ -28,7 +28,9 @@ export const useHeaderStyle = (searchkey: Ref<string>, progress: Ref<number>) =>
     color: '',
     boxBackgroundColor: '',
   });
-  const key = ref('');
+  const key = computed(() => {
+    return searchkey.value.split('&')[0].trim();
+  });
   const setSearchBoxBackgroundColor = (isDark: boolean) => {
     const root = document.querySelector<HTMLElement>(':root');
     let bgcolor = isDark ? '#1A1C1D' : '#FFFFFF';
@@ -91,10 +93,6 @@ export const useHeaderStyle = (searchkey: Ref<string>, progress: Ref<number>) =>
     }
     setColor([r, g, b]);
   }
-  watch(() => searchkey.value, (newVal, _) => {
-    const keys = newVal.split('&');
-    key.value = keys[0].trim();
-  });
   watch(() => win.currentPath, (newVal, _) => {
     if (newVal !== PagePath.READ) {
       setColor();

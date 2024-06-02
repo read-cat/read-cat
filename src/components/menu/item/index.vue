@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Text } from '../..';
 
 withDefaults(defineProps<{
   label: string
@@ -17,7 +18,7 @@ export default {
 <template>
   <div class="menu-item" v-once>
     <slot name="icon" />
-    <span>{{ label }}</span>
+    <Text ellipsis>{{ label }}</Text>
   </div>
 </template>
 
@@ -48,9 +49,6 @@ export default {
   span {
     min-width: 100px;
     max-width: 300px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-wrap: nowrap;
   }
 }
 </style>

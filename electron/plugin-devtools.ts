@@ -1,6 +1,8 @@
 import { BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'path';
 import { PluginDevtoolsEventCode } from '../events/plugin-devtools';
+
+const isOverwriteTitleBar = process.platform === 'linux';
 export const createPluginDevtoolsWindow = (url: string, icon: string) => {
   let win: BrowserWindow | null = new BrowserWindow({
     title: 'ReadCat Plugin Devtools',
@@ -10,10 +12,10 @@ export const createPluginDevtoolsWindow = (url: string, icon: string) => {
     minHeight: 700,
     icon,
     show: false,
-    frame: process.platform !== 'linux',
+    frame: !isOverwriteTitleBar,
     titleBarStyle: 'hidden',
     titleBarOverlay: {
-      color: '#3C3C3C00',
+      color: '#3C3C3C',
       symbolColor: '#D4D4D4',
       height: 30
     },
@@ -29,7 +31,12 @@ export const createPluginDevtoolsWindow = (url: string, icon: string) => {
       action: 'deny'
     }
   });
-  win.on('ready-to-show', () => win?.show());
+  win.on('ready-to-show', () => {
+    win?.show();
+    if (process.env['VITE_DEV_SERVER_URL']) {
+      win?.webContents.openDevTools();
+    }
+  });
   win.on('enter-full-screen', () => {
     win?.webContents.send(PluginDevtoolsEventCode.ASYNC_IS_FULLSCREEN_DEVTOOLS_WINDOW, true);
   });
@@ -45,7 +52,7 @@ export const createPluginDevtoolsWindow = (url: string, icon: string) => {
   win.on('close', e => {
     e.preventDefault();
     win?.webContents.send(PluginDevtoolsEventCode.ASYNC_CLOSE_PLUGIN_DEVTOOLS_WINDOW);
-    if (process.platform === 'linux') {
+    if (isOverwriteTitleBar) {
       win?.focus();
     }
   });

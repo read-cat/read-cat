@@ -6,12 +6,14 @@ export const useListener = (options: {
   win: BrowserWindow,
   pluginDevtoolsWin: BrowserWindow | null,
   transparent: boolean,
-  windowSizeConfigPath: string
+  windowSizeConfigPath: string,
+  isOverwriteTitleBar: boolean
 }) => {
-  const { win, pluginDevtoolsWin, transparent, windowSizeConfigPath } = options;
+  const { win, pluginDevtoolsWin, transparent, windowSizeConfigPath, isOverwriteTitleBar } = options;
   win.webContents.on('did-finish-load', () => {
     win.webContents.send(EventCode.ASYNC_DID_FINISH_LOAD);
     win.webContents.send(EventCode.ASYNC_WINDOW_IS_TRANSPARENT, transparent);
+    win.webContents.send(EventCode.ASYNC_WINDOW_IS_OVERWRITE_TITLE_BAR, isOverwriteTitleBar);
   });
   win.on('close', () => {
     pluginDevtoolsWin?.destroy();
@@ -33,7 +35,8 @@ export const useListener = (options: {
     win.webContents.send(EventCode.ASYNC_WINDOW_IS_MAXIMIZE, false);
   });
   win.on('page-title-updated', (_, title) => {
-    if (!title.trim()) {
+    title = title.trim();
+    if (!title || title === 'index.html') {
       return;
     }
     if (title.includes('阅读 |')) {

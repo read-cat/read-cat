@@ -124,7 +124,10 @@ export type UpdateConfig = {
   /**Github加速下载代理地址 */
   downloadProxy?: string,
 }
-
+export type ProxyConfig = {
+  /**代理测试链接 */
+  testUrl: string
+}
 export type Settings = {
   /**设置配置ID */
   id: string
@@ -133,7 +136,7 @@ export type Settings = {
   /**阅读样式 */
   readStyle: SettingsReadStyle
   /**代理 */
-  proxy: RequestProxy
+  proxy: RequestProxy & ProxyConfig
   /**任务执行线程数 */
   threadsNumber: number
   /**最大缓存章节数 */

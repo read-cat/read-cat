@@ -1,17 +1,31 @@
 import fsp from 'fs/promises';
+import { Stats } from 'fs';
 import { join } from 'path';
+
+const scandir = async (path: string, recursive?: boolean) => {
+  const files = await fsp.readdir(path);
+  const stats: Stats[] = [];
+  for (const file of files) {
+    const stat = await fsp.stat(join(path, file)).catch(() => null);
+    if (!stat) {
+      continue;
+    }
+    if (stat.isDirectory() && recursive) {
+      stats.push(...(await scandir(join(path, file), recursive)));
+    } else {
+      stats.push(stat);
+    }
+  }
+  return stats;
+}
 
 self.onmessage = async e => {
   try {
     const { path, recursive } = e.data;
-    const files = (await fsp.readdir(path, { recursive })).map(file => fsp.stat(join(path, file)));
-
+    const stats = await scandir(path, recursive);
     let size = 0;
-    const stats = await Promise.allSettled(files);
     for (const stat of stats) {
-      if (stat.status !== 'rejected') {
-        size += stat.value.size;
-      }
+      size += stat.size;
     }
     self.postMessage({ size });
   } catch (e: any) {

@@ -123,7 +123,7 @@ export class BaiduTTSEngine {
     end();
   }
   async getVoiceList(): Promise<Voice[]> {
-    return Promise.resolve([{
+    return [{
       name: '度小宇(基础音库)',
       value: '1'
     }, {
@@ -156,6 +156,6 @@ export class BaiduTTSEngine {
     }, {
       name: '度小娇(精品音库)',
       value: '5'
-    }]);
+    }];
   }
 }

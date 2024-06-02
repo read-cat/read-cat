@@ -23,7 +23,7 @@ export default {
   <div class="settings-card-item">
     <div>
       <span v-if="!isUndefined(title)" v-once>{{ title }}</span>
-      <ElPopover v-once v-if="help" placement="bottom-start" popper-class="settings-help" trigger="hover" :width="350" title="提示">
+      <ElPopover v-once v-if="help" placement="bottom-start" popper-class="settings-help" trigger="hover" :width="350" title="提示" :persistent="false">
         <template #reference>
           <ElIcon>
             <IconHelp />

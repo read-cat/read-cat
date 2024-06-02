@@ -40,5 +40,8 @@ export interface TextToSpeechEngine {
    * 转换为音频
    */
   transform: (texts: string[], options: TTSOptions, next: NextCallback, end: EndCallback) => Promise<void>
+  /**
+   * 获取发音人列表
+   */
   getVoiceList: () => Promise<Voice[]>
 }

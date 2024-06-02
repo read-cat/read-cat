@@ -43,12 +43,12 @@ const getDetail = (pid: string, detailUrl: string) => {
             <img :src="`${item.coverImageUrl ? item.coverImageUrl : CoverImage}`"
               @error="e => (<HTMLImageElement>e.target).src = CoverImage">
             <div class="mask">
-              <p :title="item.bookname">{{ item.bookname }}</p>
-              <p :title="item.author">{{ item.author }}</p>
-              <p v-show="item.latestChapterTitle" :title="item.latestChapterTitle">{{ item.latestChapterTitle }}</p>
-              <p :title="item.group">组: {{ item.group }}</p>
-              <p :title="item.sourceName">源: {{ item.sourceName }}</p>
-              <p :title="`${item.time}ms`">耗时: {{ item.time }}ms</p>
+              <p class="rc-text-ellipsis" :title="item.bookname">{{ item.bookname }}</p>
+              <p class="rc-text-ellipsis" :title="item.author">{{ item.author }}</p>
+              <p class="rc-text-ellipsis" v-show="item.latestChapterTitle" :title="item.latestChapterTitle">{{ item.latestChapterTitle }}</p>
+              <p class="rc-text-ellipsis" :title="item.group">组: {{ item.group }}</p>
+              <p class="rc-text-ellipsis" :title="item.sourceName">源: {{ item.sourceName }}</p>
+              <p class="rc-text-ellipsis" :title="`${item.time}ms`">耗时: {{ item.time }}ms</p>
             </div>
           </div>
         </li>
@@ -109,8 +109,8 @@ const getDetail = (pid: string, detailUrl: string) => {
     li {
       margin: 15px 7.5px 0 7.5px;
       width: 140px;
+      contain: layout;
       cursor: pointer;
-
 
       &:hover {
         .cover-image {
@@ -127,7 +127,6 @@ const getDetail = (pid: string, detailUrl: string) => {
         background-position: center;
         background-repeat: no-repeat;
         background-size: cover;
-        // background-image: url(IconPic);
         border-radius: 10px;
         overflow: hidden;
         background-color: rgba(127, 127, 127, 0.3);
@@ -159,9 +158,6 @@ const getDetail = (pid: string, detailUrl: string) => {
 
           p {
             margin-bottom: 2px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-wrap: nowrap;
 
             &:nth-child(1) {
               font-weight: bold;
@@ -178,9 +174,6 @@ const getDetail = (pid: string, detailUrl: string) => {
               margin-bottom: 0;
               font-size: 10px;
               text-align: right;
-              text-wrap: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
             }
           }
         }

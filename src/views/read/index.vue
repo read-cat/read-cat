@@ -173,6 +173,7 @@ onRefresh(PagePath.READ, () => {
       cursor: default;
       transition: color 0.3s ease;
       overflow: hidden;
+      contain: layout;
       
       .bookmark {
         border-bottom: 1.5px solid var(--rc-bookmark-odd-color);

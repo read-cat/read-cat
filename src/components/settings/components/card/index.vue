@@ -22,7 +22,7 @@ export default {
     <header v-if="title" class="is-prop">
       <span>{{ title }}</span>
       <ElPopover v-once v-if="help" placement="bottom-start" popper-class="settings-help" trigger="hover" :width="350"
-        title="提示">
+        title="提示" :persistent="false">
         <template #reference>
           <ElIcon>
             <IconHelp />

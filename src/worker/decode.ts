@@ -6,7 +6,9 @@ self.onmessage = e => {
     let { encoding } = e.data;
     const buffer = Buffer.from(e.data.buffer);
     if (!encoding) {
-      encoding = detect(buffer.subarray(0, 100)).encoding;
+      let end = Math.ceil(buffer.byteLength / 1024);
+      end = end < 1024 ? 1024 : end;
+      encoding = detect(buffer.subarray(0, end)).encoding;
     }
     const result = decode(buffer, encoding);
     self.postMessage({

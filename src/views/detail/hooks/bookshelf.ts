@@ -9,7 +9,6 @@ import { useTextContentStore } from '../../../store/text-content';
 import { useMessage } from '../../../hooks/message';
 import { useRouter } from 'vue-router';
 import { BookParser } from '../../../core/book/book-parser';
-import IconLoadingPlay from '../../../assets/svg/icon-loading-play.svg';
 
 export const useBookshelf = (pid: string, detailUrl: string, detailResult: Ref<DetailPageResult | null>) => {
   const exist = ref(false);
@@ -31,11 +30,7 @@ export const useBookshelf = (pid: string, detailUrl: string, detailResult: Ref<D
         confirmButtonText: '移出',
         cancelButtonText: '取消'
       }).then(() => {
-        const info = message.info({
-          icon: IconLoadingPlay,
-          message: `正在将 ${detailResult.value?.bookname} 移出书架`,
-          duration: 0
-        });
+        const loading = message.loading(`正在将 ${detailResult.value?.bookname} 移出书架`);
         bookshelf.removeByPidAndDetailUrl(pid, detailUrl).then(() => {
           pid === BookParser.PID && router.back();
           return Promise.allSettled([
@@ -45,7 +40,7 @@ export const useBookshelf = (pid: string, detailUrl: string, detailResult: Ref<D
         }).then(() => {
           message.success(`已将 ${detailResult.value?.bookname} 移出书架`);
         }).finally(() => {
-          info.close();
+          loading.close();
           exist.value = bookshelf.exist(pid, detailUrl);
         });
       }).catch(() => {});

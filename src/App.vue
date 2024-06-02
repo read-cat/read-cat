@@ -150,7 +150,7 @@ const isReadPageComputed = computed(() => {
       </div>
       <div class="right-box">
         <Toolbar :path="win.currentPath" class="app-no-drag" />
-        <div v-if="platform === 'win32'"
+        <div v-if="platform === 'win32' && !win.isOverwriteTitleBar"
           :class="['window-controls-container', 'app-no-darg', platform, win.isFullScreen ? 'fullscreen' : '']"></div>
       </div>
     </ElHeader>
@@ -183,7 +183,9 @@ const isReadPageComputed = computed(() => {
             <p class="version">{{ version?.newVersion }}</p>
           </div>
         </header>
-        <main class="rc-scrollbar" v-html="version?.body"></main>
+        <main class="rc-scrollbar">
+          <div class="body" v-html="version?.body"></div>
+        </main>
         <footer>
           <button v-if="version?.downloadUrl" class="download" :style="{
             backgroundColor: updateStore.isDownloading ? 'rgba(30,120,235,0.3)' : '',
@@ -268,27 +270,38 @@ const isReadPageComputed = computed(() => {
       padding-left: 10px;
       height: calc(100% - 135px - 30px - 20px);
 
-      &>* {
-        margin-bottom: 10px;
-      }
+      div.body {
+        padding-right: 10px;
+        &>* {
+          margin-bottom: 10px;
+        }
 
-      * {
-        user-select: text;
-        cursor: default;
-      }
+        * {
+          user-select: text;
+          cursor: default;
+        }
 
-      h3 {
-        font-size: 16px;
-      }
+        h3 {
+          font-size: 16px;
+        }
 
-      ul {
-        padding: 0 20px 10px 20px;
-        list-style: initial;
+        ul {
+          padding: 0 20px 10px 20px;
+          list-style: initial;
 
-        li {
-          font-size: 14px;
+          li {
+            font-size: 14px;
+          }
+        }
+
+        blockquote {
+          padding-left: 10px;
+          color: var(--rc-blockquote-color);
+          border-left: 4px solid var(--rc-blockquote-border-color);
+          font-size: 13px;
         }
       }
+      
     }
 
     footer {
@@ -354,7 +367,7 @@ const isReadPageComputed = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px;
+  padding: 0 6px;
   height: calc(35px * var(--zoom-factor, 1));
   min-height: calc(35px / var(--zoom-factor, 1));
   background-color: var(--rc-header-color);
@@ -373,14 +386,9 @@ const isReadPageComputed = computed(() => {
     align-items: center;
   }
 
-  $left-right-box-width: 320px;
-  $left-right-box-zoom-width: calc($left-right-box-width * var(--zoom-factor, 1));
-  $left-right-box-zoom-min-width: calc($left-right-box-width / var(--zoom-factor, 1));
-
   .left-box,
   .right-box {
-    width: $left-right-box-zoom-width;
-    min-width: $left-right-box-zoom-min-width;
+    flex: 2.5;
   }
 
   .left-box {
@@ -388,9 +396,7 @@ const isReadPageComputed = computed(() => {
   }
 
   .center-box {
-    width: calc(100% - $left-right-box-zoom-width * 2 - 11px);
-    max-width: 500px;
-    min-width: 120px;
+    flex: 2.2;
   }
 
   .right-box {
@@ -461,7 +467,9 @@ const isReadPageComputed = computed(() => {
 
 @media screen and (max-width: 800px) {
   #header {
-
+    .left-box {
+      flex: 1;
+    }
     .left-box,
     .right-box {
       width: auto;

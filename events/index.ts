@@ -51,6 +51,8 @@ export class EventCode {
   static ASYNC_SET_WINDOW_BACKGROUND_COLOR: string
   /**是否为透明窗口 */
   static ASYNC_WINDOW_IS_TRANSPARENT: string
+  /**是否重写标题栏 */
+  static ASYNC_WINDOW_IS_OVERWRITE_TITLE_BAR: string
 
   /**显示打开文件对话框 */
   static ASYNC_SHOW_OPEN_FILE_DIALOG: string

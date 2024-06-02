@@ -34,7 +34,7 @@ export default {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .read-state {
   display: flex;
   align-items: center;

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref, watchEffect } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { handlerVueProp, newError } from '../../core/utils';
 import { useSettingsStore } from '../../store/settings';
 import { useScrollTopStore } from '../../store/scrolltop';
@@ -7,7 +7,6 @@ import { storeToRefs } from 'pinia';
 import { useWindowStore } from '../../store/window';
 import { PagePath } from '../../core/window';
 import IconTriangle from '../../assets/svg/icon-triangle.svg';
-
 
 const props = withDefaults(defineProps<{
   target: string
@@ -22,15 +21,13 @@ const props = withDefaults(defineProps<{
 
 const { options } = useSettingsStore();
 
-const _right = handlerVueProp(props.right, '50px');
-const _bottom = handlerVueProp(props.bottom, '50px');
-const _backgroundColor = ref('');
-watchEffect(() => {
+const _right = computed(() => handlerVueProp(props.right, '50px'));
+const _bottom = computed(() => handlerVueProp(props.bottom, '50px'));
+const _backgroundColor = computed(() => {
   if (!options.enableBlur) {
-    _backgroundColor.value = 'var(--rc-window-box-bgcolor)';
-    return;
+    return 'var(--rc-window-box-bgcolor)';
   }
-  _backgroundColor.value = 'var(--rc-window-box-blur-bgcolor)';
+  return 'var(--rc-window-box-blur-bgcolor)';
 });
 
 const show = ref(false);
@@ -85,8 +82,8 @@ export default {
       <div v-show="show" :class="[
         'backtop',
         options.enableBlur ? 'app-blur' : ''
-      ]" @click="scrollTop">
-        <IconTriangle />
+      ]" @click="scrollTop" title="回到顶部">
+          <IconTriangle />
       </div>
     </Transition>
   </Teleport>
@@ -110,8 +107,16 @@ export default {
   --animate-duration: 0.3s;
   --animate-delay: 0.3s;
   --animate-repeat: 0.3;
-  transition: scale 0.3s ease;
+  transition: all 0.3s ease;
 
+  svg {
+    transition: all .3s ease;
+  }
+  &:hover {
+    svg {
+      transform: scale(1.15);
+    }
+  }
   &:active {
     transform: scale(0.95);
   }

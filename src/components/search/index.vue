@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Window, WindowEvent, WindowSize } from '..';
+import { Window, WindowEvent, WindowSize, Text } from '..';
 import IconSearch from '../../assets/svg/icon-search.svg';
 import IconOpenBook from '../../assets/svg/icon-open-book.svg';
 import IconLoadingPlay from '../../assets/svg/icon-loading-play.svg';
@@ -55,7 +55,7 @@ export default {
         <IconOpenBook v-if="currentPath === PagePath.READ" />
         <IconLoadingPlay v-else-if="isRunningSearch && currentPath === PagePath.SEARCH" />
         <IconSearch v-else />
-        <span v-memo="[searchBoxHeaderText]">{{ searchBoxHeaderText }}</span>
+        <Text ellipsis v-memo="[searchBoxHeaderText]">{{ searchBoxHeaderText }}</Text>
       </div>
     </div>
     <Window
@@ -96,12 +96,8 @@ export default {
       align-items: center;
       max-width: 100%;
       span {
-        display: inline-block;
         margin-left: 5px;
         max-width: 270px;
-        overflow: hidden;
-        text-wrap: nowrap;
-        text-overflow: ellipsis;
       }
     }
   }
