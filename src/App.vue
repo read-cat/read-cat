@@ -59,13 +59,18 @@ const {
 
 const updateStore = useUpdateStore();
 const { updateWindowRef, version } = storeToRefs(updateStore);
-const updateListener = () => {
-  updateStore.deleteUpdaterFile();
-  updateStore.update().finally(() => {
+const updateListener = async () => {
+  try {
+    if (!options.enableAppStartedFindNewVersion) {
+      return;
+    }
+    await updateStore.deleteUpdaterFile(true);
+    await updateStore.update();
+  } finally {
     win.removeEventListener('inited', updateListener);
-  });
+  }
 }
-options.enableAppStartedFindNewVersion && win.addEventListener('inited', updateListener);
+win.addEventListener('inited', updateListener);
 
 onMounted(() => {
   watchEffect(() => {
@@ -141,7 +146,7 @@ const isReadPageComputed = computed(() => {
         </div>
         <Navigation v-show="!isReadPageComputed" :path="win.currentPath" class="navigation app-no-drag" />
         <GoBack id="goback" class="app-no-drag" :style="{
-          marginLeft: isReadPageComputed ? '0' : '10px'
+          marginLeft: isReadPageComputed ? '0' : '1rem'
         }" />
         <ReadState id="read-state" v-if="isReadPageComputed" />
       </div>
@@ -168,9 +173,7 @@ const isReadPageComputed = computed(() => {
           <Component :is="Component" />
         </Transition>
       </RouterView>
-      <Backtop
-        v-if="!isReadPageComputed || (isReadPageComputed && options.enableReadBacktop)"
-        target="#main" />
+      <Backtop v-if="!isReadPageComputed || (isReadPageComputed && options.enableReadBacktop)" target="#main" />
     </ElMain>
     <Window class-name="update-window" center-x center-y destroy-on-close :z-index="1001" :click-hide="false"
       @event="e => updateWindowRef = e">
@@ -193,7 +196,7 @@ const isReadPageComputed = computed(() => {
             <div class="progress" :style="{
               '--download-progress': updateStore.progress
             }"></div>
-            <span>{{ updateStore.isDownloading ? '下载中' : '下载' }}</span>
+            <span>{{ updateStore.isDownloading ? updateStore.progress >= 1 ? '安装中' : '下载中' : '下载' }}</span>
           </button>
           <button v-else @click="updateStore.openHtmlUrl()">下载</button>
         </footer>
@@ -208,13 +211,14 @@ const isReadPageComputed = computed(() => {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 10px 0 10px 10px;
-    height: calc(100% - 20px);
+    padding: 1rem 0 1rem 1rem;
+    height: calc(100% - 2rem);
 
     &.update-log {
       main {
-        height: calc(100% - 135px - 20px);
+        height: calc(100% - 13.5rem - 2rem);
       }
+
       footer {
         display: none;
       }
@@ -222,14 +226,14 @@ const isReadPageComputed = computed(() => {
 
     header,
     footer {
-      margin-right: 10px;
+      margin-right: 1rem;
     }
 
     header {
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 135px;
+      height: 13.5rem;
 
       .info {
         display: flex;
@@ -238,15 +242,15 @@ const isReadPageComputed = computed(() => {
 
         .close-button {
           position: absolute;
-          right: 10px;
+          right: 1rem;
         }
 
         img {
-          margin: 10px 0;
-          width: 60px;
-          height: 60px;
-          border-radius: 21px;
-          box-shadow: 0 12px 32px 4px #1e78eb80, 0 8px 20px #1e78eb14;
+          margin: 1rem 0;
+          width: 6rem;
+          height: 6rem;
+          border-radius: 2.1rem;
+          box-shadow: 0 1.2rem 3.2rem .4rem #1e78eb80, 0 .8rem 2rem #1e78eb14;
         }
 
         h3 {
@@ -255,25 +259,26 @@ const isReadPageComputed = computed(() => {
 
         p.desc {
           color: #A1A1A1;
-          font-size: 12px;
+          font-size: 1.2rem;
         }
 
         p.version {
-          margin-top: 5px;
-          font-size: 14px;
+          margin-top: .5rem;
+          font-size: 1.4rem;
           color: var(--rc-text-color);
         }
       }
     }
 
     main {
-      padding-left: 10px;
-      height: calc(100% - 135px - 30px - 20px);
+      padding-left: 1rem;
+      height: calc(100% - 13.5rem - 3rem - 2rem);
 
       div.body {
-        padding-right: 10px;
+        padding-right: 1rem;
+
         &>* {
-          margin-bottom: 10px;
+          margin-bottom: 1rem;
         }
 
         * {
@@ -282,40 +287,41 @@ const isReadPageComputed = computed(() => {
         }
 
         h3 {
-          font-size: 16px;
+          font-size: 1.6rem;
         }
 
         ul {
-          padding: 0 20px 10px 20px;
+          padding: 0 2rem 1rem 2rem;
           list-style: initial;
 
           li {
-            font-size: 14px;
+            font-size: 1.4rem;
           }
         }
 
         blockquote {
-          padding-left: 10px;
+          padding-left: 1rem;
           color: var(--rc-blockquote-color);
-          border-left: 4px solid var(--rc-blockquote-border-color);
-          font-size: 13px;
+          border-left: .4rem solid var(--rc-blockquote-border-color);
+          font-size: 1.3rem;
         }
       }
-      
+
     }
 
     footer {
-      height: 30px;
+      height: 3rem;
 
       button {
         width: 100%;
-        height: 30px;
+        height: 3rem;
         color: #FFFFFF;
-        font-size: 16px;
+        font-size: 1.6rem;
         background-color: #1E78EB;
-        border-radius: 5px;
+        border-radius: .5rem;
         transition: all 0.3s ease;
         overflow: hidden;
+
         &:hover {
           cursor: pointer;
           background-color: rgba(30, 120, 235, 0.7);
@@ -325,14 +331,17 @@ const isReadPageComputed = computed(() => {
           transform: scale(0.98);
         }
       }
+
       button.download {
         position: relative;
-        div.progress{
+
+        div.progress {
           width: calc(var(--download-progress) * 100%);
           height: 100%;
           background-color: var(--rc-theme-color);
           transition: width 0.2s ease;
         }
+
         span {
           position: absolute;
           top: 50%;
@@ -368,8 +377,8 @@ const isReadPageComputed = computed(() => {
   align-items: center;
   justify-content: space-between;
   padding: 0 6px;
-  height: calc(35px * var(--zoom-factor, 1));
-  min-height: calc(35px / var(--zoom-factor, 1));
+  height: calc(3.5rem * var(--zoom-factor, 1));
+  min-height: calc(3.5rem / var(--zoom-factor, 1));
   background-color: var(--rc-header-color);
   box-shadow: var(--rc-header-box-shadow);
   z-index: 999;
@@ -408,8 +417,8 @@ const isReadPageComputed = computed(() => {
     align-items: center;
 
     img {
-      width: 24px;
-      height: 24px;
+      width: 2.4rem;
+      height: 2.4rem;
     }
   }
 
@@ -417,13 +426,13 @@ const isReadPageComputed = computed(() => {
   #read-progress {
     display: flex;
     align-items: center;
-    height: 22px;
-    line-height: 22px;
+    height: 2.2rem;
+    line-height: 2.2rem;
   }
 
   #read-progress {
-    margin-left: 10px;
-    font-size: 14px;
+    margin-left: 1rem;
+    font-size: 1.4rem;
     color: var(--rc-text-color);
   }
 
@@ -432,14 +441,14 @@ const isReadPageComputed = computed(() => {
 
 #header:is(.win32):not(.fullscreen) {
   .right-box .window-controls-container {
-    width: calc(135px / var(--zoom-factor, 1));
+    width: calc(13.5rem / var(--zoom-factor, 1));
   }
 }
 
 #header:is(.darwin) {
   &:not(.fullscreen) {
     .left-box .window-controls-container {
-      width: calc(65px / var(--zoom-factor, 1));
+      width: calc(6.5rem / var(--zoom-factor, 1));
     }
   }
 
@@ -455,13 +464,13 @@ const isReadPageComputed = computed(() => {
 #main {
   padding: 0;
   width: 100vw;
-  height: calc(100vh - 35px);
+  height: calc(100vh - 3.5rem);
   background-color: var(--rc-main-color);
 
   &>.container {
     position: relative;
-    padding: 5px 0 5px 5px;
-    min-height: calc(100% - 10px);
+    padding: .5rem 0 .5rem .5rem;
+    min-height: calc(100% - 1rem);
   }
 }
 
@@ -470,6 +479,7 @@ const isReadPageComputed = computed(() => {
     .left-box {
       flex: 1;
     }
+
     .left-box,
     .right-box {
       width: auto;
@@ -477,7 +487,7 @@ const isReadPageComputed = computed(() => {
     }
 
     .center-box {
-      width: 300px;
+      width: 30rem;
     }
   }
 }

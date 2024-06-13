@@ -49,11 +49,9 @@ customAxios.download = (() => {
           if (next) {
             stream.write(next);
             hash.update(next);
-          } else {
-            stream.close();
           }
         }
-      });
+      }).finally(() => stream.close());;
     }
     const { start, end, total } = range;
     return await customAxios(<CustomDownloadAxiosRequestConfig>{
@@ -71,11 +69,9 @@ customAxios.download = (() => {
         if (next) {
           stream.write(next);
           hash.update(next);
-        } else {
-          stream.close();
         }
       }
-    });
+    }).finally(() => stream.close());
   }
   return async (url, target, config) => {
     const { headers } = await customAxios.head(url, config);

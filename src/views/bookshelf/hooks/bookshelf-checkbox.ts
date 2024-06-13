@@ -49,7 +49,7 @@ export const useBookshelfCheckbox = () => {
       let error = 0;
       const loading = message.loading('正在将选中书本移出书架');
       for (const id of checkedCities.value) {
-        const book = bookshelf._books.find(b => b.id === id);
+        const book = bookshelf.books.find(b => b.id === id);
         if (!book) {
           continue;
         }

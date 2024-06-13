@@ -63,7 +63,7 @@ export default {
           size="small" :value-on-clear="300" :min="100" :max="500" :step="1" />
       </SettingsCardItem>
     </SettingsCard>
-    <SettingsCard>
+    <SettingsCard :sticky="0">
       <template #header>
         <span class="title">管理</span>
         <div>
@@ -71,7 +71,7 @@ export default {
           <ElButton v-once title="删除" type="danger" size="small" circle :icon="IconDelete" @click="removeChecked" />
         </div>
       </template>
-      <ElTable v-memo="[showValue]" :data="showValue" height="290" @selection-change="handleSelectionChange"
+      <ElTable v-memo="[showValue]" :data="showValue" @selection-change="handleSelectionChange"
           empty-text="暂无解析规则">
           <ElTableColumn type="selection" width="30" :selectable="checkSelectable" />
           <ElTableColumn label="ID" width="100">

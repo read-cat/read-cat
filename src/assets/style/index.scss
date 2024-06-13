@@ -52,7 +52,12 @@
   --rc-blockquote-border-color: #DADADA;
   --rc-blockquote-color: #353535;
 }
-
+html {
+  font-size: 10px;
+}
+body {
+  font-size: 16px;
+}
 html,
 body,
 #app {

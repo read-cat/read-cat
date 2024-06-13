@@ -9,6 +9,7 @@ import { useScrollTopStore } from '../store/scrolltop';
 import { useReadAloudStore } from '../store/read-aloud';
 import { useMessage } from './message';
 import { useTextContentStore } from '../store/text-content';
+import { isNull } from '../core/is';
 
 export const useShortcutKey = () => {
   const { nextChapter, prevChapter } = useTextContentStore();
@@ -118,8 +119,16 @@ export const useShortcutKey = () => {
   const initGlobalShortcutKey = () => {
     const globals = Object.keys(shortcutKey.value)
       .filter(k => k.startsWith('global'))
-      .map(k => ([k, (<any>shortcutKey.value)[k]]));
+      .map(k => {
+        const skey = (<any>shortcutKey.value)[k].trim();
+        if (skey) {
+          return [k, skey];
+        }
+        return null;
+      })
+      .filter(k => !isNull(k));
 
+    GLOBAL_LOG.debug('init global shortcut key,', globals);
     GLOBAL_IPC.send(EventCode.ASYNC_INIT_GLOBAL_SHORTCUT_KEY, globals);
   }
   GLOBAL_IPC.once(EventCode.ASYNC_INIT_GLOBAL_SHORTCUT_KEY, (_, res: [keyof GlobalShortcutKey, string, boolean][]) => {

@@ -1,7 +1,7 @@
 import { defineStore, storeToRefs } from 'pinia';
 import { isBoolean, isFunction, isNull } from '../core/is';
 import { PluginType } from '../core/plugins';
-import { chunkArray, errorHandler } from '../core/utils';
+import { chunkArray, cloneByJSON, errorHandler } from '../core/utils';
 import { useWindowStore } from './window';
 import { useSettingsStore } from './settings';
 import { SearchKeyStoreEntity } from '../core/database/database';
@@ -88,11 +88,11 @@ export const useSearchStore = defineStore('Search', {
             }
             p.push(instance.search(searchkey).then(vs => {
               const end = Date.now();
-              this.searchResult.push(...vs.filter(v => filter(v, searchkey, author || void 0)).map<SearchResult>(e => ({
+              this.searchResult.push(...vs.filter(v => filter(cloneByJSON(v), searchkey, author || void 0)).map<SearchResult>(e => ({
                 bookname: e.bookname ? sanitizeHTML(e.bookname, true).trim() : '',
                 author: e.author ? sanitizeHTML(e.author, true).trim() : '',
-                coverImageUrl: e.coverImageUrl ? sanitizeHTML(e.coverImageUrl, true).trim() : '',
-                detailPageUrl: e.detailPageUrl ? sanitizeHTML(e.detailPageUrl).trim() : '',
+                coverImageUrl: e.coverImageUrl?.trim() || '',
+                detailPageUrl: e.detailPageUrl?.trim() || '',
                 latestChapterTitle: e.latestChapterTitle ? sanitizeHTML(e.latestChapterTitle).trim() : '',
                 sourceName: props.NAME,
                 group: props.GROUP,

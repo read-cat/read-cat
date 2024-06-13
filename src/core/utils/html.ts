@@ -25,18 +25,37 @@ export const sanitizeHTML = (() => {
   }
 })();
 
-/**
- * 对字符串转义
- * 如&转义为 & amp;
- */
-export const escapeHTML = (() => {
-  const divContainer = document.createElement('div');
+const escape = (type: 'xml' | 'html') => {
+  const doc = (new DOMParser).parseFromString('', `text/${type}`);
+  const divContainer = doc.createElement('div');
   return (text: string) => {
-    const node = document.createTextNode(text);
+    const node = doc.createTextNode(text);
     divContainer.appendChild(node);
     const val = divContainer.innerHTML;
     divContainer.removeChild(node);
     return val;
+  }
+}
+
+/**
+ * 字符串HTML转义
+ * 如&转义为 & amp;
+ */
+export const escapeHTML = (() => {
+  const escapeFunc = escape('html');
+  return (text: string) => {
+    return escapeFunc(text);
+  }
+})();
+
+/**
+ * 字符串XML转义
+ * 如&转义为 & amp;
+ */
+export const escapeXML = (() => {
+  const escapeFunc = escape('xml');
+  return (text: string) => {
+    return escapeFunc(text);
   }
 })();
 

@@ -70,6 +70,7 @@ Core.initIpcRenderer().then(() => {
 
 app.mount('#app').$nextTick().then(() => {
   Core.init().then(es => {
+    GLOBAL_LOG.info(`tag: ${METADATA.tag}, branch: ${METADATA.branch}, version: ${METADATA.version}, date: ${METADATA.date}, commit:${METADATA.commit}`);
     const initedEvents = useWindowStore().events.get('inited');
     if (initedEvents) {
       Object.keys(initedEvents).forEach(key => {

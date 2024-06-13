@@ -134,6 +134,8 @@ export const useUpdateStore = defineStore('Update', {
         this.abortController = null;
         this.isDownloading = false;
         this.progress = 0;
+        await sleep(1000);
+        this.deleteUpdaterFile();
       } catch (e: any) {
         if (e === 'cancel') {
           e = newError('cancel');
@@ -206,10 +208,18 @@ export const useUpdateStore = defineStore('Update', {
           });
           throw newError('文件损坏');
         }
+        for (let i = 1; i <= 3; i++) {
+          await sleep(3000);
+          try {
+            await this.openUpdaterFile();
+            break;
+          } catch (e) {
+            if (i >= 3) throw e;
+          }
+        }
         this.abortController = null;
         this.isDownloading = false;
         this.progress = 0;
-        setTimeout(() => spawn(filepath), 2000);
       } catch (e: any) {
         if (e === 'cancel' || e.name === 'CanceledError') {
           return;
@@ -221,7 +231,7 @@ export const useUpdateStore = defineStore('Update', {
         GLOBAL_LOG.error('update download', e);
       }
     },
-    async deleteUpdaterFile() {
+    async deleteUpdaterFile(ignoreError = false) {
       try {
         if (!Core.userDataPath) {
           return;
@@ -233,8 +243,31 @@ export const useUpdateStore = defineStore('Update', {
         await unlink(filepath);
       } catch (e: any) {
         GLOBAL_LOG.error('update deleteUpdaterFile', e);
-        useMessage().error(e.message);
+        !ignoreError && useMessage().error(e.message);
       }
+    },
+    openUpdaterFile() {
+      return new Promise<void>((reso, reje) => {
+        if (!Core.userDataPath) {
+          return;
+        }
+        const filepath = join(Core.userDataPath, this.updaterName);
+        if (!existsSync(filepath)) {
+          return;
+        }
+        const proc = spawn(filepath, {
+          detached: true
+        });
+        proc.on('error', e => {
+          reje(e);
+        });
+        proc.on('exit', () => {
+          reso();
+        });
+        proc.stderr.setEncoding('utf-8').on('data', chunk => {
+          GLOBAL_LOG.error('update openUpdaterFile', chunk);
+        });
+      });
     }
   }
 });

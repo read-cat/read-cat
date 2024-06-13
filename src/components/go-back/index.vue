@@ -29,11 +29,15 @@ export default {
   align-items: center;
 
   button {
-    width: 25px;
-    height: 25px;
+    width: 2.5rem;
+    height: 2.5rem;
 
     &:first-child {
-      margin-right: 3px;
+      margin-right: .3rem;
+    }
+    svg {
+      width: 1.7rem;
+      height: 1.7rem;
     }
   }
 }

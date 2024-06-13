@@ -32,8 +32,8 @@ const showSearchBox = () => {
 }
 
 const winSize = reactive<WindowSize>({
-  width: '400px',
-  height: '500px'
+  width: '40rem',
+  height: '50rem'
 });
 
 const { backgroundImage } = storeToRefs(useSettingsStore());
@@ -81,13 +81,13 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 5px;
-    width: calc(100% - 12px);
-    height: 24px;
+    padding: 0 .5rem;
+    width: calc(100% - 1.2rem);
+    height: 2.4rem;
     color: var(--rc-theme-color);
-    font-size: 12px;
-    border: 1px solid var(--rc-search-border-color);
-    border-radius: 5px;
+    font-size: 1.2rem;
+    border: .1rem solid var(--rc-search-border-color);
+    border-radius: .5rem;
     background-color: var(--rc-search-bgcolor);
     cursor: pointer;
 
@@ -96,8 +96,12 @@ export default {
       align-items: center;
       max-width: 100%;
       span {
-        margin-left: 5px;
-        max-width: 270px;
+        margin-left: .5rem;
+        max-width: 27rem;
+      }
+      svg {
+        width: 1.4rem;
+        height: 1.4rem;
       }
     }
   }

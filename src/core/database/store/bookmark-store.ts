@@ -16,7 +16,7 @@ export class BookmarkStoreDatabase extends BaseStoreDatabase<BookmarkStoreEntity
       if (isNull(res) || res.length <= 0) {
         return;
       }
-      store._bookmarks = res;
+      res.forEach(r => store._bookmarks.set(r.id, r));
     }).catch((e: any) => {
       GLOBAL_LOG.error(this.tag, 'read', e);
       message.error(`书签读取失败, Error: ${e.message}`);

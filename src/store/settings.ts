@@ -335,6 +335,7 @@ export const useSettingsStore = defineStore('Settings', {
         ) {
           return uc;
         }
+        return '';
       }
 
       return keys.join('+');

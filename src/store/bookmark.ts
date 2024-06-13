@@ -6,56 +6,50 @@ import { cloneByJSON, errorHandler } from '../core/utils';
 export const useBookmarkStore = defineStore('Bookmark', {
   state: () => {
     return {
-      _bookmarks: [] as BookmarkStoreEntity[]
+      _bookmarks: new Map() as Map<string, BookmarkStoreEntity>
     }
   },
   getters: {
     bookmarks(): BookmarkStoreEntity[] {
-      return this._bookmarks.sort((a, b) => b.timestamp - a.timestamp);
+      return Array.from(this._bookmarks.values()).sort((a, b) => b.timestamp - a.timestamp);
     }
   },
   actions: {
     getBookmarkByChapterUrl(chapterUrl: string) {
-      return this._bookmarks.find(b => b.chapterUrl === chapterUrl);
+      return Array.from(this._bookmarks.values()).find(b => b.chapterUrl === chapterUrl);
     },
     getBookmarkById(id: string) {
-      return this._bookmarks.find(b => b.id === id);
+      return this._bookmarks.get(id);
     },
     getBookmarksByDetailUrl(detailUrl: string) {
-      return this._bookmarks.filter(b => b.detailUrl === detailUrl);
+      return Array.from(this._bookmarks.values()).filter(b => b.detailUrl === detailUrl);
     },
     async put(bookmark: BookmarkStoreEntity) {
       await GLOBAL_DB.store.bookmarkStore.put(bookmark);
-      const i = this._bookmarks.findIndex(v => v.chapterUrl === bookmark.chapterUrl);
-      if (i >= 0) {
-        this._bookmarks[i] = bookmark;
-      } else {
-        this._bookmarks.push(bookmark);
-      }
+      const id = Array.from(this._bookmarks.values()).find(v => v.chapterUrl === bookmark.chapterUrl)?.id;
+      this._bookmarks.set(id || bookmark.id, bookmark);
     },
     async removeBookmarkRangeByBidAndId(bid: string, rid: string) {
-      const bi = this._bookmarks.findIndex(b => b.id === bid);
-      if (bi < 0) {
+      const b = this._bookmarks.get(bid);
+      if (!b) {
         return;
       }
-      const range = this._bookmarks[bi].range.filter(r => r.id !== rid);
+      const range = b.range.filter(r => r.id !== rid);
       if (range.length > 0) {
-        const clone = cloneByJSON(this._bookmarks[bi]);
+        const clone = cloneByJSON(b);
         clone.range = range;
         await this.put(clone);
       } else {
         await GLOBAL_DB.store.bookmarkStore.remove(bid);
-        this._bookmarks.splice(bi, 1)
+        this._bookmarks.delete(b.id);
       }
     },
     async removeBookmarksByDetailUrl(detailUrl: string): Promise<void> {
       try {
         await GLOBAL_DB.store.bookmarkStore.removeByDetailUrl(detailUrl);
-        const bookmarks = this._bookmarks.filter(b => b.detailUrl === detailUrl);
-        bookmarks.forEach(b => {
-          const i = this._bookmarks.findIndex(v => v.id === b.id);
-          this._bookmarks.splice(i, 1);
-        });
+        Array.from(this._bookmarks.values())
+          .filter(b => b.detailUrl === detailUrl)
+          .forEach(({ id }) => this._bookmarks.delete(id));
       } catch (e) {
         useMessage().error(errorHandler(e, true));
         return errorHandler(e);

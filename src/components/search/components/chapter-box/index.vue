@@ -144,14 +144,14 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 5px;
-    height: 60px;
+    padding-top: .5rem;
+    height: 6rem;
 
     :deep(.el-radio-group) {
-      margin-top: 10px;
+      margin-top: 1rem;
 
       .el-radio-button__inner {
-        padding: 7px 50px;
+        padding: .7rem 5rem;
         background-color: rgba(127, 127, 127, 0.1);
         border: none;
         box-shadow: none;
@@ -168,23 +168,23 @@ export default {
   }
 
   .chapter-box-main {
-    padding: 5px 0;
+    padding: .5rem 0;
 
     .directory {
       position: relative;
 
       ul {
-        height: 390px;
+        height: 39rem;
 
         li {
-          margin: 0 20px 5px;
-          padding: 0 10px;
-          line-height: 25px;
-          height: 25px;
-          font-size: 14px;
+          margin: 0 2rem .5rem;
+          padding: 0 1rem;
+          line-height: 2.5rem;
+          height: 2.5rem;
+          font-size: 1.4rem;
           justify-content: flex-start;
           color: currentColor;
-          border-radius: 5px;
+          border-radius: .5rem;
           contain: layout;
 
           &:active {
@@ -196,7 +196,7 @@ export default {
           }
 
           :deep(.el-icon) {
-            margin-right: 5px;
+            margin-right: .5rem;
           }
         }
       }
@@ -204,7 +204,7 @@ export default {
       :deep(.el-pagination) {
         display: flex;
         justify-content: center;
-        margin-top: 10px;
+        margin-top: 1rem;
         --el-pagination-hover-color: var(--rc-theme-color);
 
         button,
@@ -216,8 +216,8 @@ export default {
     }
 
     .bookmark {
-      padding: 0 20px;
-      height: 425px;
+      padding: 0 2rem;
+      height: 42.5rem;
     }
   }
 }

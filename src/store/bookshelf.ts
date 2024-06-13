@@ -32,15 +32,15 @@ export type BookRefresh = {
 export const useBookshelfStore = defineStore('Bookshelf', {
   state: () => {
     return {
-      _books: [] as BookRefresh[],
+      _books: new Map() as Map<string, BookRefresh>,
       currentPage: 1,
       refreshed: false
     }
   },
   getters: {
     books(): BookRefresh[] {
-      this._books.length <= 0 && (this.currentPage = 1);
-      return this._books.sort((a, b) => b.timestamp - a.timestamp);
+      this._books.size <= 0 && (this.currentPage = 1);
+      return Array.from(this._books.values()).sort((a, b) => b.timestamp - a.timestamp);
     },
   },
   actions: {
@@ -53,7 +53,9 @@ export const useBookshelfStore = defineStore('Bookshelf', {
       }
     },
     exist(pid: string, detailPageUrl: string) {
-      return this._books.findIndex(v => v.pid === pid && v.detailPageUrl === detailPageUrl) >= 0;
+      return Array.from(this._books.values())
+        .findIndex(v => v.pid === pid && v.detailPageUrl === detailPageUrl)
+        >= 0;
     },
     async put(entity: BookshelfStoreEntity): Promise<void> {
       try {
@@ -64,7 +66,6 @@ export const useBookshelfStore = defineStore('Bookshelf', {
         if (!entity.pid.trim() || !entity.detailPageUrl.trim()) {
           throw newError('PID或DetailUrl为空');
         }
-        await GLOBAL_DB.store.bookshelfStore.put(_entity);
         const {
           id,
           pid,
@@ -106,21 +107,13 @@ export const useBookshelfStore = defineStore('Bookshelf', {
           baseUrl,
           group: GROUP,
           pluginName: NAME
-        }
-        const i = this._books.findIndex(v => v.id === id);
-        if (i >= 0) {
-          this._books[i] = {
-            isRunningRefresh: false,
-            error: void 0,
-            ...obj
-          };
-        } else {
-          this._books.push({
-            isRunningRefresh: false,
-            error: void 0,
-            ...obj
-          });
-        }
+        };
+        await GLOBAL_DB.store.bookshelfStore.put(_entity);
+        this._books.set(id, {
+          isRunningRefresh: false,
+          error: void 0,
+          ...obj
+        });
       } catch (e: any) {
         useMessage().error(e.message);
         return errorHandler(e);
@@ -128,10 +121,9 @@ export const useBookshelfStore = defineStore('Bookshelf', {
     },
     async remove(id: string): Promise<void> {
       try {
-        const i = this._books.findIndex(v => v.id === id);
-        if (i >= 0) {
+        if (this._books.has(id)) {
           await GLOBAL_DB.store.bookshelfStore.remove(id);
-          this._books.splice(i, 1);
+          this._books.delete(id);
         }
       } catch (e: any) {
         useMessage().error(e.message);
@@ -140,10 +132,10 @@ export const useBookshelfStore = defineStore('Bookshelf', {
     },
     async removeByPidAndDetailUrl(pid: string, detailUrl: string): Promise<void> {
       try {
-        const i = this._books.findIndex(v => v.pid === pid && v.detailPageUrl === detailUrl);
-        if (i >= 0) {
-          await GLOBAL_DB.store.bookshelfStore.removeByPidAndDetailPageUrl(pid, detailUrl);
-          this._books.splice(i, 1);
+        const entity = Array.from(this._books.values()).find(v => v.pid === pid && v.detailPageUrl === detailUrl);
+        if (entity) {
+          await GLOBAL_DB.store.bookshelfStore.remove(entity.id);
+          this._books.delete(entity.id);
         }
       } catch (e: any) {
         useMessage().error(e.message);
@@ -151,8 +143,8 @@ export const useBookshelfStore = defineStore('Bookshelf', {
       }
     },
     async refresh(id: string): Promise<void> {
-      const index = this._books.findIndex(b => b.id === id);
-      if (index < 0 || this._books[index].isRunningRefresh) {
+      const entity = this._books.get(id);
+      if (!entity || entity.isRunningRefresh) {
         return;
       }
       const db = await GLOBAL_DB.store.bookshelfStore.getById(id);
@@ -160,7 +152,7 @@ export const useBookshelfStore = defineStore('Bookshelf', {
         return;
       }
       try {
-        const { pid, detailPageUrl } = this._books[index];
+        const { pid, detailPageUrl, baseUrl } = entity;
         if (pid === BookParser.PID) {
           return;
         }
@@ -172,10 +164,10 @@ export const useBookshelfStore = defineStore('Bookshelf', {
         if (isNull(instance)) {
           throw newError(`插件未启用, 插件ID:${pid}`);
         }
-        if (isUndefined(props.BASE_URL) || props.BASE_URL.trim() !== this._books[index].baseUrl.trim()) {
+        if (isUndefined(props.BASE_URL) || props.BASE_URL.trim() !== baseUrl.trim()) {
           throw newError('插件请求目标链接[BASE_URL]不匹配');
         }
-        this._books[index].isRunningRefresh = true;
+        entity.isRunningRefresh = true;
         const {
           bookname,
           author,
@@ -202,17 +194,17 @@ export const useBookshelfStore = defineStore('Bookshelf', {
           latestChapterTitle: latestChapterTitle?.trim() || db.latestChapterTitle
         });
       } catch (e: any) {
-        this._books[index].error = e;
+        entity.error = errorHandler(e, true);
         GLOBAL_LOG.error(`Bookshelf refresh bookId:${id}`, e);
         return errorHandler(e);
       } finally {
-        this._books[index].isRunningRefresh = false;
+        entity.isRunningRefresh = false;
       }
 
     },
     async refreshAll() {
       const { threadsNumber } = useSettingsStore();
-      const threads = chunkArray(this._books, threadsNumber);
+      const threads = chunkArray(Array.from(this._books.values()), threadsNumber);
       for (const thread of threads) {
         const ps: Promise<void>[] = [];
         for (const book of thread) {

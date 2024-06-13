@@ -133,21 +133,21 @@ export default {
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
-  height: 75px;
+  height: 7.5rem;
 
   &:deep(.el-input) {
-    border-radius: 5px;
+    border-radius: .5rem;
     background-color: rgba(127, 127, 127, 0.1);
 
     .el-input__wrapper {
-      padding: 0 8px;
+      padding: 0 .8rem;
       background-color: transparent;
       box-shadow: none;
 
       .el-input__inner {
-        margin: 4px 0;
-        font-size: 13px;
-        height: 20px;
+        margin: .4rem 0;
+        font-size: 1.3rem;
+        height: 2rem;
         color: var(--rc-text-color);
         border-color: var(--rc-text-color);
 
@@ -177,19 +177,19 @@ export default {
 
     #search-history-box {
       position: relative;
-      margin-top: 5px;
-      margin-left: 20px;
-      width: calc(v-bind(width) - 20px);
-      height: calc(v-bind(height) - 75px - 20px - 40px);
-      font-size: 13px;
+      margin-top: .5rem;
+      margin-left: 2rem;
+      width: calc(v-bind(width) - 2rem);
+      height: calc(v-bind(height) - 7.5rem - 2rem - 4rem);
+      font-size: 1.3rem;
       color: var(--rc-text-color);
 
       div {
         position: absolute;
-        left: calc(50% - 10px);
+        left: calc(50% - 1rem);
         top: 50%;
         transform: translate(-50%, -50%);
-        font-size: 12px;
+        font-size: 1.2rem;
       }
 
       ul {
@@ -197,17 +197,16 @@ export default {
         flex-direction: row;
         justify-content: space-between;
         flex-wrap: wrap;
-        padding-right: 20px;
+        padding-right: 2rem;
 
         li {
           display: flex;
           flex-direction: row;
           justify-content: space-between;
-          padding: 4px 5px;
-          margin-top: 5px;
-          // margin-right: 5px;
-          width: calc((v-bind(width) - 20px - 5px) / 3 - 21px);
-          border-radius: 5px;
+          padding: .4rem .5rem;
+          margin-top: .5rem;
+          width: calc((v-bind(width) - 2rem - .5rem) / 3 - 2.1rem);
+          border-radius: .5rem;
           background-color: rgba(127, 127, 127, 0.08);
 
           &:nth-child(3n) {
@@ -216,7 +215,7 @@ export default {
           }
 
           span {
-            width: calc((v-bind(width) - 20px - 5px) / 3 - 21px);
+            width: calc((v-bind(width) - 2rem - .5rem) / 3 - 2.1rem);
           }
 
           i {
@@ -233,7 +232,7 @@ export default {
             cursor: pointer;
 
             span {
-              width: calc((v-bind(width) - 20px - 5px) / 3 - 21px - 14px);
+              width: calc((v-bind(width) - 2rem - .5rem) / 3 - 2.1rem - 1.4rem);
             }
 
             i {
@@ -246,9 +245,9 @@ export default {
           }
         }
         i.hide {
-          padding: 4px 5px;
+          padding: .4rem .5rem;
           height: 0;
-          width: calc((v-bind(width) - 20px - 5px) / 3 - 21px);
+          width: calc((v-bind(width) - 2rem - .5rem) / 3 - 2.1rem);
         }
       }
     }

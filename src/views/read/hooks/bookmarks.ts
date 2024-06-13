@@ -19,7 +19,7 @@ export const useBookmarks = () => {
   const { options } = useSettingsStore();
   const { currentChapter, textContent } = storeToRefs(useTextContentStore());
   const { getBookmarkByChapterUrl, put, getBookmarkById } = useBookmarkStore();
-  const { _bookmarks } = storeToRefs(useBookmarkStore());
+  const { bookmarks } = storeToRefs(useBookmarkStore());
   const { currentDetailUrl, currentPid } = storeToRefs(useDetailStore());
   const { exist } = useBookshelfStore();
   const contents = ref<string>('');
@@ -262,7 +262,7 @@ export const useBookmarks = () => {
     immediate: true
   });
 
-  watch(() => _bookmarks.value, (newVal) => {
+  watch(() => bookmarks.value, (newVal) => {
     if (isNull(textContent.value)) {
       return;
     }

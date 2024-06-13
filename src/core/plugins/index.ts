@@ -33,7 +33,7 @@ import { AliyunTTSEngine } from './built-in/tts/aliyun';
 import { Chapter } from '../book/book';
 import type { VM } from 'vm2';
 import NodeCrypto from 'crypto';
-import { uuid, sanitizeHTML, escapeHTML } from '../utils/html';
+import { uuid, sanitizeHTML, escapeHTML, escapeXML } from '../utils/html';
 import { BaiduTTSEngine } from './built-in/tts/baidu';
 import { WebSocket } from 'ws';
 
@@ -611,6 +611,7 @@ export class Plugins {
       URL,
       escapeHTML,
       chunkArray,
+      escapeXML,
     };
 
     new this.VM({

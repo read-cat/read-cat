@@ -28,16 +28,16 @@ export default {
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-left: 15px;
+  margin-left: 1.5rem;
 
   ul {
     display: flex;
     align-items: center;
-    font-size: 14px;
+    font-size: 1.4rem;
 
     li {
-      padding: 4px 8px;
-      margin-right: 3px;
+      padding: .4rem .8rem;
+      margin-right: .3rem;
       color: var(--rc-text-color);
       font-weight: bold;
 

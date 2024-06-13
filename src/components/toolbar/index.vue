@@ -97,7 +97,7 @@ export default {
       </button>
       <button v-memo="[win.currentPath, showReadAloud(), readAloudPlayerWindow?.isShow()]" v-if="win.currentPath === PagePath.READ && showReadAloud()"
         :class="['rc-button', readAloudPlayerWindow?.isShow() ? 'is-show-read-aloud-window' : '']" @click="showReadAloudPlayerWindow" title="朗读">
-        <ElIcon size="18"><IconHeadphonesRoundSound /></ElIcon>
+        <ElIcon size="1.8rem"><IconHeadphonesRoundSound /></ElIcon>
       </button>
       <Window :width="readAloudPlayerWindowConfig.width" :height="readAloudPlayerWindowConfig.height"
         :top="readAloudPlayerWindowConfig.y" :left="readAloudPlayerWindowConfig.x" destroy-on-close
@@ -130,21 +130,21 @@ export default {
               <IconPlayerStop />
             </button>
             <button v-memo="[readAloudIsPin]" :title="readAloudIsPin ? '取消固定' : '固定'" @click="() => readAloudIsPin = !readAloudIsPin">
-              <ElIcon size="17">
+              <ElIcon size="1.7rem">
                 <IconPin v-if="!readAloudIsPin" />
                 <IconPinSlash v-else />
               </ElIcon>
             </button>
           </div>
           <ElSelect v-model="readAloudPlaybackRate" suffix-icon="" popper-class="playback-rate-select" size="small"
-            style="width: 70px;" @change="readAloudPlaybackRateChange">
+            style="width: 7rem;" @change="readAloudPlaybackRateChange">
             <ElOption v-for="rate of readAloudPlaybackRates" :key="rate" :label="`${rate} X`" :value="rate">
               <span disable-click-hide>{{ `${rate} X` }}</span>
             </ElOption>
           </ElSelect>
         </div>
       </Window>
-      <Window width="300" height="300" center-x center-y destroy-on-close @event="e => readAloudVoicesWindow = e"
+      <Window width="30rem" height="30rem" center-x center-y destroy-on-close @event="e => readAloudVoicesWindow = e"
         class-name="read-aloud-voices-window" :is-loading="isRefreshReadAloudVoices">
         <ul class="rc-scrollbar">
           <li v-for="voice of readAloudVoices[1]" :key="voice.value"
@@ -202,7 +202,7 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 5px;
+    padding: 0 .5rem;
     height: 100%;
 
     .btns {
@@ -213,8 +213,8 @@ export default {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 20px;
-        height: 20px;
+        width: 2rem;
+        height: 2rem;
         transition: all 0.3s ease;
         cursor: pointer;
         color: var(--rc-text-color);
@@ -225,26 +225,26 @@ export default {
           transform: scale(0.95);
         }
         &+button {
-          margin-left: 10px;
+          margin-left: 1rem;
         }
 
         svg {
-          width: 18px;
-          height: 18px;
+          width: 1.8rem;
+          height: 1.8rem;
         }
         
         &.play {
-          width: 30px;
-          height: 30px;
+          width: 3rem;
+          height: 3rem;
           color: #FFFFFF;
           background-color: var(--rc-theme-color);
-          box-shadow: 0px 0px 12px rgb(30, 120, 235, 0.5);
+          box-shadow: 0px 0px 1.2rem rgb(30, 120, 235, 0.5);
           border-radius: 50%;
         }
         &.loading {
           svg {
-            width: 20px;
-            height: 20px;
+            width: 2rem;
+            height: 2rem;
           }
           &:hover,
           &:active {
@@ -258,10 +258,10 @@ export default {
     }
   }
   .el-select {
-    margin-right: 5px;
-    width: 35px !important;
+    margin-right: .5rem;
+    width: 3.5rem !important;
     .el-select__wrapper {
-      padding: 2px 0;
+      padding: .2rem 0;
       background-color: transparent;
       box-shadow: none;
     }
@@ -269,7 +269,7 @@ export default {
       text-align: right;
 
       span {
-        font-size: 14px;
+        font-size: 1.4rem;
         font-weight: bold;
         color: var(--rc-text-color) !important;
       }
@@ -284,13 +284,13 @@ export default {
   .el-select-dropdown__list {
     li {
       padding: 0;
-      height: 25px;
-      line-height: 25px;
+      height: 2.5rem;
+      line-height: 2.5rem;
 
       span {
         display: inline-block;
-        padding: 0 15px;
-        width: calc(100% - 30px);
+        padding: 0 1.5rem;
+        width: calc(100% - 3rem);
         height: 100%;
       }
     }
@@ -298,22 +298,22 @@ export default {
 }
 
 .read-aloud-voices-window {
-  padding: 10px 0;
+  padding: 1rem 0;
 
   ul {
-    padding: 0 10px;
-    height: 300px;
+    padding: 0 1rem;
+    height: 30rem;
 
     li {
       justify-content: flex-start;
-      padding: 0 5px;
-      height: 25px;
-      font-size: 13px;
-      border-radius: 8px;
+      padding: 0 .5rem;
+      height: 2.5rem;
+      font-size: 1.3rem;
+      border-radius: .8rem;
       transition: all 0.3s ease;
 
       &+li {
-        margin-top: 5px;
+        margin-top: .5rem;
       }
 
       &.select-voice {
@@ -340,10 +340,10 @@ export default {
 
 .container {
   button {
-    width: 25px;
-    height: 25px;
+    width: 2.5rem;
+    height: 2.5rem;
 
-    margin-right: 5px;
+    margin-right: .5rem;
 
     &:last-child {
       margin: 0;

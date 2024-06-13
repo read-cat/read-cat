@@ -1,5 +1,6 @@
 import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { isDOMException, isError, isNumber, isObject, isString } from '../is';
+import { createHash } from 'crypto';
 
 export function errorHandler(error: any, toString?: false): Promise<never>;
 export function errorHandler(error: any, toString: true): string;
@@ -146,4 +147,8 @@ export const base64ToBlob = (base64: string) => {
     type = res ? res[1] : '';
   }
   return new Blob([Buffer.from(body, 'base64')], { type: type || void 0 });
+}
+
+export const md5 = (val: string) => {
+  return createHash('md5').update(val).digest('hex');
 }

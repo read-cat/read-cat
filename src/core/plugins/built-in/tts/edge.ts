@@ -3,7 +3,7 @@ import { WebSocket } from 'ws';
 import { PluginConstructorParams } from '../../defined/plugins';
 import { EndCallback, NextCallback, TTSOptions, Voice } from '../../defined/ttsengine';
 import { chunkArray } from '../../../utils';
-import { escapeHTML } from '../../../utils/html';
+import { escapeXML } from '../../../utils/html';
 const WebSocketClient: typeof WebSocket = require('ws').WebSocket;
 
 /**
@@ -103,7 +103,7 @@ export class EdgeTTSEngine {
       '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">' +
       `<voice name="${voice}">` +
       `<prosody pitch="${pitch}" rate="${rate}" volume="${volume}">` +
-      escapeHTML(text.trim()) +
+      escapeXML(text.trim()) +
       '</prosody>' +
       '</voice>' +
       '</speak>'

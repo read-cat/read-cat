@@ -90,7 +90,7 @@ export default {
         <ElButton size="small" type="primary" @click="start">启动</ElButton>
       </SettingsCardItem>
     </SettingsCard>
-    <SettingsCard class="plugins-manage-card">
+    <SettingsCard class="plugins-manage-card" :sticky="0">
       <template #header>
         <span v-once class="title">管理</span>
         <div style="display: flex; align-items: center;">
@@ -103,7 +103,7 @@ export default {
         </div>
       </template>
       <FileDrag tip="导入插件" :z-index="1000" :to-body="false" width="100%" height="100%" @change="importPluginsFileDragChange">
-        <ElTable v-memo="[showValue]" :data="showValue" height="215" @selection-change="handleSelectionChange"
+        <ElTable v-memo="[showValue]" :data="showValue" @selection-change="handleSelectionChange"
           empty-text="暂无插件">
           <ElTableColumn type="selection" width="30" :selectable="checkSelectable" />
           <ElTableColumn label="ID" width="65">

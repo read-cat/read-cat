@@ -38,12 +38,12 @@ export default {
 .read-state {
   display: flex;
   align-items: center;
-  margin-left: 20px;
+  margin-left: 2rem;
   color: var(--rc-text-color);
 
   span {
-    margin-right: 10px;
-    font-size: 14px;
+    margin-right: 1rem;
+    font-size: 1.4rem;
 
     &:last-child {
       margin-right: 0;
@@ -57,7 +57,7 @@ export default {
 
       &:nth-child(2),
       &:nth-child(3) {
-        font-size: 12px;
+        font-size: 1.2rem;
       }
     }
   }
