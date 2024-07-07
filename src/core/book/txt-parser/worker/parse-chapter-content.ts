@@ -35,13 +35,13 @@ self.onmessage = e => {
     } else {
       for (let i = 0; i < chapterTitleList.length; i++) {
         let start, end;
-        const startRegExp = new RegExp(`(${escape(chapterTitleList[i])}.*)\n`, 'gm');
+        const startRegExp = new RegExp(`(${escape(chapterTitleList[i].trim())}.*)\n`, 'gm');
         const startExec = (startRegExp).exec(content);
         start = startExec ? startExec[1].length + startExec.index : -1;
         if (i + 1 === chapterTitleList.length) {
           end = void 0;
         } else {
-          const nextRegExp = new RegExp(`${escape(chapterTitleList[i + 1])}.*\n`, 'gm');
+          const nextRegExp = new RegExp(`${escape(chapterTitleList[i + 1].trim())}.*\n`, 'gm');
           end = content.search(nextRegExp);
           end = end >= 0 ? end : void 0;
         }

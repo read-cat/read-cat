@@ -20,7 +20,7 @@ export class ReadColorStoreDatabase extends BaseStoreDatabase<ReadBackground> {
         return;
       }
       for (const item of cloneByJSON(all)) {
-        store.customReadColor.push(item);
+        store.customReadColor.set(item.id, item);
         const { id, backgroundImage } = item;
         if (!backgroundImage?.image) {
           continue;

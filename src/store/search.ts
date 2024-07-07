@@ -20,7 +20,7 @@ export interface SearchResult extends SearchEntity {
 export const useSearchStore = defineStore('Search', {
   state: () => {
     return {
-      searchkey: [] as SearchKeyStoreEntity[],
+      searchkeyMap: new Map<string, SearchKeyStoreEntity>(),
       isRunningSearch: false,
       searchResult: [] as SearchResult[],
       currentPage: 0,
@@ -29,24 +29,32 @@ export const useSearchStore = defineStore('Search', {
     }
   },
   getters: {
-
+    searchkey(): SearchKeyStoreEntity[] {
+      return Array.from(this.searchkeyMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+    }
   },
   actions: {
     addSearchKey(entity: SearchKeyStoreEntity) {
       GLOBAL_DB.store.searchKeyStore.put(entity).then(() => {
-        this.searchkey.unshift(entity);
+        this.searchkeyMap.set(entity.id, entity);
       }).catch(e => {
         useMessage().error(e.message);
       });
     },
     removeSearchKey(id: string) {
       GLOBAL_DB.store.searchKeyStore.remove(id).then(() => {
-        const i = this.searchkey.findIndex(v => v.id === id);
-        i >= 0 && this.searchkey.splice(i, 1);
+        this.searchkeyMap.delete(id);
       }).catch(e => {
         useMessage().error(e.message);
       });
-
+    },
+    hasSearchKey(type: 'id' | 'value', value: string) {
+      if (type === 'value') {
+        return !!Array.from(this.searchkeyMap.values()).find(v => v.searchkey === value);
+      } else if (type === 'id') {
+        return this.searchkeyMap.has(value);
+      }
+      return false;
     },
     async search(searchkey: string, author: string | null, group: string, callback?: (progress: number) => void): Promise<void> {
       const win = useWindowStore();
@@ -88,6 +96,7 @@ export const useSearchStore = defineStore('Search', {
             }
             p.push(instance.search(searchkey).then(vs => {
               const end = Date.now();
+              if (!vs || vs.length < 1) return;
               this.searchResult.push(...vs.filter(v => filter(cloneByJSON(v), searchkey, author || void 0)).map<SearchResult>(e => ({
                 bookname: e.bookname ? sanitizeHTML(e.bookname, true).trim() : '',
                 author: e.author ? sanitizeHTML(e.author, true).trim() : '',

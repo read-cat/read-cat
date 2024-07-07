@@ -33,6 +33,8 @@ export type SettingsOptions = {
   enableScrollToggleChapter: boolean
   /**开启透明窗口 */
   enableTransparentWindow: boolean
+  /**显示章节切换按钮 */
+  enableShowToggleChapterButton: boolean
 }
 export type SettingsReadStyle = {
   /**阅读背景 */

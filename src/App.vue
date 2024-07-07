@@ -295,7 +295,12 @@ const isReadPageComputed = computed(() => {
           list-style: initial;
 
           li {
+            margin-bottom: .5rem;
             font-size: 1.4rem;
+
+            &:last-child {
+              margin-bottom: 0;
+            }
           }
         }
 

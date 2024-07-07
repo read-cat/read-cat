@@ -3,7 +3,7 @@ import { chunkArray, errorHandler, newError } from '../utils';
 import { isArray, isDate, isFunction, isNull, isNumber, isString, isUndefined } from '../is';
 import { load } from 'cheerio';
 import { usePluginsStore } from '../../store/plugins';
-import { timeout, interval } from '../utils/timer';
+import { timeout, interval, sleep } from '../utils/timer';
 import { nanoid } from 'nanoid';
 import { storeToRefs } from 'pinia';
 import { createPluginStore } from './store';
@@ -595,7 +595,9 @@ export class Plugins {
       isDate,
       isFunction,
       Timer: {
-        timeout, interval
+        timeout,
+        interval,
+        sleep
       },
       URLSearchParams,
       WebSocketClient,
@@ -612,6 +614,8 @@ export class Plugins {
       escapeHTML,
       chunkArray,
       escapeXML,
+      setTimeout,
+      setInterval
     };
 
     new this.VM({

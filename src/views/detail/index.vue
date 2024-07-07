@@ -128,12 +128,12 @@ const bookmarkWindow = ref<WindowEvent>();
           <div class="col">
             <p v-once>章节目录</p>
             <ElPagination v-memo="[totalPage, currentPage]" layout="prev, pager, next" :page-count="totalPage" :current-page="currentPage"
-              @current-change="currentPageChange" small hide-on-single-page />
+              @current-change="currentPageChange" size="small" hide-on-single-page />
           </div>
           <div :class="['list', 'rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
             <ElRow v-for="(item, index) in showValue" :key="index">
               <ElCol class="rc-button" :span="8" v-for="i in item" :key="i.url" @click="getChapterContent(i)">
-                <ElIcon v-if="cacheIndexs[<string>detailUrl].includes(i.index)">
+                <ElIcon v-if="cacheIndexs[<string>detailUrl].includes(i.index)"  title="已缓存">
                   <IconCache />
                 </ElIcon>
                 <Text :title="i.title" ellipsis max-width="100%" :data-index="i.index" :style="{

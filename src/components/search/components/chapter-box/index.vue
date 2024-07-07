@@ -113,7 +113,7 @@ export default {
         <template v-if="currentDetailUrl">
           <ul>
             <li v-for="item in showValue" :key="item.url" class="rc-button" @click="directoryItemClick(item)">
-              <ElIcon v-if="cacheIndexs[currentDetailUrl].includes(item.index)">
+              <ElIcon v-if="cacheIndexs[currentDetailUrl].includes(item.index)" title="已缓存">
                 <IconCache />
               </ElIcon>
               <Text ellipsis max-width="350" :title="item.title" :style="{

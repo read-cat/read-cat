@@ -109,7 +109,7 @@ const { rules: txtParseRules } = storeToRefs(useTxtParseRuleStore());
           <div class="left">
             <ElCheckbox v-memo="[checkAll, isIndeterminate]" v-model="checkAll" label="全选"
               :indeterminate="isIndeterminate" @change="handleCheckAllChange" />
-            <ElPagination v-memo="[totalPage, currentPage]" layout="prev, pager, next" small hide-on-single-page
+            <ElPagination v-memo="[totalPage, currentPage]" layout="prev, pager, next" size="small" hide-on-single-page
               :page-count="totalPage" :current-page="currentPage" @current-change="currentPageChange" />
           </div>
           <div class="right">

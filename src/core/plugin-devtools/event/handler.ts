@@ -32,7 +32,7 @@ export const runSearch = (event: PluginDevtools, code: string, searchkey: string
         }
       }
     }
-    if (isFunction(filter)) {
+    if (isFunction(filter) && res) {
       event.send(code, void 0, res.filter(v => filter(v, searchkey)));
     } else {
       event.send(code, void 0, res);

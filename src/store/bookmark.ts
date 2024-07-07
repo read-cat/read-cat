@@ -6,7 +6,7 @@ import { cloneByJSON, errorHandler } from '../core/utils';
 export const useBookmarkStore = defineStore('Bookmark', {
   state: () => {
     return {
-      _bookmarks: new Map() as Map<string, BookmarkStoreEntity>
+      _bookmarks: new Map<string, BookmarkStoreEntity>(),
     }
   },
   getters: {

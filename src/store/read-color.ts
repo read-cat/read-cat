@@ -13,7 +13,7 @@ export type CustomReadColor = ReadBackground & {
 export const useReadColorStore = defineStore('ReadColor', {
   state: () => {
     return {
-      customReadColor: [] as CustomReadColor[],
+      customReadColor: new Map<string, CustomReadColor>(),
       imageMap: new Map<string, { md5: string, url: string, element: HTMLImageElement }>(),
     }
   },
@@ -29,13 +29,13 @@ export const useReadColorStore = defineStore('ReadColor', {
           return true;
         }
         return Core.isDev;
-      }), ...this.customReadColor];
+      }), ...this.customReadColor.values()];
     }
   },
   actions: {
     async put(color: ReadBackground): Promise<void> {
       try {
-        if (this.customReadColor.length > 20) {
+        if (this.customReadColor.size > 20) {
           throw newError('自定义样式已超过20个');
         }
         const _color = replaceInvisibleStr(cloneByJSON(color));
@@ -80,12 +80,7 @@ export const useReadColorStore = defineStore('ReadColor', {
         if (readStyle.background.id === _color.id) {
           readStyle.background = _color;
         }
-        const i = this.customReadColor.findIndex(v => v.id === color.id);
-        if (i > -1) {
-          this.customReadColor[i] = _color;
-        } else {
-          this.customReadColor.push(_color);
-        }
+        this.customReadColor.set(color.id, color);
         if (!color.backgroundImage?.image) {
           return;
         }
@@ -113,10 +108,7 @@ export const useReadColorStore = defineStore('ReadColor', {
         if (readStyle.background.id === id) {
           throw newError('当前颜色正在使用');
         }
-        const i = this.customReadColor.findIndex(v => v.id === id);
-        if (i > -1) {
-          this.customReadColor.splice(i, 1);
-        }
+        this.customReadColor.delete(id);
         const img = this.imageMap.get(id);
         if (img) {
           URL.revokeObjectURL(img.md5);

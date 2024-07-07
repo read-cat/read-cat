@@ -19,6 +19,7 @@ import { useRouter } from 'vue-router';
 import { WindowEvent, WindowSize } from '../../../window/index.vue';
 import { useSettingsStore } from '../../../../store/settings';
 import { onMounted, ref } from 'vue';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
   windowEvent?: WindowEvent,
@@ -38,7 +39,8 @@ const { width, height } = props.windowSize;
 const router = useRouter();
 const message = useMessage();
 const { options } = useSettingsStore();
-const { searchkey: storeSearchkey, addSearchKey, removeSearchKey, search: searchExecute } = useSearchStore();
+const { addSearchKey, removeSearchKey, hasSearchKey, search: searchExecute } = useSearchStore();
+const { searchkey: storeSearchkey } = storeToRefs(useSearchStore());
 const search = (e: MouseEvent | KeyboardEvent, val: string) => {
   if (e instanceof KeyboardEvent && e.code !== 'Enter') {
     return;
@@ -60,8 +62,7 @@ const search = (e: MouseEvent | KeyboardEvent, val: string) => {
     return;
   }
   searchKey.value = key;
-  const has = storeSearchkey.filter(v => v.searchkey === key).length > 0;
-  if (!has) {
+  if (!hasSearchKey('value', key)) {
     addSearchKey({
       id: nanoid(),
       searchkey: key,
@@ -75,8 +76,7 @@ const search = (e: MouseEvent | KeyboardEvent, val: string) => {
 
 const deleteSearchkeyHistory = (e: MouseEvent, id: string) => {
   e.stopPropagation();
-  const i = storeSearchkey.findIndex(v => v.id === id);
-  if (i < 0) {
+  if (!hasSearchKey('id', id)) {
     return;
   }
   removeSearchKey(id);
@@ -85,7 +85,7 @@ const deleteSearchkeyHistory = (e: MouseEvent, id: string) => {
 const searchInputRef = ref<InputInstance>();
 onMounted(() => {
   setTimeout(() => searchInputRef.value?.focus(), 200);
-})
+});
 </script>
 <script lang="ts">
 export default {

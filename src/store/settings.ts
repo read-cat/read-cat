@@ -30,6 +30,7 @@ export const useSettingsStore = defineStore('Settings', {
         enableAutoReadAloudNextChapter: false,
         enableScrollToggleChapter: false,
         enableTransparentWindow: false,
+        enableShowToggleChapterButton: false,
       },
       readStyle: {
         background: DefaultReadColor.GREEN_QINGCAO,

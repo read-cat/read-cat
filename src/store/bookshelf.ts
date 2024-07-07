@@ -32,7 +32,7 @@ export type BookRefresh = {
 export const useBookshelfStore = defineStore('Bookshelf', {
   state: () => {
     return {
-      _books: new Map() as Map<string, BookRefresh>,
+      _books: new Map<string, BookRefresh>(),
       currentPage: 1,
       refreshed: false
     }

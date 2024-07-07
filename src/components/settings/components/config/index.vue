@@ -118,6 +118,9 @@ export default {
         <ElSwitch :validate-event="false" :before-change="windowTransparentSwitchBeforeChange"
           :loading="windowTransparentSwitchIsLoading" @change="windowTransparentSwitchChange" v-model="options.enableTransparentWindow" />
       </SettingsCardItem>
+      <SettingsCardItem v-memo="[options.enableShowToggleChapterButton]" title="显示章节切换按钮" help="章节标题处显示章节切换按钮，仅阅读界面生效">
+        <ElSwitch :validate-event="false" v-model="options.enableShowToggleChapterButton" />
+      </SettingsCardItem>
       <ElDivider />
       <SettingsCardItem v-memo="[scrollbarStepValue]" title="快捷键滚动步进值" help="仅快捷键向上/下滚动时生效">
         <ElInputNumber v-model="scrollbarStepValue"
