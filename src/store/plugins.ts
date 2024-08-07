@@ -28,7 +28,13 @@ export const usePluginsStore = defineStore('Plugins', {
           continue;
         }
         obj[key] = val[key];
-        Reflect.set(plugin.REQUIRE, key, val[key]);
+        // Reflect.set(plugin.REQUIRE, key, val[key]);
+        // 获取配置项内容
+        let item = Reflect.get(plugin.REQUIRE, key);
+        // 修改配置值
+        if(item) item.value = val[key];
+        // 更新配置项
+        Reflect.set(plugin.REQUIRE, key, item);
       }
       await GLOBAL_DB.store.pluginRequireStore.put({
         id: pid,

@@ -1,5 +1,5 @@
 import { isNull, isUndefined } from '../../../is';
-import { PluginConstructorParams } from '../../defined/plugins';
+import { PluginConstructorParams, RequireItem } from '../../defined/plugins';
 import { EndCallback, NextCallback, TTSOptions, Voice } from '../../defined/ttsengine';
 import { chunkArray } from '../../../utils';
 import { createHmac } from 'crypto';
@@ -12,10 +12,36 @@ export class AliyunTTSEngine {
   public static readonly VERSION = '1.0.0';
   public static readonly VERSION_CODE = 0;
   public static readonly PLUGIN_FILE_URL = '';
-  public static readonly REQUIRE = {
-    AccessKeyId: '',
-    AccessKeySecret: '',
-    AppKey: '',
+  // public static readonly REQUIRE = {
+  //   AccessKeyId: '',
+  //   AccessKeySecret: '',
+  //   AppKey: '',
+  // };
+  public static readonly REQUIRE: Record<string, RequireItem> = {
+    AccessKeyId: {
+      type: 'string',
+      label: 'AccessKeyId',
+      value: '',
+      default: '',
+      placeholder: 'AccessKeyId',
+      description: '',
+    },
+    AccessKeySecret: {
+      type: 'string',
+      label: 'AccessKeySecret',
+      value: '',
+      default: '',
+      placeholder: 'AccessKeySecret',
+      description: '',
+    },
+    AppKey: {
+      type: 'string',
+      label: 'AppKey',
+      value: '',
+      default: '',
+      placeholder: 'AppKey',
+      description: '',
+    },
   };
 
   private store;
@@ -32,7 +58,7 @@ export class AliyunTTSEngine {
   }
   queryString() {
     const obj: Record<string, string> = {
-      AccessKeyId: AliyunTTSEngine.REQUIRE.AccessKeyId,
+      AccessKeyId: AliyunTTSEngine.REQUIRE.AccessKeyId.value,
       Action: 'CreateToken',
       Format: 'JSON',
       RegionId: 'cn-shanghai',
@@ -73,13 +99,13 @@ export class AliyunTTSEngine {
     }
   }
   async transform(texts: string[], options: TTSOptions, next: NextCallback, end: EndCallback): Promise<void> {
-    if (!AliyunTTSEngine.REQUIRE.AccessKeyId.trim()) {
+    if (!AliyunTTSEngine.REQUIRE.AccessKeyId.value.trim()) {
       return Promise.reject(new Error('未配置AccessKeyId'));
     }
-    if (!AliyunTTSEngine.REQUIRE.AccessKeySecret.trim()) {
+    if (!AliyunTTSEngine.REQUIRE.AccessKeySecret.value.trim()) {
       return Promise.reject(new Error('未配置AccessKeySecret'));
     }
-    if (!AliyunTTSEngine.REQUIRE.AppKey.trim()) {
+    if (!AliyunTTSEngine.REQUIRE.AppKey.value.trim()) {
       return Promise.reject(new Error('未配置AppKey'));
     }
     const {
@@ -109,7 +135,7 @@ export class AliyunTTSEngine {
           'X-NLS-Token': _token,
         },
         params: {
-          appkey: AliyunTTSEngine.REQUIRE.AppKey,
+          appkey: AliyunTTSEngine.REQUIRE.AppKey.value,
           text,
           token: _token,
           format: 'mp3',

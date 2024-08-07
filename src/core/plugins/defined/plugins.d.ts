@@ -45,6 +45,23 @@ export type PluginConstructorParams = {
   uuid: (noDash?: boolean) => string
 }
 export type SearchFilter = boolean | ((entity: SearchEntity, searchKey: string, author?: string) => boolean);
+/** 插件设置项 */
+export type RequireItem = {
+  /** 要显示的标签 */
+  label: string
+  /** 字段类型 */
+  type: 'number' | 'string' | 'list' | 'password' | 'boolean'
+  /** 字段值 */
+  value?: any
+  /** 字段默认值 */
+  default: any
+  /** 列表类型的数据，ElSelect 的数据源格式 */
+  data?: any
+  /** 字段说明 */
+  description?: string
+  /**  字段输入提示 */
+  placeholder?: string
+}
 export interface PluginBaseProps {
   /**插件ID */
   readonly ID: PluginId;
@@ -63,7 +80,8 @@ export interface PluginBaseProps {
   /**书源、书城的请求链接 */
   readonly BASE_URL?: string;
   /**需要的参数 */
-  readonly REQUIRE?: Record<string, string>;
+  // readonly REQUIRE?: Record<string, string>;
+  readonly REQUIRE?: Record<string, RequireItem>;
   /**书源搜索结果过滤器 */
   readonly SEARCH_FILTER?: SearchFilter;
 }

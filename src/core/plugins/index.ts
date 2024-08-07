@@ -322,7 +322,8 @@ export class Plugins {
     if (cls.REQUIRE && require && Object.keys(require).length > 0) {
       for (const key of Object.keys(require)) {
         if (Object.hasOwn(cls.REQUIRE, key)) {
-          cls.REQUIRE[key] = require[key];
+          // cls.REQUIRE[key] = require[key];
+          cls.REQUIRE[key].value = require[key];
         }
       }
     }

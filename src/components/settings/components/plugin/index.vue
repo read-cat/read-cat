@@ -9,6 +9,9 @@ import {
   ElPagination,
   ElPopover,
   ElTag,
+  ElSwitch,
+  ElSelect,
+  ElOption,
 } from 'element-plus';
 import SettingsCard from '../card/index.vue';
 import SettingsCardItem from '../card/item/index.vue';
@@ -165,12 +168,23 @@ export default {
           <CloseButton @click="pluginSettingWindow?.hide()" />
         </header>
         <main class="rc-scrollbar">
-          <ul>
+          <!--<ul>
             <li v-for="key of pluginSettingFormKeys" :key="key">
               <Text ellipsis max-width="120" :title="key">{{ key }}</Text>
               <ElInput v-model="pluginSettingForm[key]" :placeholder="`请输入${key}`" />
             </li>
-          </ul>
+          </ul>-->
+          <template v-for="key in pluginSettingFormKeys">
+            <SettingsCardItem v-memo="[pluginSettingForm[key]]" :title="pluginSettingForm[key].label" :help="pluginSettingForm[key].description" class="plugin-setting-item">
+              <ElSwitch v-if="pluginSettingForm[key].type=='boolean'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder"/>
+              <ElInput v-else-if="pluginSettingForm[key].type=='string'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder"/>
+              <ElInputNumber v-else-if="pluginSettingForm[key].type=='number'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder" :min="0" :max="100" :step="1"/>
+              <ElSelect v-else-if="pluginSettingForm[key].type=='list'" v-model="pluginSettingForm[key].value">
+                <ElOption v-for="(option, _index) in pluginSettingForm[key].data" :label="option.name" :value="option.id"/>
+              </ElSelect>
+              <ElInput v-else-if="pluginSettingForm[key].type=='password'" type="password" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder" show-password/>
+            </SettingsCardItem>  
+          </template>
         </main>
         <footer>
           <ElButton type="primary" @click="settingPluginRequire">保存</ElButton>
@@ -316,6 +330,66 @@ export default {
       padding-right: 10px;
       .el-button {
         width: 100%;
+      }
+    }
+  }
+}
+
+.plugin-setting-item {
+  height: 30px;
+  font-size: 14px;
+  width: calc(100% - 10px);
+
+  .el-input {
+    height: 30px;
+    font-size: 14px;
+    width: 180px;
+
+    .el-input__wrapper {
+      cursor: default;
+
+      .el-input__inner {
+        height: 20px !important;
+      }
+
+      * {
+        cursor: default;
+      }
+    }
+  }
+
+  .el-select {
+    height: 30px;
+    font-size: 14px;
+    width: 180px;
+
+    .el-input__wrapper {
+      cursor: default;
+
+      .el-input__inner {
+        height: 20px !important;
+      }
+
+      * {
+        cursor: default;
+      }
+    }
+  }
+
+  .el-input-number {
+    height: 30px;
+    font-size: 14px;
+    width: 180px;
+
+    .el-input__wrapper {
+      cursor: default;
+
+      .el-input__inner {
+        height: 20px !important;
+      }
+
+      * {
+        cursor: default;
       }
     }
   }
