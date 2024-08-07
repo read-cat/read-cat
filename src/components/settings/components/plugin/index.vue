@@ -29,6 +29,7 @@ import { Window, FileDrag, Text, CloseButton } from '../../../../components';
 import { usePluginDevtools } from './hooks/plugin-devtools';
 import { useDefaultSearch } from '../../../../hooks/default-search';
 import { useDefaultPagination } from '../../../../hooks/default-pagination';
+import { isNewerVersionPlugin } from '../../../../core/is';
 
 const { pluginDevtools, readAloud } = useSettingsStore();
 const {
@@ -175,7 +176,7 @@ export default {
             </li>
           </ul>-->
           <template v-for="key in pluginSettingFormKeys">
-            <SettingsCardItem v-memo="[pluginSettingForm[key]]" :title="pluginSettingForm[key].label" :help="pluginSettingForm[key].description" class="plugin-setting-item">
+            <SettingsCardItem v-if="isNewerVersionPlugin(pluginSettingForm[key])" v-memo="[pluginSettingForm[key]]" :title="pluginSettingForm[key].label" :help="pluginSettingForm[key].description" class="plugin-setting-item">
               <ElSwitch v-if="pluginSettingForm[key].type=='boolean'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder"/>
               <ElInput v-else-if="pluginSettingForm[key].type=='string'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder"/>
               <ElInputNumber v-else-if="pluginSettingForm[key].type=='number'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder" :min="0" :max="100" :step="1"/>
@@ -183,7 +184,10 @@ export default {
                 <ElOption v-for="(option, _index) in pluginSettingForm[key].data" :label="option.name" :value="option.id"/>
               </ElSelect>
               <ElInput v-else-if="pluginSettingForm[key].type=='password'" type="password" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder" show-password/>
-            </SettingsCardItem>  
+            </SettingsCardItem>
+            <SettingsCardItem v-else v-memo="[pluginSettingForm[key]]" :title="key" class="plugin-setting-item">
+              <ElInput v-model="pluginSettingForm[key]" :placeholder="pluginSettingForm[key]"/>
+            </SettingsCardItem>
           </template>
         </main>
         <footer>

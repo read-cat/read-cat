@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
 import { useMessage } from '../hooks/message';
 import { errorHandler } from '../core/utils';
-
+import { RequireItem } from '../core/plugins/defined/plugins';
+import { isNewerVersionPlugin } from '../core/is';
 
 export const usePluginsStore = defineStore('Plugins', {
   state: () => {
@@ -29,12 +30,19 @@ export const usePluginsStore = defineStore('Plugins', {
         }
         obj[key] = val[key];
         // Reflect.set(plugin.REQUIRE, key, val[key]);
-        // 获取配置项内容
-        let item = Reflect.get(plugin.REQUIRE, key);
-        // 修改配置值
-        if(item) item.value = val[key];
-        // 更新配置项
-        Reflect.set(plugin.REQUIRE, key, item);
+        // 如果是新版插件
+        if (isNewerVersionPlugin(plugin.REQUIRE[key])) {
+          // 获取配置项内容
+          let item = Reflect.get(plugin.REQUIRE, key);
+          // 修改配置值
+          (item as RequireItem).value = val[key];
+          // 更新配置项
+          Reflect.set(plugin.REQUIRE, key, item);
+        }
+        // 兼容旧版插件
+        else {
+          Reflect.set(plugin.REQUIRE, key, val[key]);
+        }
       }
       await GLOBAL_DB.store.pluginRequireStore.put({
         id: pid,

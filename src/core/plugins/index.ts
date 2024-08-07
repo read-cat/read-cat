@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'fs';
 import { chunkArray, errorHandler, newError } from '../utils';
-import { isArray, isDate, isFunction, isNull, isNumber, isString, isUndefined } from '../is';
+import { isArray, isDate, isFunction, isNewerVersionPlugin, isNull, isNumber, isString, isUndefined } from '../is';
 import { load } from 'cheerio';
 import { usePluginsStore } from '../../store/plugins';
 import { timeout, interval, sleep } from '../utils/timer';
@@ -19,7 +19,7 @@ import {
   PluginImportOptions,
   PluginInterface,
   PluginRequestConfig,
-  PluginsOptions
+  PluginsOptions,
 } from './defined/plugins';
 import { BookSource } from './defined/booksource';
 import { BookStore } from './defined/bookstore';
@@ -57,8 +57,6 @@ export namespace PluginType {
     return map.get(val);
   }
 }
-
-
 export class Plugins {
   private pluginsPool: Map<PluginId, {
     enable: boolean,
@@ -322,8 +320,15 @@ export class Plugins {
     if (cls.REQUIRE && require && Object.keys(require).length > 0) {
       for (const key of Object.keys(require)) {
         if (Object.hasOwn(cls.REQUIRE, key)) {
-          // cls.REQUIRE[key] = require[key];
-          cls.REQUIRE[key].value = require[key];
+          // cls.REQUIRE[key] = require[key]; 
+          // 如新是新版插件
+          if (isNewerVersionPlugin(cls.REQUIRE[key])) {
+            cls.REQUIRE[key].value = require[key];
+          }
+          // 兼容旧插件
+          else {
+            cls.REQUIRE[key] = require[key];
+          }
         }
       }
     }

@@ -81,7 +81,7 @@ export interface PluginBaseProps {
   readonly BASE_URL?: string;
   /**需要的参数 */
   // readonly REQUIRE?: Record<string, string>;
-  readonly REQUIRE?: Record<string, RequireItem>;
+  readonly REQUIRE?: Record<string, RequireItem | string>;
   /**书源搜索结果过滤器 */
   readonly SEARCH_FILTER?: SearchFilter;
 }

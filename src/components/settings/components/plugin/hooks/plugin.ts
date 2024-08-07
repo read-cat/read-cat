@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import { isUndefined } from '../../../../../core/is';
+import { isUndefined, isNewerVersionPlugin } from '../../../../../core/is';
 import { useMessage } from '../../../../../hooks/message';
 import { ElMessageBox } from 'element-plus';
 import { PluginType } from '../../../../../core/plugins';
@@ -26,7 +26,7 @@ export type Plugin = {
   searchIndex: string
   builtIn: boolean
   // require?: Record<string, string>
-  require?: Record<string, RequireItem>
+  require?: Record<string, RequireItem | string>
 }
 
 export const usePlugin = () => {
@@ -269,7 +269,7 @@ export const usePlugin = () => {
 
   const pluginSettingWindow = ref<WindowEvent>();
   // const pluginSettingForm = ref<Record<string, string>>({});
-  const pluginSettingForm = ref<Record<string, RequireItem>>({});
+  const pluginSettingForm = ref<Record<string, RequireItem | string>>({});
   const pluginSettingFormKeys = ref<string[]>([]);
   const pluginSettingName = ref('');
   const pluginSettingId = ref('');
@@ -286,14 +286,28 @@ export const usePlugin = () => {
     for (const key of pluginSettingFormKeys.value) {
       // pluginSettingForm.value[key] = '';
       // 初始化配置为默认值
-      pluginSettingForm.value[key].value = pluginSettingForm.value[key].default;
+      // 为兼容旧插件，检查设置项内容是 string 或 RequireItem
+      // 如果为旧版插件
+      if (isNewerVersionPlugin(pluginSettingForm.value[key])) {
+        pluginSettingForm.value[key].value = pluginSettingForm.value[key].default;
+      }
+      else {
+        pluginSettingForm.value[key] = '';
+      }
       const item = getRequire(id);
       if (!item) {
         continue;
       }
       // pluginSettingForm.value[key] = item[key] || '';
       // 设置配置值，如果为空使用默认值
-      pluginSettingForm.value[key].value = item[key] || pluginSettingForm.value[key].default;
+      // 如果是新版插件
+      if (isNewerVersionPlugin(pluginSettingForm.value[key])) {
+        pluginSettingForm.value[key].value = item[key] || pluginSettingForm.value[key].default;
+      }
+      // 为兼容旧版插件
+      else {
+        pluginSettingForm.value[key] = item[key].toString() || ''
+      }
     }
     pluginSettingWindow.value?.show();
   }
@@ -302,10 +316,13 @@ export const usePlugin = () => {
     if (!pluginSettingId.value) {
       return;
     }
+
+    // 为兼容旧插件，检查插件设置项内容类型
     // 生成要保存的键值对
     let keys: Record<string, string> = {};
     pluginSettingFormKeys.value.forEach((key) => {
-      keys[key] = pluginSettingForm.value[key].value
+      // 兼容新旧插件
+      keys[key] = isNewerVersionPlugin(pluginSettingForm.value[key]) ? pluginSettingForm.value[key].value : pluginSettingForm.value[key];
     })
     // setRequire(pluginSettingId.value.trim(), cloneByJSON(pluginSettingForm.value));
     // 保存配置
