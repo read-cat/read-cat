@@ -68,5 +68,10 @@ export const getType = (val: any): string => {
 }
 /** 通过 REQUIRE 检查插件版本 */
 export const isNewerVersionPlugin = (val: RequireItem | string): val is RequireItem => {
-  return (val as RequireItem)?.label != undefined;
+  // 不为空且有label
+  if(val && Object.hasOwn(val as unknown as RequireItem, 'label')){
+    return true;
+  }
+  return false;
+  // return val || Object.hasOwn(val as unknown as RequireItem, 'label') // (val as RequireItem)?.label != undefined);
 }

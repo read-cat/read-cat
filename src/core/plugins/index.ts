@@ -321,6 +321,7 @@ export class Plugins {
       for (const key of Object.keys(require)) {
         if (Object.hasOwn(cls.REQUIRE, key)) {
           // cls.REQUIRE[key] = require[key]; 
+          
           // 如新是新版插件
           if (isNewerVersionPlugin(cls.REQUIRE[key])) {
             cls.REQUIRE[key].value = require[key];

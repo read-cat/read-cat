@@ -175,18 +175,18 @@ export default {
               <ElInput v-model="pluginSettingForm[key]" :placeholder="`请输入${key}`" />
             </li>
           </ul>-->
-          <template v-for="key in pluginSettingFormKeys">
-            <SettingsCardItem v-if="isNewerVersionPlugin(pluginSettingForm[key])" v-memo="[pluginSettingForm[key]]" :title="pluginSettingForm[key].label" :help="pluginSettingForm[key].description" class="plugin-setting-item">
-              <ElSwitch v-if="pluginSettingForm[key].type=='boolean'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder"/>
-              <ElInput v-else-if="pluginSettingForm[key].type=='string'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder"/>
-              <ElInputNumber v-else-if="pluginSettingForm[key].type=='number'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder" :min="0" :max="100" :step="1"/>
+          <template v-for="(key, index) in pluginSettingFormKeys">
+            <SettingsCardItem v-if="isNewerVersionPlugin(pluginSettingForm[key])" :title="pluginSettingForm[key].label" :help="pluginSettingForm[key].description" class="plugin-setting-item">
+              <ElSwitch v-if="pluginSettingForm[key].type=='boolean'" v-model="pluginSettingForm[key].value"/>
+              <ElInput v-else-if="pluginSettingForm[key].type=='string'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder ?? `请输入 ${pluginSettingForm[key].label}`"/>
+              <ElInputNumber v-else-if="pluginSettingForm[key].type=='number'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder ?? `请输入 ${pluginSettingForm[key].label}`" :min="1" :max="100" :step="1"/>
               <ElSelect v-else-if="pluginSettingForm[key].type=='list'" v-model="pluginSettingForm[key].value">
                 <ElOption v-for="(option, _index) in pluginSettingForm[key].data" :label="option.name" :value="option.id"/>
               </ElSelect>
-              <ElInput v-else-if="pluginSettingForm[key].type=='password'" type="password" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder" show-password/>
+              <ElInput v-else-if="pluginSettingForm[key].type=='password'" type="password" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder ?? `请输入 ${pluginSettingForm[key].label}`" show-password/>
             </SettingsCardItem>
-            <SettingsCardItem v-else v-memo="[pluginSettingForm[key]]" :title="key" class="plugin-setting-item">
-              <ElInput v-model="pluginSettingForm[key]" :placeholder="pluginSettingForm[key]"/>
+            <SettingsCardItem v-else :title="key" :key="index" class="plugin-setting-item">
+              <ElInput v-model="pluginSettingForm[key]" :placeholder="`请输入 ${key}`"/>
             </SettingsCardItem>
           </template>
         </main>

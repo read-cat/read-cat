@@ -278,7 +278,6 @@ export const usePlugin = () => {
     if (!props?.REQUIRE || Object.keys(props.REQUIRE).length < 1) {
       return;
     }
-    // pluginSettingForm.value = {};
     pluginSettingForm.value = props.REQUIRE;
     pluginSettingId.value = id;
     pluginSettingName.value = props.NAME;
@@ -299,6 +298,7 @@ export const usePlugin = () => {
         continue;
       }
       // pluginSettingForm.value[key] = item[key] || '';
+
       // 设置配置值，如果为空使用默认值
       // 如果是新版插件
       if (isNewerVersionPlugin(pluginSettingForm.value[key])) {
@@ -306,7 +306,7 @@ export const usePlugin = () => {
       }
       // 为兼容旧版插件
       else {
-        pluginSettingForm.value[key] = item[key].toString() || ''
+        pluginSettingForm.value[key] = item[key] || ''
       }
     }
     pluginSettingWindow.value?.show();
@@ -317,7 +317,6 @@ export const usePlugin = () => {
       return;
     }
 
-    // 为兼容旧插件，检查插件设置项内容类型
     // 生成要保存的键值对
     let keys: Record<string, string> = {};
     pluginSettingFormKeys.value.forEach((key) => {
