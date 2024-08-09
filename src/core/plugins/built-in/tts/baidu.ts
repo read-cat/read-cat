@@ -46,7 +46,7 @@ export class BaiduTTSEngine {
   async getToken() {
     try {
       const now = Date.now();
-      const { body } = await this.request.post(`https://aip.baidubce.com/oauth/2.0/token?client_id=${BaiduTTSEngine.REQUIRE.ApiKey}&client_secret=${BaiduTTSEngine.REQUIRE.SecretKey}&grant_type=client_credentials`, {
+      const { body } = await this.request.post(`https://aip.baidubce.com/oauth/2.0/token?client_id=${BaiduTTSEngine.REQUIRE.ApiKey.value}&client_secret=${BaiduTTSEngine.REQUIRE.SecretKey.value}&grant_type=client_credentials`, {
         headers: {
           'content-type': 'application/json',
           accept: 'application/json'

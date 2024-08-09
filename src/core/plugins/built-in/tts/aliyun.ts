@@ -75,7 +75,7 @@ export class AliyunTTSEngine {
   }
   signature(queryString: string) {
     const stringToSign = this.stringToSign(queryString);
-    return createHmac('sha1', AliyunTTSEngine.REQUIRE.AccessKeySecret + '&').update(stringToSign).digest('base64');
+    return createHmac('sha1', AliyunTTSEngine.REQUIRE.AccessKeySecret.value + '&').update(stringToSign).digest('base64');
   }
   async getToken() {
     try {
