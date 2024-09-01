@@ -1,5 +1,5 @@
 import { isNull, isUndefined } from '../../../is';
-import { PluginConstructorParams } from '../../defined/plugins';
+import { PluginConstructorParams, RequireItem } from '../../defined/plugins';
 import { EndCallback, NextCallback, TTSOptions, Voice } from '../../defined/ttsengine';
 import { chunkArray } from '../../../utils';
 
@@ -11,9 +11,27 @@ export class BaiduTTSEngine {
   public static readonly VERSION = '1.0.0';
   public static readonly VERSION_CODE = 0;
   public static readonly PLUGIN_FILE_URL = '';
-  public static readonly REQUIRE = {
-    ApiKey: '',
-    SecretKey: ''
+  // public static readonly REQUIRE = {
+  //   ApiKey: '',
+  //   SecretKey: ''
+  // };
+  public static readonly REQUIRE: Record<string, RequireItem> = {
+    ApiKey: {
+      type: 'string',
+      label: 'ApiKey',
+      value: '',
+      default: '',
+      placeholder: 'ApiKey',
+      description: '',
+    },
+    SecretKey: {
+      type: 'string',
+      label: 'SecretKey',
+      value: '',
+      default: '',
+      placeholder: 'SecretKey',
+      description: '',
+    },
   };
 
   private store;
@@ -28,7 +46,7 @@ export class BaiduTTSEngine {
   async getToken() {
     try {
       const now = Date.now();
-      const { body } = await this.request.post(`https://aip.baidubce.com/oauth/2.0/token?client_id=${BaiduTTSEngine.REQUIRE.ApiKey}&client_secret=${BaiduTTSEngine.REQUIRE.SecretKey}&grant_type=client_credentials`, {
+      const { body } = await this.request.post(`https://aip.baidubce.com/oauth/2.0/token?client_id=${BaiduTTSEngine.REQUIRE.ApiKey.value}&client_secret=${BaiduTTSEngine.REQUIRE.SecretKey.value}&grant_type=client_credentials`, {
         headers: {
           'content-type': 'application/json',
           accept: 'application/json'
@@ -50,10 +68,10 @@ export class BaiduTTSEngine {
     }
   }
   async transform(texts: string[], options: TTSOptions, next: NextCallback, end: EndCallback): Promise<void> {
-    if (!BaiduTTSEngine.REQUIRE.ApiKey.trim()) {
+    if (!BaiduTTSEngine.REQUIRE.ApiKey.value.trim()) {
       return Promise.reject(new Error('未配置ApiKey'));
     }
-    if (!BaiduTTSEngine.REQUIRE.SecretKey.trim()) {
+    if (!BaiduTTSEngine.REQUIRE.SecretKey.value.trim()) {
       return Promise.reject(new Error('未配置SecretKey'));
     }
     const {

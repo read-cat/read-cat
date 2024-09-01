@@ -1,4 +1,5 @@
 import NodeFormData from 'form-data';
+import { RequireItem } from '../plugins/defined/plugins';
 
 export const toStringCall = (val: any): string => {
   return Object.prototype.toString.call(val);
@@ -64,4 +65,13 @@ export const isKeyboardEvent = (val: any): val is KeyboardEvent => {
 export const getType = (val: any): string => {
   const str = toStringCall(val);
   return str.substring(1, str.length - 1).replace('object ', '');
+}
+/** 通过 REQUIRE 检查插件版本 */
+export const isNewerVersionPlugin = (val: RequireItem | string): val is RequireItem => {
+  // 不为空且有label
+  if(val && Object.hasOwn(val as unknown as RequireItem, 'label')){
+    return true;
+  }
+  return false;
+  // return val || Object.hasOwn(val as unknown as RequireItem, 'label') // (val as RequireItem)?.label != undefined);
 }
