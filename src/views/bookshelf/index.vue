@@ -255,7 +255,9 @@ const { rules: txtParseRules } = storeToRefs(useTxtParseRuleStore());
             </ElSelect>
           </div>
           <ul class="chapter-list rc-scrollbar">
-            <li class="rc-button" v-for="item of books[importBookCurrentPage - 1].chapterTitleList">{{ item }}</li>
+            <li class="rc-button" v-for="item of books[importBookCurrentPage - 1].chapterTitleList" :title="item">
+              <Text ellipsis>{{ item }}</Text>
+            </li>
           </ul>
         </main>
         <footer>
@@ -346,7 +348,7 @@ const { rules: txtParseRules } = storeToRefs(useTxtParseRuleStore());
 
             .el-input {
               width: 49%;
-
+              border-bottom: 1px solid var(--rc-text-color-dark);
               &:nth-child(2) {
                 margin-left: 5px;
               }
