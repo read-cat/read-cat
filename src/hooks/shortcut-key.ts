@@ -23,6 +23,8 @@ export const useShortcutKey = () => {
 
   const handler = debounce((key: string) => {
     switch (key) {
+      case '':
+        break;
       case shortcutKey.value.nextChapter:
         win.currentPath === PagePath.READ && nextChapter();
         break;
