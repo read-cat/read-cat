@@ -85,12 +85,11 @@ export default {
       .title-bar {
         display: flex;
         align-items: center;
+        font-weight: bold;
 
         span {
           margin-right: 5px;
         }
-
-        font-weight: bold;
       }
       
     }

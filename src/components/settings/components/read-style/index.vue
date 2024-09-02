@@ -443,10 +443,10 @@ export default {
         cursor: pointer;
         p {
           margin-bottom: 10px;
+          cursor: default;
           &:last-child {
             margin-bottom: 0;
           }
-          cursor: default;
         }
         p.read-aloud,
         p.normal,

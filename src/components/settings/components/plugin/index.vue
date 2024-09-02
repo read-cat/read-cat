@@ -305,7 +305,20 @@ export default {
     main {
       
       height: 300px;
-      ul {
+      .settings-card-item {
+        .el-input {
+          .el-input__wrapper {
+            padding: 0 6px;
+            
+            &,
+            .el-input__inner {
+              cursor: text;
+            }
+          }
+          
+        }
+      }
+      /* ul {
         padding-right: 10px;
         li {
           display: flex;
@@ -328,7 +341,7 @@ export default {
             }
           }
         }
-      }
+      } */
     }
     footer {
       padding-right: 10px;
