@@ -135,7 +135,7 @@ export default {
                 </li>
                 <li>
                   <span>规则(正则表达式)</span>
-                  <ElInput v-model="ruleForm.value" type="textarea" resize="none" rows="3" />
+                  <ElInput v-model="ruleForm.value" type="textarea" resize="none" :rows="3" />
                 </li>
                 <li>
                   <span>匹配模式</span>

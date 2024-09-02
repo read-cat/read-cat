@@ -16,7 +16,7 @@ export const useClipboard = () => {
     }
     const range = selection.getRangeAt(0);
     let text = '';
-    for (const node of range.cloneContents().childNodes.values().toArray()) {
+    for (const node of Array.from(range.cloneContents().childNodes.values())) {
       text += isNull(node.textContent) ? '\r\n' : `${node.textContent}\r\n`;
     }
     navigator.clipboard.writeText(text.slice(0, -2)).catch(() => {

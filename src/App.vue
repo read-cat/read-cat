@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElContainer, ElHeader, ElMain } from 'element-plus';
-import { Transition, computed, onMounted, watchEffect } from 'vue';
+import { computed, onMounted, watchEffect } from 'vue';
 import Toolbar from './components/toolbar/index.vue';
 import { useRouter } from 'vue-router';
 import GoBack from './components/go-back/index.vue';
