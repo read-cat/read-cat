@@ -22,6 +22,7 @@ import IconArrowLineUp from '../../assets/svg/icon-arrow-line-up.svg';
 import IconArrowLineDown from '../../assets/svg/icon-arrow-line-down.svg';
 import { useReadAloudStore } from '../../store/read-aloud';
 import { useScrollToggleChapter } from './hooks/scroll-toggle-chapter';
+import { useClipboard } from './hooks/clipboard';
 
 const route = useRoute();
 
@@ -35,6 +36,7 @@ const { calcReadProgress, onRefresh } = useWindowStore();
 const { isDark } = storeToRefs(useWindowStore());
 const { setBookmark, contents } = useBookmarks();
 const { options } = useSettingsStore();
+const { copyText } = useClipboard();
 
 const {
   width,
@@ -120,6 +122,7 @@ onRefresh(PagePath.READ, () => {
       <MenuItem label="下一章" @click="nextChapter(true)" />
       <ElDivider v-once />
       <MenuItem label="设置书签" @click="setBookmark" />
+      <MenuItem label="复制" @click="copyText" />
     </Menu>
   </div>
 </template>
