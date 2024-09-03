@@ -9,7 +9,6 @@ import { existsSync } from 'fs';
 import { useCache } from './hooks/cache';
 import { useListener } from './hooks/listener';
 import { useDialog } from './hooks/dialog';
-// import createReadAloudCapsuleWindow from './read-aloud-capsule';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public');
@@ -67,6 +66,11 @@ function createWindow(width?: number, height?: number) {
     return {
       action: 'deny'
     }
+  });
+  
+  win.webContents.on('will-navigate', (e, url) => {
+    e.preventDefault();
+    shell.openExternal(url);
   });
 
   useListener({
@@ -199,8 +203,6 @@ if (!app.requestSingleInstanceLock()) {
       createWindow(width, height);
     } catch (e) {
       createWindow();
-    } finally {
-      // createReadAloudCapsuleWindow(icon);
     }
   });
 }
