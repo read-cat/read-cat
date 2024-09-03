@@ -1,26 +1,15 @@
 import { Logger } from '../logger';
 import adapter from './adapter';
 import { createWriteStream, existsSync, WriteStream } from 'fs';
-import FormDataType from 'form-data';
+
 import {
   CustomAxiosRequestConfig,
   CustomAxiosStatic,
   CustomDownloadAxiosRequestConfig
 } from './defined/axios';
 import { newError } from '../utils';
+import { createHash, Hash } from 'crypto';
 
-
-const NodeFormData: typeof FormDataType = require('form-data');
-Object.defineProperty(NodeFormData.prototype, Symbol.toStringTag, {
-  value: 'NodeFormData',
-  configurable: false,
-  writable: false
-});
-Object.defineProperty(window, 'NodeFormData', {
-  value: NodeFormData,
-  configurable: false,
-  writable: false
-});
 const axios: CustomAxiosStatic = require('axios');
 
 const customAxios = axios.create({
@@ -43,6 +32,7 @@ customAxios.download = (() => {
   const download = async (
     url: string,
     stream: WriteStream,
+    hash: Hash,
     config?: CustomAxiosRequestConfig,
     range?: {
       start: number,
@@ -56,9 +46,12 @@ customAxios.download = (() => {
         method: 'download',
         url,
         onData(next) {
-          next ? stream.write(next) : stream.close();
+          if (next) {
+            stream.write(next);
+            hash.update(next);
+          }
         }
-      });
+      }).finally(() => stream.close());;
     }
     const { start, end, total } = range;
     return await customAxios(<CustomDownloadAxiosRequestConfig>{
@@ -73,20 +66,24 @@ customAxios.download = (() => {
         total
       },
       onData(next) {
-        next ? stream.write(next) : stream.close();
+        if (next) {
+          stream.write(next);
+          hash.update(next);
+        }
       }
-    });
+    }).finally(() => stream.close());
   }
   return async (url, target, config) => {
     const { headers } = await customAxios.head(url, config);
     const isRange = headers['accept-ranges'] === 'bytes';
     const total = Number(headers['content-length']);
+    const hash = createHash('sha256');
     if (existsSync(target)) {
       throw newError(`target exist: ${target}`);
     }
     if (!isRange || isNaN(total)) {
-      await download(url, createWriteStream(target), config);
-      return;
+      await download(url, createWriteStream(target), hash, config);
+      return hash.digest('hex');
     }
     const num = 64;
     const dsize = Math.floor((total - 1) / num);
@@ -100,12 +97,13 @@ customAxios.download = (() => {
       await download(url, createWriteStream(target, {
         flags: 'a',
         start,
-      }), config, {
+      }), hash, config, {
         start,
         end,
         total
       });
     }
+    return hash.digest('hex');
   }
 })();
 customAxios.test = async (url, config) => {
@@ -123,11 +121,14 @@ customAxios.interceptors.response.use(resp => {
   if ([2, 3].includes(Math.floor(resp.status / 100))) {
     return Promise.resolve(resp);
   }
-  return Promise.reject(newError(
-    `status:${resp.status}, ${resp.statusText}\n` +
-    `headers: ${Logger.toString(resp.headers, 2, true)}\n` +
-    resp.data.toString()
-  ));
+  const err = newError(
+    `Status:${resp.status}, ${resp.statusText}\n\n` +
+    `RequestHeaders: \n${Logger.toString(resp.config.headers, 2, true)}\n\n` +
+    `ResponseHeaders: \n${Logger.toString(resp.headers, 2, true)}\n\n` +
+    Logger.toString(resp.data, 2, true)
+  );
+  (<any>err).responseBody = resp.data;
+  return Promise.reject(err);
 }, err => {
   return Promise.reject(err);
 });

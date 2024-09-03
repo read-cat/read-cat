@@ -24,7 +24,8 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByPidAndDetailUrl pid:${pid}, detailUrl:${detailUrl}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByPidAndDetailUrl pid:${pid}, detailUrl:${detailUrl}`, e);
@@ -49,7 +50,8 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByPidAndChapterUrl pid:${pid}, chapterUrl:${chapterUrl}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByPidAndChapterUrl pid:${pid}, chapterUrl:${chapterUrl}`, e);
@@ -74,7 +76,8 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByPidAndChapterIndex pid:${pid}, chapterIndex:${chapterIndex}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByPidAndChapterIndex pid:${pid}, chapterIndex:${chapterIndex}`, e);
@@ -101,20 +104,7 @@ export class TextContentStoreDatabase extends BaseStoreDatabase<TextContentStore
     }
     await this.remove(val.id);
   }
-  async removeByPidAndDetailUrl(pid: string, detailUrl: string): Promise<void> {
-    const entitys = await this.getByPidAndDetailUrl(pid, detailUrl);
-    if (isNull(entitys) || entitys.length <= 0) {
-      return;
-    }
-    const ps: Promise<void>[] = [];
-    entitys.forEach(e => {
-      ps.push(super.remove(e.id));
-    });
-    (await Promise.allSettled(ps)).forEach(r => {
-      if (r.status === 'rejected') {
-        GLOBAL_LOG.error(this.tag, 'removeByPidAndDetailUrl', r.reason);
-      }
-    });
+  removeByPidAndDetailUrl(pid: string, detailUrl: string): Promise<void> {
+    return super.useCursorRemove('index_pid_detailUrl', [pid, detailUrl]);
   }
-
 }

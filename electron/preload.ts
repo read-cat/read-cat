@@ -54,63 +54,63 @@ function useLoading() {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: #2980B9;
+    background-color: #E6EAEF;
     z-index: 99999;
-    .sk-chase {
-
-      width: 40px;
-      height: 40px;
-      position: relative;
-      animation: sk-chase 2.5s infinite linear both;
+  }
+  #app-loading-container .lds-ripple {
+    /* change color here */
+    color: #134478
+  }
+  #app-loading-container .lds-ripple,
+  #app-loading-container .lds-ripple div {
+    box-sizing: border-box;
+  }
+  #app-loading-container .lds-ripple {
+    display: inline-block;
+    position: relative;
+    width: 80px;
+    height: 80px;
+  }
+  #app-loading-container .lds-ripple div {
+    position: absolute;
+    border: 4px solid currentColor;
+    opacity: 1;
+    border-radius: 50%;
+    animation: lds-ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+  }
+  #app-loading-container .lds-ripple div:nth-child(2) {
+    animation-delay: -0.5s;
+  }
+  
+  @keyframes lds-ripple {
+    0% {
+      top: 36px;
+      left: 36px;
+      width: 8px;
+      height: 8px;
+      opacity: 0;
     }
-    
-    .sk-chase-dot {
-      width: 100%;
-      height: 100%;
-      position: absolute;
+    4.9% {
+      top: 36px;
+      left: 36px;
+      width: 8px;
+      height: 8px;
+      opacity: 0;
+    }
+    5% {
+      top: 36px;
+      left: 36px;
+      width: 8px;
+      height: 8px;
+      opacity: 1;
+    }
+    100% {
+      top: 0;
       left: 0;
-      top: 0; 
-      animation: sk-chase-dot 2.0s infinite ease-in-out both; 
+      width: 80px;
+      height: 80px;
+      opacity: 0;
     }
-    
-    .sk-chase-dot:before {
-      content: '';
-      display: block;
-      width: 25%;
-      height: 25%;
-      background-color: #fff;
-      border-radius: 100%;
-      animation: sk-chase-dot-before 2.0s infinite ease-in-out both; 
-    }
-    
-    .sk-chase-dot:nth-child(1) { animation-delay: -1.1s; }
-    .sk-chase-dot:nth-child(2) { animation-delay: -1.0s; }
-    .sk-chase-dot:nth-child(3) { animation-delay: -0.9s; }
-    .sk-chase-dot:nth-child(4) { animation-delay: -0.8s; }
-    .sk-chase-dot:nth-child(5) { animation-delay: -0.7s; }
-    .sk-chase-dot:nth-child(6) { animation-delay: -0.6s; }
-    .sk-chase-dot:nth-child(1):before { animation-delay: -1.1s; }
-    .sk-chase-dot:nth-child(2):before { animation-delay: -1.0s; }
-    .sk-chase-dot:nth-child(3):before { animation-delay: -0.9s; }
-    .sk-chase-dot:nth-child(4):before { animation-delay: -0.8s; }
-    .sk-chase-dot:nth-child(5):before { animation-delay: -0.7s; }
-    .sk-chase-dot:nth-child(6):before { animation-delay: -0.6s; }
-  }
-  
-  @keyframes sk-chase {
-    100% { transform: rotate(360deg); } 
-  }
-  
-  @keyframes sk-chase-dot {
-    80%, 100% { transform: rotate(360deg); } 
-  }
-  
-  @keyframes sk-chase-dot-before {
-    50% {
-      transform: scale(0.4); 
-    } 100%, 0% {
-      transform: scale(1.0); 
-    } 
   }
   `
   const oStyle = document.createElement('style')
@@ -119,16 +119,9 @@ function useLoading() {
   oStyle.id = 'app-loading-style'
   oStyle.innerHTML = styleContent
   oDiv.id = 'app-loading-container'
-  oDiv.classList.add('app-no-drag')
+  oDiv.classList.add('app-drag')
   oDiv.innerHTML = `
-  <div class="sk-chase">
-    <div class="sk-chase-dot"></div>
-    <div class="sk-chase-dot"></div>
-    <div class="sk-chase-dot"></div>
-    <div class="sk-chase-dot"></div>
-    <div class="sk-chase-dot"></div>
-    <div class="sk-chase-dot"></div>
-  </div>
+  <div class="lds-ripple"><div></div><div></div></div>
   `
   return {
     appendLoading() {

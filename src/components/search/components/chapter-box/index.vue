@@ -24,6 +24,9 @@ import IconCache from '../../../../assets/svg/icon-cache.svg';
 import Bookmark from '../../../bookmark/index.vue';
 import { useSettingsStore } from '../../../../store/settings';
 import { useWindowStore } from '../../../../store/window';
+import { useScrollTopStore } from '../../../../store/scrolltop';
+import { Text } from '../../..';
+import { useReadAloudStore } from '../../../../store/read-aloud';
 
 const props = defineProps<{
   windowEvent?: WindowEvent
@@ -31,7 +34,7 @@ const props = defineProps<{
 
 
 const { isDark } = storeToRefs(useWindowStore());
-const { textColor } = storeToRefs(useSettingsStore());
+const { textColor, backgroundImage } = storeToRefs(useSettingsStore());
 const radioValue = ref('directory');
 const { options } = useSettingsStore();
 const message = useMessage();
@@ -49,13 +52,15 @@ const {
   currentChapterTitle,
   currentChapterPage
 } = usePagination(13);
-
+const { scrollToTextContent } = useScrollTopStore();
 const directoryItemClick = (chapter: Chapter) => {
   if (currentChapterTitle.value === chapter.title) {
     return;
   }
   props.windowEvent?.hide();
+  const { playerStatus, play, stop } = useReadAloudStore();
   getTextContent(pid.value, chapter).then(() => {
+    scrollToTextContent(void 0, 'instant');
     if (isUndefined(chapter.index)) {
       setCurrentReadIndex(-1);
       GLOBAL_LOG.warn(`chapter index is undefined, pid:${pid}`, chapter);
@@ -76,6 +81,10 @@ const directoryItemClick = (chapter: Chapter) => {
         });
       });
     }
+    stop();
+    if (playerStatus !== 'pause') {
+      play(0);
+    }
   }).catch(e => {
     message.error(e.message);
   });
@@ -89,7 +98,7 @@ export default {
 
 <template>
   <ElContainer class="chapter-box-container" :style="{
-    '--text-color': isDark ? '' : textColor,
+    '--text-color': isDark ? '' : backgroundImage ? '' : textColor,
   }">
     <ElHeader class="chapter-box-header">
       <ElText size="small" truncated v-memo="[currentChapterPage, currentChapterTitle]">当前章节(第{{ currentChapterPage }}页)
@@ -101,20 +110,21 @@ export default {
     </ElHeader>
     <ElMain class="chapter-box-main">
       <div v-show="radioValue === 'directory'" class="directory">
-        <ul>
-          <li v-memo="[item.title === currentChapterTitle, cacheIndexs.includes(item.index)]" v-for="item in showValue"
-            :key="item.url" class="rc-button" @click="directoryItemClick(item)">
-            <ElIcon v-if="cacheIndexs.includes(item.index)">
-              <IconCache />
-            </ElIcon>
-            <span :style="{
-              color: `${item.title === currentChapterTitle ? 'var(--rc-theme-color)' : ''}`,
-              fontWeight: `${item.title === currentChapterTitle ? 'bold' : ''}`
-            }">{{ item.title }}</span>
-          </li>
-        </ul>
-        <ElPagination layout="prev, pager, next" :current-page="currentPage" :page-count="totalPage"
-          @current-change="currentPageChange" hide-on-single-page />
+        <template v-if="currentDetailUrl">
+          <ul>
+            <li v-for="item in showValue" :key="item.url" class="rc-button" @click="directoryItemClick(item)">
+              <ElIcon v-if="cacheIndexs[currentDetailUrl].includes(item.index)" title="已缓存">
+                <IconCache />
+              </ElIcon>
+              <Text ellipsis max-width="350" :title="item.title" :style="{
+                color: `${item.title === currentChapterTitle ? 'var(--rc-theme-color)' : ''}`,
+                fontWeight: `${item.title === currentChapterTitle ? 'bold' : ''}`
+              }">{{ item.title }}</Text>
+            </li>
+          </ul>
+          <ElPagination layout="prev, pager, next" :current-page="currentPage" :page-count="totalPage"
+            @current-change="currentPageChange" hide-on-single-page />
+        </template>
       </div>
       <div v-show="radioValue === 'bookmark'"
         :class="['bookmark', 'rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
@@ -129,18 +139,19 @@ export default {
   * {
     color: var(--text-color);
   }
+
   .chapter-box-header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 5px;
-    height: 60px;
+    padding-top: .5rem;
+    height: 6rem;
 
     :deep(.el-radio-group) {
-      margin-top: 10px;
+      margin-top: 1rem;
 
       .el-radio-button__inner {
-        padding: 7px 50px;
+        padding: .7rem 5rem;
         background-color: rgba(127, 127, 127, 0.1);
         border: none;
         box-shadow: none;
@@ -157,23 +168,24 @@ export default {
   }
 
   .chapter-box-main {
-    padding: 5px 0;
+    padding: .5rem 0;
 
     .directory {
       position: relative;
 
       ul {
-        height: 390px;
+        height: 39rem;
 
         li {
-          margin: 0 20px 5px;
-          padding: 0 10px;
-          line-height: 25px;
-          height: 25px;
-          font-size: 14px;
+          margin: 0 2rem .5rem;
+          padding: 0 1rem;
+          line-height: 2.5rem;
+          height: 2.5rem;
+          font-size: 1.4rem;
           justify-content: flex-start;
           color: currentColor;
-          border-radius: 5px;
+          border-radius: .5rem;
+          contain: layout;
 
           &:active {
             transform: scale(0.95);
@@ -183,16 +195,8 @@ export default {
             margin-bottom: 0;
           }
 
-          span {
-            display: inline-block;
-            max-width: 350px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-wrap: nowrap;
-          }
-
           :deep(.el-icon) {
-            margin-right: 5px;
+            margin-right: .5rem;
           }
         }
       }
@@ -200,7 +204,7 @@ export default {
       :deep(.el-pagination) {
         display: flex;
         justify-content: center;
-        margin-top: 10px;
+        margin-top: 1rem;
         --el-pagination-hover-color: var(--rc-theme-color);
 
         button,
@@ -212,8 +216,8 @@ export default {
     }
 
     .bookmark {
-      padding: 0 20px;
-      height: 425px;
+      padding: 0 2rem;
+      height: 42.5rem;
     }
   }
 }

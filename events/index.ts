@@ -35,10 +35,32 @@ export class EventCode {
   static ASYNC_UNREGISTER_SHORTCUT_KEY: string
   /**初始化全局快捷键 */
   static ASYNC_INIT_GLOBAL_SHORTCUT_KEY: string
+  /**全局快捷键被触发 */
+  static ASYNC_TRIGGER_GLOBAL_SHORTCUT_KEY: string
 
   /**插件开发窗口被关闭 */
   static ASYNC_PLUGIN_WINDOW_CLOSED: string
 
+  /**清除缓存 */
+  static ASYNC_CLEAR_CACHE: string
+
+  /**重新启动程序 */
+  static ASYNC_REBOOT_APPLICATION: string
+
+  /**设置窗口背景颜色 */
+  static ASYNC_SET_WINDOW_BACKGROUND_COLOR: string
+  /**是否为透明窗口 */
+  static ASYNC_WINDOW_IS_TRANSPARENT: string
+  /**是否重写标题栏 */
+  static ASYNC_WINDOW_IS_OVERWRITE_TITLE_BAR: string
+
+  /**显示打开文件对话框 */
+  static ASYNC_SHOW_OPEN_FILE_DIALOG: string
+  /**显示保存文件对话框 */
+  static ASYNC_SHOW_SAVE_FILE_DIALOG: string
+
+  /**页面加载完成 */
+  static ASYNC_DID_FINISH_LOAD: string
 
   /**
    * 开发环境

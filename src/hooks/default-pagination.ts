@@ -1,12 +1,12 @@
 import { ref, Ref, toRaw, watch } from 'vue';
 import { chunkArray } from '../core/utils';
-import { isNull, isUndefined } from '../core/is';
+import { isNull } from '../core/is';
 
 export const useDefaultPagination = <T>(val: Ref<T[]>, pageSize = 20, defaultPage = 1) => {
-  const pageValue = ref<T[][]>([]);
+  const pageValue = <Ref<T[][]>>ref<T[][]>([]);
   const totalPage = ref<number>(0);
-  const showValue = ref<T[]>([]);
-  const currentPage = ref<number>(!defaultPage ? 1 : defaultPage);
+  const showValue = <Ref<T[]>>ref<T[]>([]);
+  const currentPage = ref<number>(defaultPage || 1);
 
   let onchange: (() => void) | undefined = void 0;
   const onCurrentPageChange = (callback: () => void) => {
@@ -22,8 +22,7 @@ export const useDefaultPagination = <T>(val: Ref<T[]>, pageSize = 20, defaultPag
   }
   const currentPageChange = (page: number) => {
     currentPage.value = page;
-    showValue.value = pageValue.value[getPage()];
-    showValue.value = isUndefined(showValue.value) ? [] : showValue.value;
+    showValue.value = pageValue.value[getPage()] || [];
     onchange && onchange();
   }
   watch(() => val.value, newVal => {
@@ -33,10 +32,9 @@ export const useDefaultPagination = <T>(val: Ref<T[]>, pageSize = 20, defaultPag
       showValue.value = [];
       return;
     }
-    pageValue.value = chunkArray<any>(toRaw(newVal), !pageSize ? 20 : pageSize);
+    pageValue.value = chunkArray(toRaw(newVal), pageSize || 20);
     totalPage.value = pageValue.value.length;
-    showValue.value = pageValue.value[getPage()];
-    showValue.value = isUndefined(showValue.value) ? [] : showValue.value;
+    showValue.value = pageValue.value[getPage()] || [];
   }, {
     immediate: true,
     deep: true

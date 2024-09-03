@@ -1,8 +1,10 @@
-import { isNull, isNumber, isString, isUndefined } from '../../../is';
+import { isNull, isString, isUndefined } from '../../../is';
 import { WebSocket } from 'ws';
 import { PluginConstructorParams } from '../../defined/plugins';
 import { EndCallback, NextCallback, TTSOptions, Voice } from '../../defined/ttsengine';
-const WebSocketClient = require('ws').WebSocket;
+import { chunkArray } from '../../../utils';
+import { escapeXML } from '../../../utils/html';
+const WebSocketClient: typeof WebSocket = require('ws').WebSocket;
 
 /**
  * 功能实现参考自 https://github.com/rany2/edge-tts/
@@ -15,8 +17,7 @@ export class EdgeTTSEngine {
   public static readonly VERSION = '1.0.0';
   public static readonly VERSION_CODE = 0;
   public static readonly PLUGIN_FILE_URL = '';
-  public static readonly TTS_ENGINE_REQUIRE = {};
-  public static readonly arguments = {};
+  public static readonly REQUIRE = {};
 
   private static readonly TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4';
   private static readonly WEBSOCKET_MAX_SIZE = 2 ** 16;;
@@ -75,6 +76,12 @@ export class EdgeTTSEngine {
           return reso(body);
         }
       }
+      this.wss.onerror = e => {
+        return reje(new Error(e.message));
+      }
+      this.wss.onclose = e => {
+        return e.reason ? reje(new Error(e.reason)) : reso(Buffer.alloc(0));
+      }
       this.wss.send(ssmlHeaders, e => {
         if (e) {
           return reje(e);
@@ -96,7 +103,7 @@ export class EdgeTTSEngine {
       '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">' +
       `<voice name="${voice}">` +
       `<prosody pitch="${pitch}" rate="${rate}" volume="${volume}">` +
-      text.trim() +
+      escapeXML(text.trim()) +
       '</prosody>' +
       '</voice>' +
       '</speak>'
@@ -113,46 +120,82 @@ export class EdgeTTSEngine {
       rate,
       volume,
       signal,
-      start
+      start,
+      maxLineWordCount
     } = options;
     signal.onabort = () => {
       this.wss?.close();
     }
-    let _voice = 'Microsoft Server Speech Text to Speech Voice (zh-CN, XiaoxiaoNeural)';
-    let _rate = '0%';
-    let _volume = '100%';
-    let _start = 0;
-    if (voice) {
-      _voice = voice;
-    }
-    if (isNumber(rate)) {
-      _rate = `${Math.floor(rate * 100)}%`;
-    }
-    if (isNumber(volume)) {
-      _volume = `${Math.floor(volume * 100)}%`;
-    }
-    if (!isUndefined(start)) {
-      _start = start;
+    let _voice = voice || 'Microsoft Server Speech Text to Speech Voice (zh-CN, XiaoxiaoNeural)';
+    let _rate = !isUndefined(rate) ? `${Math.floor(rate * 100)}%` : '0%';
+    let _volume = !isUndefined(volume) ? `${Math.floor(volume * 100)}%` : '100%';
+    let _start = !isUndefined(start) ? start : 0;
+    let _maxLineWordCount = isUndefined(maxLineWordCount) || maxLineWordCount < 100 ? 100 : maxLineWordCount;
+    const toBuffer = async (text: string) => {
+      if (!/([\u4e00-\u9fa5]|[a-z0-9])+/igm.test(text)) {
+        return Buffer.alloc(0);
+      }
+      const ssml = this.createSSML(text, _voice, _rate, _volume, '0Hz');
+      const headers = this.createSSMLHeaders(ssml);
+      const body = await this.sendSSMLRequest(headers);
+      return body;
     }
     for (let i = _start; i < texts.length; i++) {
       if (signal.aborted) {
         break;
       }
       const text = texts[i];
-      const ssml = this.createSSML(text, _voice, _rate, _volume, '0Hz');
-      const headers = this.createSSMLHeaders(ssml);
-      const body = await this.sendSSMLRequest(headers);
-      next(new Blob([body], { type: 'audio/mp3' }), i);
+      const chunks = chunkArray(Array.from(text), _maxLineWordCount);
+      for (let j = 0; j < chunks.length; j++) {
+        const t = chunks[j].join('');
+        const body = await toBuffer(t);
+        next({
+          blob: new Blob([body], { type: 'audio/mp3' }),
+          index: j
+        }, i);
+      }
     }
     end();
   }
   async getVoiceList(): Promise<Voice[]> {
-    const { body } = await this.request.get(`https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/voices/list?trustedclienttoken=${EdgeTTSEngine.TOKEN}`);
-    return JSON.parse(body).filter((v: any) => v.Locale.startsWith('zh')).map((v: any) => {
+    const { body } = await this.request.get(`https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/voices/list?trustedclienttoken=${EdgeTTSEngine.TOKEN}`).catch(() => ({ body: '[]' }));
+    const voices: Voice[] = JSON.parse(body).map((v: any) => {
       return {
         name: v.FriendlyName,
         value: v.Name
       }
     });
+    if (voices.length < 1) {
+      return [{
+        name: 'Microsoft Xiaoxiao Online (Natural) - Chinese (Mainland)',
+        value: 'Microsoft Server Speech Text to Speech Voice (zh-CN, XiaoxiaoNeural)'
+      }, {
+        name: 'Microsoft Xiaoyi Online (Natural) - Chinese (Mainland)',
+        value: 'Microsoft Server Speech Text to Speech Voice (zh-CN, XiaoyiNeural)'
+      }, {
+        name: 'Microsoft Yunjian Online (Natural) - Chinese (Mainland)',
+        value: 'Microsoft Server Speech Text to Speech Voice (zh-CN, YunjianNeural)'
+      }, {
+        name: 'Microsoft Yunxi Online (Natural) - Chinese (Mainland)',
+        value: 'Microsoft Server Speech Text to Speech Voice (zh-CN, YunxiNeural)'
+      }, {
+        name: 'Microsoft Yunxia Online (Natural) - Chinese (Mainland)',
+        value: 'Microsoft Server Speech Text to Speech Voice (zh-CN, YunxiaNeural)'
+      }, {
+        name: 'Microsoft Yunyang Online (Natural) - Chinese (Mainland)',
+        value: 'Microsoft Server Speech Text to Speech Voice (zh-CN, YunyangNeural)'
+      }];
+    }
+    const mainland: Voice[] = [];
+    const arr: Voice[] = [];
+    voices.forEach(v => {
+      if (v.name.includes('Chinese (Mainland)')) {
+        mainland.push(v);
+      } else {
+        arr.push(v);
+      }
+    });
+    
+    return [...mainland, ...arr];;
   }
 }

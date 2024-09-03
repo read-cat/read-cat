@@ -27,23 +27,23 @@ export default {
 }
 </script>
 <template>
-  <div :class="['read-state', 'app-no-drag', platform]">
+  <div :class="['read-state', platform]">
     <span v-memo="[date]">{{ date }}</span>
     <span v-memo="[readProgress]">已读:<br v-if="platform === 'darwin'">{{ readProgress }}</span>
     <span v-if="textContent" v-memo="[textContent]">字数:<br v-if="platform === 'darwin'">{{ textContent.length }}</span>
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .read-state {
   display: flex;
   align-items: center;
-  margin-left: 20px;
+  margin-left: 2rem;
   color: var(--rc-text-color);
 
   span {
-    margin-right: 10px;
-    font-size: 14px;
+    margin-right: 1rem;
+    font-size: 1.4rem;
 
     &:last-child {
       margin-right: 0;
@@ -57,9 +57,14 @@ export default {
 
       &:nth-child(2),
       &:nth-child(3) {
-        font-size: 12px;
+        font-size: 1.2rem;
       }
     }
+  }
+}
+@media screen and (max-width: 800px) {
+  .read-state {
+    display: none;
   }
 }
 </style>

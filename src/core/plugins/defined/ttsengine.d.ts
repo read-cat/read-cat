@@ -3,7 +3,12 @@ export type Voice = {
   value: string
 }
 
-export type NextCallback = (blob: Blob, index: number) => void;
+export type AudioChunk = {
+  blob: Blob
+  index: number
+}
+
+export type NextCallback = (chunk: AudioChunk, index: number) => void;
 export type EndCallback = () => void;
 export type TTSOptions = {
   /**朗读角色 */
@@ -27,15 +32,16 @@ export type TTSOptions = {
    * 中止信号
    */
   signal: AbortSignal
+  /**朗读行最大字数 */
+  maxLineWordCount?: number
 }
 export interface TextToSpeechEngine {
-  /**
-   * 参数
-   */
-  arguments: Record<string, string | boolean | number>
   /**
    * 转换为音频
    */
   transform: (texts: string[], options: TTSOptions, next: NextCallback, end: EndCallback) => Promise<void>
+  /**
+   * 获取发音人列表
+   */
   getVoiceList: () => Promise<Voice[]>
 }

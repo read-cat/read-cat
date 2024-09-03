@@ -8,6 +8,7 @@ export interface WindowEvent {
   show: () => void
   hide: () => void
   isShow: () => boolean
+  el: () => HTMLElement | null
 }
 export type WindowSize = {
   width: string,
@@ -16,12 +17,14 @@ export type WindowSize = {
 
 export type WindowProps = {
   top?: number | string,
+  left?: number | string,
   width?: number | string,
   height?: number | string,
   backgroundColor?: string,
   className?: string,
   toBody?: boolean,
-  center?: boolean,
+  centerX?: boolean,
+  centerY?: boolean,
   clickHide?: boolean,
   zIndex?: number,
   destroyOnClose?: boolean,
@@ -37,11 +40,13 @@ const id = `window-${nanoid(10)}`;
 
 const props = withDefaults(defineProps<WindowProps>(), {
   top: 5,
+  left: -1,
   width: 400,
   height: 500,
   destroyOnClose: false,
   toBody: true,
-  center: false,
+  centerX: false,
+  centerY: false,
   clickHide: true,
   zIndex: 999,
   disableBlur: false,
@@ -50,6 +55,7 @@ const props = withDefaults(defineProps<WindowProps>(), {
 const { options } = useSettingsStore();
 const {
   _top,
+  _left,
   _width,
   _height,
   _backgroundColor,
@@ -62,7 +68,8 @@ const { showWindow } = useShowWindow(id, props);
 emits('event', {
   show: () => showWindow.value = true,
   hide: () => showWindow.value = false,
-  isShow: () => showWindow.value
+  isShow: () => showWindow.value,
+  el: () => document.getElementById(id)
 });
 
 
@@ -101,7 +108,7 @@ export default {
 .window {
   position: absolute;
   top: v-bind(_top);
-  left: calc((100% - v-bind(_width)) / 2);
+  left: v-bind(_left);
   width: v-bind(_width);
   height: v-bind(_height);
   border-radius: 10px;

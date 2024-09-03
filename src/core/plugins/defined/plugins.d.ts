@@ -1,8 +1,9 @@
-import { Charset, Params } from '../../request/defined/request';
+import { Charset, Params, ResponseType } from '../../request/defined/request';
 import { IncomingHttpHeaders } from 'http';
 import { BookSource } from './booksource';
 import { BookStore } from './bookstore';
 import { TextToSpeechEngine } from './ttsengine';
+import { SearchEntity } from '../../book/book';
 export type PluginId = string;
 
 export interface PluginImportOptions {
@@ -33,15 +34,33 @@ export type Console = {
   debug: (...args: any[]) => void;
 }
 export interface PluginRequestMethod {
-  get(url: string, config?: PluginRequestConfig): Promise<{ body: any, code?: number, headers: any }>;
-  post(url: string, config?: PluginRequestConfig): Promise<{ body: any, code?: number, headers: any }>;
+  get(url: string, config?: PluginRequestConfig): Promise<{ body: any, code?: number, headers: IncomingHttpHeaders }>;
+  post(url: string, config?: PluginRequestConfig): Promise<{ body: any, code?: number, headers: IncomingHttpHeaders }>;
 }
 export type PluginConstructorParams = {
   request: PluginRequestMethod,
   store: BasePluginStoreInterface,
   cheerio,
   nanoid: () => string,
-  uuid: () => string
+  uuid: (noDash?: boolean) => string
+}
+export type SearchFilter = boolean | ((entity: SearchEntity, searchKey: string, author?: string) => boolean);
+/** 插件设置项 */
+export type RequireItem = {
+  /** 要显示的标签 */
+  label: string
+  /** 字段类型 */
+  type: 'number' | 'string' | 'list' | 'password' | 'boolean'
+  /** 字段值 */
+  value?: any
+  /** 字段默认值 */
+  default: any
+  /** 列表类型的数据，ElSelect 的数据源格式 */
+  data?: any
+  /** 字段说明 */
+  description?: string
+  /**  字段输入提示 */
+  placeholder?: string
 }
 export interface PluginBaseProps {
   /**插件ID */
@@ -60,7 +79,11 @@ export interface PluginBaseProps {
   readonly PLUGIN_FILE_URL: string;
   /**书源、书城的请求链接 */
   readonly BASE_URL?: string;
-  readonly TTS_ENGINE_REQUIRE?: Record<string, string>;
+  /**需要的参数 */
+  // readonly REQUIRE?: Record<string, string>;
+  readonly REQUIRE?: Record<string, RequireItem | string>;
+  /**书源搜索结果过滤器 */
+  readonly SEARCH_FILTER?: SearchFilter;
 }
 export interface PluginInterface extends PluginBaseProps {
   new(params: PluginConstructorParams): BookSource | BookStore | TextToSpeechEngine;
@@ -77,7 +100,9 @@ export type PluginRequestConfig = {
   headers?: IncomingHttpHeaders,
   proxy?: boolean,
   urlencode?: Charset,
-  charset?: Charset
+  charset?: Charset,
+  signal?: AbortSignal,
+  responseType?: ResponseType
 }
 
 export type PluginsOptions = {

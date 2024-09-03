@@ -1,3 +1,5 @@
+@import url(./texture.css);
+
 :root {
   --rc-theme-color: #1e78eb;
   --rc-text-color-light: #2D2D2D;
@@ -5,6 +7,8 @@
   --rc-button-hover-bgcolor-light: rgba(0, 0, 0, 0.08);
 
   --rc-window-box-bgcolor-light: #FFFFFF;
+  --rc-window-box-blur-bgcolor-light: rgba(255, 255, 255, 0.6);
+  --rc-window-box-blur-bgcolor-1-light: rgba(255, 255, 255, 0.3);
   --rc-main-color: #F6F6F6;
 
   --rc-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.1);
@@ -21,12 +25,12 @@
 
   --rc-window-box-shadow: var(--rc-shadow);
   --rc-window-box-bgcolor: var(--rc-window-box-bgcolor-light);
-  --rc-window-box-blur-bgcolor: rgba(255, 255, 255, 0.6);
+  --rc-window-box-blur-bgcolor: var(--rc-window-box-blur-bgcolor-light);
   --rc-window-close-btn-color: #F56C6C;
 
-  --rc-scrollbar-hove-bgcolor: rgba(0, 0, 0, 0.1);
-  --rc-scrollbar-thumb-bgcolor: rgba(0, 0, 0, 0.15);
-  --rc-scrollbar-thumb-hover-bgcolor: rgba(0, 0, 0, 0.2);
+  --rc-scrollbar-hove-bgcolor: rgba(0, 0, 0, 0.2);
+  --rc-scrollbar-thumb-bgcolor: rgba(0, 0, 0, 0.25);
+  --rc-scrollbar-thumb-hover-bgcolor: rgba(0, 0, 0, 0.3);
 
   --rc-button-hover-bgcolor: var(--rc-button-hover-bgcolor-light);
 
@@ -44,8 +48,16 @@
 
   --rc-menu-window-box-blur-bgcolor: rgba(255, 255, 255, 0.8);
   --rc-menu-item-hover-bgcolor: rgba(30, 30, 30, 0.2);
-}
 
+  --rc-blockquote-border-color: #DADADA;
+  --rc-blockquote-color: #353535;
+}
+html {
+  font-size: 10px;
+}
+body {
+  font-size: 16px;
+}
 html,
 body,
 #app {
@@ -62,12 +74,15 @@ body,
   -webkit-user-drag: none;
   outline-color: var(--rc-theme-color);
   font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'PingFang SC', Arial, Helvetica;
-
+  
   &::selection {
-    /* background-color: rgba(127, 127, 127, 0.2); */
     background-color: rgba(30, 119, 235, 0.6);
     color: #1C1C1C;
   }
+}
+
+svg {
+  outline: none;
 }
 
 ul {
@@ -76,6 +91,7 @@ ul {
 
 a {
   text-decoration: none;
+  color: var(--rc-theme-color);
 }
 
 button {
@@ -112,22 +128,22 @@ button {
   scroll-behavior: smooth;
 }
 
-.rc-scrollbar::-webkit-scrollbar {
+*::-webkit-scrollbar {
   width: 7px;
   height: 7px;
 }
 
-.rc-scrollbar::-webkit-scrollbar:hover {
+*::-webkit-scrollbar:hover {
   cursor: default;
   background-color: var(--rc-scrollbar-hove-bgcolor);
 }
 
-.rc-scrollbar::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   border-radius: 10px;
   background-color: var(--rc-scrollbar-thumb-bgcolor);
 }
 
-.rc-scrollbar::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
   cursor: default;
   background-color: var(--rc-scrollbar-thumb-hover-bgcolor);
 }
@@ -140,7 +156,6 @@ button {
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
-
   &:hover {
     background-color: var(--rc-button-hover-bgcolor);
   }
@@ -149,28 +164,25 @@ button {
   }
 }
 
-.rc-close-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 20px;
-  width: 20px;
-  height: 20px;
-  transition: all 0.3s ease;
-  border-radius: 5px;
-  cursor: pointer;
-
-  &:hover {
-    color: #FFFFFF;
-    background-color: var(--rc-window-close-btn-color);
-  }
-  &:active {
-    transform: scale(0.85);
-  }
-}
-
 .rc-error-color {
   color: var(--rc-error-color);
+}
+
+.rc-text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+ul.rc-help {
+  list-style: initial;
+
+  li {
+    margin-left: 1em;
+  }
+  li.em-2 {
+    margin-left: 2em;
+  }
 }
 
 .loading .el-loading-mask {
@@ -203,15 +215,32 @@ button {
 .el-table {
   tr {
     background-color: transparent !important;
+
+    td:is(.el-table-fixed-column--right) {
+      background-color: var(--el-table-tr-bg-color);
+    }
   }
   th.el-table__cell {
     background-color: transparent !important;
+    &:is(.el-table-fixed-column--right) {
+      background-color: var(--el-table-tr-bg-color) !important;
+    }
   }
 }
 
-.el-input__wrapper {
-  --el-input-focus-border-color: var(--rc-theme-color);
+.el-input {
+
+  .el-input__wrapper {
+    --el-input-focus-border-color: var(--rc-theme-color);
+    cursor: default;
+
+    .el-input__inner[readonly],
+    .el-input__inner[readonly="true"] {
+      cursor: default;
+    }
+  }
 }
+
 .el-select__wrapper.is-focused,
 .el-select-dropdown__item.is-selected {
   --el-color-primary: var(--rc-theme-color);
@@ -228,4 +257,8 @@ button {
 
 .el-link:hover {
   --el-link-hover-text-color: var(--rc-theme-color);
+}
+
+.el-slider {
+  --el-slider-main-bg-color: var(--rc-theme-color);
 }

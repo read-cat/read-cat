@@ -1,15 +1,16 @@
 import { Ref, reactive, ref } from 'vue';
 import { WindowEvent } from '../../../../window/index.vue';
-import { ReadColor } from '../../../../../core/window/default-read-style';
+import { BackgroundSize, ReadBackground } from '../../../../../core/window/default-read-style';
 import { nanoid } from 'nanoid';
-import { ColorPickerInstance } from 'element-plus';
 import { useReadColorStore } from '../../../../../store/read-color';
 import { useMessage } from '../../../../../hooks/message';
+import { cloneByJSON, newError } from '../../../../../core/utils';
+import { showOpenFileDialog } from '../../../../../core/utils/file';
 
-type Target = keyof ReadColor | 'bookmarkColor.odd' | 'bookmarkColor.even';
+type Target = keyof ReadBackground | 'bookmarkColor.odd' | 'bookmarkColor.even';
 
 export const useReadColor = (win: Ref<WindowEvent | undefined>) => {
-  const readColorForm = reactive<ReadColor>({
+  const readColorForm = reactive<ReadBackground>({
     id: '',
     name: '',
     backgroundColor: '',
@@ -20,30 +21,37 @@ export const useReadColor = (win: Ref<WindowEvent | undefined>) => {
     },
     readAloudColor: ''
   });
-  const colorPickerModelValue = ref('');
-  const colorPickerRef = ref<ColorPickerInstance>();
+  const colorInputRef = ref<HTMLInputElement>();
   const target = ref<Target>('backgroundColor');
   const isEdit = ref(false);
   const showEditBtn = ref(false);
-  const { put, remove } = useReadColorStore();
+  const { put, remove, imageMap } = useReadColorStore();
   const message = useMessage();
 
   const showColorPicker = (e: MouseEvent, t: Target) => {
     e.stopPropagation();
     target.value = t;
+    let value = '';
     if (t.includes('bookmarkColor')) {
       const key = t.split('.')[1];
-      colorPickerModelValue.value = Reflect.get(readColorForm.bookmarkColor, key);
+      value = Reflect.get(readColorForm.bookmarkColor, key);
     } else {
-      colorPickerModelValue.value = Reflect.get(readColorForm, t)
+      value = Reflect.get(readColorForm, t)
     }
-    colorPickerRef.value?.show();
+    if (!colorInputRef.value) {
+      return;
+    }
+    colorInputRef.value.value = value.trim();
+    colorInputRef.value.click();
   }
-  const colorPickerActiveChange = (val: string | null) => {
-    if (!val?.trim()) {
+  const colorPickerOnInput = () => {
+    if (!colorInputRef.value) {
+      return;
+    }
+    let val = colorInputRef.value.value.trim();
+    if (!val) {
       val = '#FFFFFF';
     }
-    val = val.trim();
     if (target.value.includes('bookmarkColor')) {
       const key = target.value.split('.')[1];
       Reflect.set(readColorForm.bookmarkColor, key, val);
@@ -69,19 +77,20 @@ export const useReadColor = (win: Ref<WindowEvent | undefined>) => {
     win.value?.show();
   }
 
-  const showEditWindow = (e: MouseEvent, readColor: ReadColor) => {
+  const showEditWindow = (e: MouseEvent, readColor: ReadBackground) => {
     e.stopPropagation();
     if (win.value?.isShow()) {
       return;
     }
     showEditBtn.value = false;
-    const { id, name, backgroundColor, textColor, bookmarkColor, readAloudColor } = readColor;
+    const { id, name, backgroundColor, textColor, bookmarkColor, readAloudColor, backgroundImage } = readColor;
     readColorForm.id = id;
     readColorForm.name = name;
     readColorForm.backgroundColor = backgroundColor;
     readColorForm.textColor = textColor;
     readColorForm.bookmarkColor = bookmarkColor;
     readColorForm.readAloudColor = readAloudColor;
+    readColorForm.backgroundImage = backgroundImage ? cloneByJSON(backgroundImage) : void 0;
     isEdit.value = true;
     win.value?.show();
   }
@@ -111,7 +120,24 @@ export const useReadColor = (win: Ref<WindowEvent | undefined>) => {
       message.warning('未设置朗读文本颜色');
       return;
     }
-    put(readColorForm).catch(e => message.error(e.message)).finally(() => {
+    if (!readColorForm.backgroundImage) {
+      const old = imageMap.get(readColorForm.id);
+      old && URL.revokeObjectURL(old.url);
+      imageMap.delete(readColorForm.id);
+    }
+    put({
+      id: readColorForm.id,
+      name: readColorForm.name,
+      backgroundColor: readColorForm.backgroundColor,
+      textColor: readColorForm.textColor,
+      bookmarkColor: readColorForm.bookmarkColor,
+      readAloudColor: readColorForm.readAloudColor,
+      backgroundImage: readColorForm.backgroundImage ? {
+        size: readColorForm.backgroundImage.size,
+        image: readColorForm.backgroundImage.image,
+        blur: readColorForm.backgroundImage.blur
+      } : void 0
+    }).catch(e => message.error(e.message)).finally(() => {
       win.value?.hide();
     });
   }
@@ -121,17 +147,63 @@ export const useReadColor = (win: Ref<WindowEvent | undefined>) => {
     });
   }
 
+  const addBackgroundImage = () => {
+    showOpenFileDialog({
+      excludeAcceptAllOption: true,
+      multiple: false,
+      types: [{
+        description: '图片文件',
+        accept: {
+          'image/jpeg': ['.jpg', '.jpeg'],
+          'image/png': ['.png'],
+          'image/webp': ['.webp'],
+        }
+      }]
+    }).then(async ([file]) => {
+      if (await file.size() / 1024 /1024 > 1) {
+        return Promise.reject(newError('图片文件大小超过1MB'));
+      }
+      const buffer = await file.buffer();
+      const base64 = (file.type ? `data:${file.type};base64,` : '') + buffer.toString('base64');
+      if (readColorForm.backgroundImage) {
+        readColorForm.backgroundImage = {
+          ...readColorForm.backgroundImage,
+          image: base64
+        };
+      } else {
+        readColorForm.backgroundImage = {
+          size: BackgroundSize.STRETCH,
+          image: base64,
+        }
+      }
+    }).catch(e => {
+      if (e.name === 'CanceledError') {
+        return;
+      }
+      GLOBAL_LOG.error('read color addBackgroundImage', e);
+      message.error(e.message);
+    });
+  }
+
+  const removeBackgroundImage = () => {
+    if (!readColorForm.backgroundImage) {
+      return;
+    }
+    readColorForm.backgroundImage = void 0;
+  }
+
   return {
-    colorPickerModelValue,
-    colorPickerRef,
     readColorForm,
     showColorPicker,
-    colorPickerActiveChange,
+    colorPickerOnInput,
     isEdit,
     showEditBtn,
     showAddWindow,
     showEditWindow,
     putCustomReadColor,
     deleteCustomReadColor,
+    addBackgroundImage,
+    removeBackgroundImage,
+    colorInputRef,
   }
 }

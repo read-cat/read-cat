@@ -16,7 +16,7 @@ export class BookmarkStoreDatabase extends BaseStoreDatabase<BookmarkStoreEntity
       if (isNull(res) || res.length <= 0) {
         return;
       }
-      store._bookmarks = res;
+      res.forEach(r => store._bookmarks.set(r.id, r));
     }).catch((e: any) => {
       GLOBAL_LOG.error(this.tag, 'read', e);
       message.error(`书签读取失败, Error: ${e.message}`);
@@ -38,7 +38,8 @@ export class BookmarkStoreDatabase extends BaseStoreDatabase<BookmarkStoreEntity
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByChapterUrl chapterUrl:${chapterUrl}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByChapterUrl chapterUrl:${chapterUrl}`, e);
@@ -62,7 +63,8 @@ export class BookmarkStoreDatabase extends BaseStoreDatabase<BookmarkStoreEntity
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByDetailUrl detailUrl:${detailUrl}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByDetailUrl detailUrl:${detailUrl}`, e);
@@ -70,19 +72,7 @@ export class BookmarkStoreDatabase extends BaseStoreDatabase<BookmarkStoreEntity
       }
     });
   }
-  async removeByDetailUrl(detailUrl: string): Promise<void> {
-    const entitys = await this.getByDetailUrl(detailUrl);
-    if (isNull(entitys) || entitys.length <= 0) {
-      return;
-    }
-    const ps: Promise<void>[] = [];
-    entitys.forEach(e => {
-      ps.push(super.remove(e.id));
-    });
-    (await Promise.allSettled(ps)).forEach(r => {
-      if (r.status === 'rejected') {
-        GLOBAL_LOG.error(this.tag, 'removeByDetailUrl', r.reason);
-      }
-    });
+  removeByDetailUrl(detailUrl: string): Promise<void> {
+    return super.useCursorRemove('index_detailUrl', [detailUrl]);
   }
 }

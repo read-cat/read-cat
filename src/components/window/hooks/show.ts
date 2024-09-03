@@ -1,10 +1,11 @@
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onUnmounted, ref, watch } from 'vue';
 import { WindowProps } from '../index.vue';
+import { isNull } from '../../../core/is';
 
 export const useShowWindow = (id: string, props: WindowProps) => {
   const showWindow = ref(false);
   const onMousedown = (e: MouseEvent) => {
-    if (!props.clickHide) {
+    if (!showWindow.value) {
       return;
     }
     let p = <HTMLElement | null>e.target;
@@ -12,18 +13,24 @@ export const useShowWindow = (id: string, props: WindowProps) => {
       return;
     }
     do {
-      if (p.id === id) {
+      const attr = p.getAttribute('disable-click-hide');
+      const disable = isNull(attr) ? false : attr.trim() === '' ? true : Boolean(attr);
+      if (p.id === id || disable) {
         return;
       }
       p = p.parentElement;
     } while (p);
     showWindow.value = false;
   }
-  onMounted(() => {
-    document.addEventListener('mousedown', onMousedown);
-  });
+  watch(() => props.clickHide, newVal => {
+    if (newVal) {
+      document.addEventListener('mousedown', onMousedown);
+    } else {
+      document.removeEventListener('mousedown', onMousedown);
+    }
+  }, { immediate: true });
   onUnmounted(() => {
-    document.removeEventListener('mousedown', onMousedown);
+    props.clickHide && document.removeEventListener('mousedown', onMousedown);
   });
 
   return {

@@ -9,6 +9,8 @@ import { BookmarkStoreDatabase } from './store/bookmark-store';
 import { SettingsStoreDatabase } from './store/settings-store';
 import { newError } from '../utils';
 import { ReadColorStoreDatabase } from './store/read-color-store';
+import { TxtParseRuleStoreDatabase } from './store/txt-parse-rule-store';
+import { PluginsRequireDatabase } from './store/plugin-require';
 
 export enum StoreName {
   PLUGINS = 'store_plugins_jscode',
@@ -20,10 +22,12 @@ export enum StoreName {
   BOOKMARK = 'store_bookmark',
   SETTINGS = 'store_settings',
   READ_COLOR = 'store_read_color',
+  TXT_PARSE_RULE = 'store_txt_parse_rule',
+  PLUGIN_REQUIRE = 'store_plugin_require',
 }
 
 export class Database {
-  public static readonly VERSION: number = 7;
+  public static readonly VERSION: number = 11;
   public static readonly NAME: string = 'ReadCatDatabase';
 
   private db: IDBDatabase | null = null;
@@ -38,6 +42,8 @@ export class Database {
     bookmarkStore: BookmarkStoreDatabase,
     settingsStore: SettingsStoreDatabase,
     readColorStore: ReadColorStoreDatabase,
+    txtParseRuleStore: TxtParseRuleStoreDatabase,
+    pluginRequireStore: PluginsRequireDatabase,
   } | null = null;
   constructor() {
 
@@ -64,6 +70,8 @@ export class Database {
         bookmarkStore: new BookmarkStoreDatabase(this.db, StoreName.BOOKMARK),
         settingsStore: new SettingsStoreDatabase(this.db, StoreName.SETTINGS),
         readColorStore: new ReadColorStoreDatabase(this.db, StoreName.READ_COLOR),
+        txtParseRuleStore: new TxtParseRuleStoreDatabase(this.db, StoreName.TXT_PARSE_RULE),
+        pluginRequireStore: new PluginsRequireDatabase(this.db, StoreName.PLUGIN_REQUIRE),
       };
     }
 
@@ -84,7 +92,8 @@ export class Database {
           return reso();
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error('Database open', requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error('Database open', e);
@@ -119,7 +128,8 @@ export class Database {
           return reso();
         }
         store.transaction.onerror = () => {
-          throw store.transaction.error;
+          GLOBAL_LOG.error(`Database createStore ${storeName}`, store.transaction.error);
+          return reje(store.transaction.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(`Database createStore ${storeName}`, e);
@@ -128,7 +138,7 @@ export class Database {
     });
   }
   private async createDatabase() {
-    return Promise.all([
+    const stores = [
       this.createStore(StoreName.PLUGINS, {
         keyPath: 'id'
       }, [{
@@ -151,6 +161,12 @@ export class Database {
         keyPath: 'id',
         options: {
           unique: true
+        }
+      }, {
+        name: 'index_pid',
+        keyPath: 'pid',
+        options: {
+          unique: false
         }
       }]),
       this.createStore(StoreName.SEARCH_KEY, {
@@ -237,6 +253,25 @@ export class Database {
           unique: true
         }
       }]),
-    ]);
+      this.createStore(StoreName.TXT_PARSE_RULE, {
+        keyPath: 'id'
+      }, [{
+        name: 'index_id',
+        keyPath: 'id',
+        options: {
+          unique: true
+        }
+      }]),
+      this.createStore(StoreName.PLUGIN_REQUIRE, {
+        keyPath: 'id'
+      }, [{
+        name: 'index_id',
+        keyPath: 'id',
+        options: {
+          unique: true
+        }
+      }]),
+    ];
+    for (const store of stores) await store;
   }
 }

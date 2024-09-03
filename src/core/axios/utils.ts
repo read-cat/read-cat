@@ -1,9 +1,10 @@
 import { unzipSync, brotliDecompressSync } from 'zlib';
 import { getType, isArray, isObject, isString, isUndefined } from '../is';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { ClientRequest } from 'http';
+import { ClientRequest, IncomingMessage } from 'http';
 import { CustomInternalAxiosRequestConfig } from './defined/axios';
 import { newAxiosError } from '../utils';
+import { RedirectableRequest } from 'follow-redirects';
 
 export enum ContentType {
   APPLICATION_FORM_URLENCODED = 'application/x-www-form-urlencoded',
@@ -59,7 +60,7 @@ export const getResponseCharset = (contentType?: string) => {
   return charset.trim();
 }
 
-export const setHeaders = (client: ClientRequest, headers?: AxiosHeaders) => {
+export const setHeaders = (client: RedirectableRequest<ClientRequest, IncomingMessage>, headers?: AxiosHeaders) => {
   if (!headers) {
     return;
   }

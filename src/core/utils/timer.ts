@@ -54,3 +54,11 @@ export const debounce = (executor: (...args: any[]) => void, ms = 1000) => {
     }, ms);
   }
 }
+
+export const sleep = (ms = 1000) => {
+  return new Promise<void>((reso, _) => {
+    setTimeout(() => {
+      return reso();
+    }, ms);
+  });
+}

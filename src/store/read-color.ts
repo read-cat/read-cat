@@ -1,16 +1,20 @@
 import { defineStore } from 'pinia';
-import { DefaultReadColor, ReadColor } from '../core/window/default-read-style';
+import { DefaultReadColor, ReadBackground } from '../core/window/default-read-style';
 import { cloneByJSON, errorHandler, isHexColor, newError, replaceInvisibleStr } from '../core/utils';
 import { useSettingsStore } from './settings';
+import { Core } from '../core';
+import { base64ToBlob } from '../core/utils';
+import { createHash } from 'crypto';
 
-export type CustomReadColor = ReadColor & {
+export type CustomReadColor = ReadBackground & {
   builtIn?: boolean
 }
 
 export const useReadColorStore = defineStore('ReadColor', {
   state: () => {
     return {
-      customReadColor: [] as CustomReadColor[]
+      customReadColor: new Map<string, CustomReadColor>(),
+      imageMap: new Map<string, { md5: string, url: string, element: HTMLImageElement }>(),
     }
   },
   getters: {
@@ -20,12 +24,20 @@ export const useReadColorStore = defineStore('ReadColor', {
           ...v,
           builtIn: true
         }
-      }), ...this.customReadColor];
+      }).filter(v => {
+        if (!v.isDev) {
+          return true;
+        }
+        return Core.isDev;
+      }), ...this.customReadColor.values()];
     }
   },
   actions: {
-    async put(color: ReadColor): Promise<void> {
+    async put(color: ReadBackground): Promise<void> {
       try {
+        if (this.customReadColor.size > 20) {
+          throw newError('自定义样式已超过20个');
+        }
         const _color = replaceInvisibleStr(cloneByJSON(color));
         if (!_color.id) {
           throw newError('id为空');
@@ -65,15 +77,27 @@ export const useReadColorStore = defineStore('ReadColor', {
         }
         await GLOBAL_DB.store.readColorStore.put(color);
         const { readStyle } = useSettingsStore();
-        if (readStyle.color.id === _color.id) {
-          readStyle.color = _color;
+        if (readStyle.background.id === _color.id) {
+          readStyle.background = _color;
         }
-        const i = this.customReadColor.findIndex(v => v.id === color.id);
-        if (i > -1) {
-          this.customReadColor[i] = _color;
-        } else {
-          this.customReadColor.push(_color);
+        this.customReadColor.set(color.id, color);
+        if (!color.backgroundImage?.image) {
+          return;
         }
+        const old = this.imageMap.get(color.id);
+        const md5 = createHash('md5').update(color.backgroundImage.image).digest('hex');
+        if (old && old.md5 === md5) {
+          return;
+        }
+        old && URL.revokeObjectURL(old.url);
+        const url = URL.createObjectURL(base64ToBlob(color.backgroundImage.image));
+        const element = new Image();
+        element.src = url;
+        this.imageMap.set(color.id, {
+          md5,
+          url,
+          element
+        });
       } catch (e: any) {
         return errorHandler(e);
       }
@@ -81,12 +105,14 @@ export const useReadColorStore = defineStore('ReadColor', {
     async remove(id: string) {
       try {
         const { readStyle } = useSettingsStore();
-        if (readStyle.color.id === id) {
+        if (readStyle.background.id === id) {
           throw newError('当前颜色正在使用');
         }
-        const i = this.customReadColor.findIndex(v => v.id === id);
-        if (i > -1) {
-          this.customReadColor.splice(i, 1);
+        this.customReadColor.delete(id);
+        const img = this.imageMap.get(id);
+        if (img) {
+          URL.revokeObjectURL(img.md5);
+          this.imageMap.delete(id);
         }
         await GLOBAL_DB.store.readColorStore.remove(id);
       } catch (e: any) {

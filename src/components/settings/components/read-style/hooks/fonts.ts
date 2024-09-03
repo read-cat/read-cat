@@ -1,22 +1,22 @@
-import { Ref, ref, watchEffect } from 'vue';
+import { computed, Ref, ref } from 'vue';
 import { Font, FontData } from '../../../../../core/font';
 import { WindowEvent } from '../../../../window/index.vue';
 import { useMessage } from '../../../../../hooks/message';
+import { isUndefined } from '../../../../../core/is';
 
 export const useFonts = (win: Ref<WindowEvent | undefined>, query: Ref<string>) => {
   const systemFonts = ref<FontData[]>([]);
-  const showValue = ref<FontData[]>([]);
   const isLoading = ref(false);
+  const isPinFontWindow = ref(false);
   const message = useMessage();
 
-  watchEffect(() => {
+  const showValue = computed(() => {
     if (!query.value.trim()) {
-      showValue.value = [...systemFonts.value, Font.default].sort((a, b) => {
+      return [...systemFonts.value, Font.default].sort((a, b) => {
         return a.family[0].toLowerCase().charCodeAt(0) - b.family[0].toLowerCase().charCodeAt(0);
       });
-      return;
     }
-    showValue.value = [...systemFonts.value, Font.default].filter(v => {
+    return [...systemFonts.value, Font.default].filter(v => {
       return (
         v.family.toLowerCase().includes(query.value.toLowerCase().trim()) ||
         v.fullName.toLowerCase().includes(query.value.toLowerCase().trim())
@@ -27,7 +27,10 @@ export const useFonts = (win: Ref<WindowEvent | undefined>, query: Ref<string>) 
   });
 
   const openFontSelectWindow = () => {
-    !win.value?.isShow() && win.value?.show();
+    if (win.value?.isShow()) {
+      return;
+    }
+    win.value?.show();
     if (isLoading.value) {
       return;
     }
@@ -39,18 +42,29 @@ export const useFonts = (win: Ref<WindowEvent | undefined>, query: Ref<string>) 
       })
       .finally(() => {
         isLoading.value = false;
+        const el = win.value?.el();
+        if (!el) {
+          return;
+        }
+        const oTop = el.querySelector<HTMLElement>('.select-font')?.offsetTop;
+        if (isUndefined(oTop)) {
+          return;
+        }
+        const list = el.querySelector<HTMLElement>('.fonts-list');
+        list && (list.scrollTop = oTop - list.clientHeight / 3);
       });
   }
 
   const use = (font: FontData) => {
     Font.use(font);
-    win.value?.hide();
+    !isPinFontWindow.value && win.value?.hide();
   }
 
   return {
     showValue,
     isLoading,
     openFontSelectWindow,
-    use
+    use,
+    isPinFontWindow
   }
 }

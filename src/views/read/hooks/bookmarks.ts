@@ -19,7 +19,7 @@ export const useBookmarks = () => {
   const { options } = useSettingsStore();
   const { currentChapter, textContent } = storeToRefs(useTextContentStore());
   const { getBookmarkByChapterUrl, put, getBookmarkById } = useBookmarkStore();
-  const { _bookmarks } = storeToRefs(useBookmarkStore());
+  const { bookmarks } = storeToRefs(useBookmarkStore());
   const { currentDetailUrl, currentPid } = storeToRefs(useDetailStore());
   const { exist } = useBookshelfStore();
   const contents = ref<string>('');
@@ -169,6 +169,8 @@ export const useBookmarks = () => {
               (<HTMLElement>e.firstElementChild).style.maxHeight = '300px';
               (<HTMLElement>e.parentElement?.parentElement).style.width = '100%';
               (<HTMLElement>e.parentElement?.parentElement?.parentElement).style.alignItems = 'flex-start';
+              const textarea = e.querySelector('textarea');
+              textarea && setTimeout(() => textarea.focus(), 300);
             },
             modelValue: input.value,
             placeholder: '请输入书签内容',
@@ -260,7 +262,7 @@ export const useBookmarks = () => {
     immediate: true
   });
 
-  watch(() => _bookmarks.value, (newVal) => {
+  watch(() => bookmarks.value, (newVal) => {
     if (isNull(textContent.value)) {
       return;
     }

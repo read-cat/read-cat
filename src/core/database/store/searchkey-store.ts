@@ -15,16 +15,9 @@ export class SearchKeyStoreDatabase extends BaseStoreDatabase<SearchKeyStoreEnti
       if (isNull(v) || v.length <= 0) {
         return;
       }
-      for (const { id, searchkey, timestamp } of v) {
-        store.searchkey.push({
-          id,
-          searchkey,
-          timestamp
-        });
+      for (const item of v) {
+        store.searchkeyMap.set(item.id, item);
       }
-      store.searchkey = store.searchkey.sort((a, b) => {
-        return b.timestamp - a.timestamp;
-      });
     }).catch((e: any) => {
       GLOBAL_LOG.error(this.tag, 'read', e);
       useMessage().error(`搜索历史读取失败, Error:${e.message}`);

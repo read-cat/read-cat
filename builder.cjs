@@ -4,8 +4,14 @@ const builder = require('electron-builder');
 const fs = require('fs');
 const { join } = require('path');
 const { Platform, Arch } = builder;
+const { createHash } = require('crypto');
 
-const electronVersion = /\d+\.\d+\.\d+/.exec(devDependencies.electron);
+const isBuildWindows7 = process.argv.slice(2).includes('--windows7');
+let electronVersion = /\d+\.\d+\.\d+/.exec(devDependencies.electron);
+electronVersion = electronVersion && electronVersion[0] ? electronVersion[0] : '30.0.9';
+if (isBuildWindows7) {
+  electronVersion = '22.3.27';
+}
 
 /**
 * @type {import('electron-builder').Configuration}
@@ -18,7 +24,7 @@ const config = {
   asarUnpack: [
     'node_modules'
   ],
-  electronVersion: electronVersion && electronVersion[0] ? electronVersion[0] : '29.2.0',
+  electronVersion,
   compression: 'maximum',
   directories: {
     'output': `build`
@@ -34,7 +40,7 @@ const config = {
   ],
   win: {
     icon: 'public/icons/icon.ico',
-    artifactName: '${productName}-win32-${arch}' + `-${version}.${commit.slice(0, 8)}` + '.${ext}',
+    artifactName: '${productName}-win32-${arch}' + `-${isBuildWindows7 ? 'windows7-' : ''}${version}.${commit.slice(0, 8)}` + '.${ext}',
   },
   nsis: {
     installerIcon: 'public/icons/icon.ico',
@@ -146,8 +152,12 @@ Promise.allSettled(promises).then(res => {
   fs.existsSync(buildDir) && fs.readdirSync(buildDir, { encoding: 'utf-8' }).forEach(file => {
     console.log(buildDir, file);
     if (pass(file)) {
-      console.log('file:', join(buildDir, file), join(releaseDir, file));
-      fs.renameSync(join(buildDir, file), join(releaseDir, file));
+      const op = join(buildDir, file);
+      const np = join(releaseDir, file);
+      fs.renameSync(op, np);
+      const sha256 = createHash('sha256').update(fs.readFileSync(np)).digest('hex');
+      console.log('file:', np, ', sha256:', sha256);
+      fs.writeFileSync(np + '.sha256.txt', sha256, { encoding: 'utf-8' });
     }
   });
 }).catch(e => {

@@ -6,6 +6,8 @@ import { PagePath } from '../core/window';
 import { useBookshelfStore } from './bookshelf';
 import { BookSource } from '../core/plugins/defined/booksource';
 import { newError } from '../core/utils';
+import { BookParser } from '../core/book/book-parser';
+import { nextTick } from 'vue';
 
 export interface DetailPageResult extends DetailEntity {
   pid: string,
@@ -26,7 +28,7 @@ export const useDetailStore = defineStore('Detail', {
         chapterIndex: 0,
         scrollTop: 0
       },
-      cacheIndexs: [] as number[],
+      cacheIndexs: {} as Record<string, number[]>,
       currentPid: null as string | null,
     }
   },
@@ -54,25 +56,32 @@ export const useDetailStore = defineStore('Detail', {
         this.error = null;
         this.currentDetailUrl = null;
         this.currentPid = null;
-        this.cacheIndexs = [];
+        this.cacheIndexs[url] = [];
         const plugin = GLOBAL_PLUGINS.getPluginById<BookSource>(pid);
-        if (isUndefined(plugin)) {
-          this.error = `无法获取插件, 插件ID:${pid}不存在`;
-          return;
-        }
-        if (isNull(plugin.instance)) {
-          throw newError(`插件未启用, 插件ID:${pid}`);
-        }
-        if (isUndefined(plugin.props.BASE_URL)) {
-          this.error = `无法获取插件请求链接`;
-          return;
+        let BASE_URL;
+        if (pid === BookParser.PID) {
+          BASE_URL = BookParser.BASE_URL;
+        } else {
+          if (isUndefined(plugin?.props.BASE_URL)) {
+            this.error = `无法获取插件请求链接`;
+            return;
+          }
+          BASE_URL = plugin.props.BASE_URL.trim();
         }
         const book = await GLOBAL_DB.store.bookshelfStore.getByPidAndDetailPageUrl(pid, url);
+        if (isNull(book) && pid === BookParser.PID) {
+          this.error = '无法获取详情页';
+          return;
+        }
         if (!isNull(book)) {
+          await bookshelf.put({
+            ...book,
+            timestamp: Date.now()
+          });
           const cacheIndexs = (await GLOBAL_DB.store.textContentStore.getByPidAndDetailUrl(pid, url))?.map(v => v.chapter.index);
-          this.cacheIndexs = isUndefined(cacheIndexs) ? [] : cacheIndexs;
-          if (!refresh) {
-            if (book.baseUrl !== plugin.props.BASE_URL.trim()) {
+          this.cacheIndexs[url] = isUndefined(cacheIndexs) ? [] : cacheIndexs;
+          if (!refresh || pid === BookParser.PID) {
+            if (book.baseUrl !== BASE_URL) {
               this.error = '插件请求目标链接不匹配, 请更新详情页';
               return;
             }
@@ -86,6 +95,13 @@ export const useDetailStore = defineStore('Detail', {
             this.currentPid = pid;
             return;
           }
+        }
+        if (isUndefined(plugin)) {
+          this.error = `无法获取插件, 插件ID:${pid}不存在`;
+          return;
+        }
+        if (isNull(plugin.instance)) {
+          throw newError(`插件未启用, 插件ID:${pid}`);
         }
         const detail = await plugin.instance.getDetail(url);
         const obj = {
@@ -103,7 +119,7 @@ export const useDetailStore = defineStore('Detail', {
           }),
           pid: plugin.props.ID,
           pluginVersionCode: plugin.props.VERSION_CODE,
-          baseUrl: plugin.props.BASE_URL.trim(),
+          baseUrl: BASE_URL,
         }
         if (book && refresh) {
           await bookshelf.put({
@@ -112,7 +128,7 @@ export const useDetailStore = defineStore('Detail', {
             readIndex: isUndefined(book.readIndex) ? -1 : book.readIndex,
             readScrollTop: book.readScrollTop,
             searchIndex: [obj.bookname, obj.author].join(' '),
-            timestamp: book.timestamp,
+            timestamp: Date.now(),
             ...obj
           });
         } else {
@@ -131,8 +147,10 @@ export const useDetailStore = defineStore('Detail', {
         this.error = e.message;
         return;
       } finally {
-        this.isRunningGetDetailPage = false;
-        win.disableShowSearchBox.set(PagePath.DETAIL, false);
+        nextTick(() => {
+          this.isRunningGetDetailPage = false;
+          win.disableShowSearchBox.set(PagePath.DETAIL, false);
+        });
       }
     }
   }

@@ -6,7 +6,7 @@ import {
   ElInput,
   ElButton,
   ElMain,
-  ElTooltip
+  InputInstance
 } from 'element-plus';
 import IconSearchKeyDelete from '../../../../assets/svg/icon-searchkey-delete.svg';
 import IconSearch from '../../../../assets/svg/icon-search.svg';
@@ -18,6 +18,8 @@ import { nanoid } from 'nanoid';
 import { useRouter } from 'vue-router';
 import { WindowEvent, WindowSize } from '../../../window/index.vue';
 import { useSettingsStore } from '../../../../store/settings';
+import { onMounted, ref } from 'vue';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
   windowEvent?: WindowEvent,
@@ -37,7 +39,8 @@ const { width, height } = props.windowSize;
 const router = useRouter();
 const message = useMessage();
 const { options } = useSettingsStore();
-const { searchkey: storeSearchkey, addSearchKey, removeSearchKey, search: searchExecute } = useSearchStore();
+const { addSearchKey, removeSearchKey, hasSearchKey, search: searchExecute } = useSearchStore();
+const { searchkey: storeSearchkey } = storeToRefs(useSearchStore());
 const search = (e: MouseEvent | KeyboardEvent, val: string) => {
   if (e instanceof KeyboardEvent && e.code !== 'Enter') {
     return;
@@ -59,8 +62,7 @@ const search = (e: MouseEvent | KeyboardEvent, val: string) => {
     return;
   }
   searchKey.value = key;
-  const has = storeSearchkey.filter(v => v.searchkey === key).length > 0;
-  if (!has) {
+  if (!hasSearchKey('value', key)) {
     addSearchKey({
       id: nanoid(),
       searchkey: key,
@@ -74,12 +76,16 @@ const search = (e: MouseEvent | KeyboardEvent, val: string) => {
 
 const deleteSearchkeyHistory = (e: MouseEvent, id: string) => {
   e.stopPropagation();
-  const i = storeSearchkey.findIndex(v => v.id === id);
-  if (i < 0) {
+  if (!hasSearchKey('id', id)) {
     return;
   }
   removeSearchKey(id);
 }
+
+const searchInputRef = ref<InputInstance>();
+onMounted(() => {
+  setTimeout(() => searchInputRef.value?.focus(), 200);
+});
 </script>
 <script lang="ts">
 export default {
@@ -90,7 +96,7 @@ export default {
   <ElContainer id="search-box-container">
     <ElHeader id="search-box-header">
       <ElText v-once type="info" size="small">搜索</ElText>
-      <ElInput v-memo="[searchKey]" v-model="searchKey" clearable placeholder="请输入书名、作者" @keyup="(e: KeyboardEvent) => search(e, searchKey)">
+      <ElInput ref="searchInputRef" v-memo="[searchKey]" v-model="searchKey" clearable placeholder="请输入书名、作者" @keyup="(e: KeyboardEvent) => search(e, searchKey)">
         <template #append>
           <ElButton :icon="IconSearch" @click="e => search(e, searchKey)" />
         </template>
@@ -105,10 +111,8 @@ export default {
             <ElText v-once size="small" type="info">没有搜索历史</ElText>
           </div>
           <ul v-else>
-            <li v-for="item in storeSearchkey" :key="item.id" @click="e => search(e, item.searchkey)">
-              <ElTooltip v-memo="[item.searchkey]" effect="light" :show-after="1500" :content="item.searchkey">
-                <span>{{ item.searchkey }}</span>
-              </ElTooltip>
+            <li v-for="item in storeSearchkey" :key="item.id" @click="(e: MouseEvent) => search(e, item.searchkey)">
+              <span v-memo="[item.searchkey]" :title="item.searchkey" class="rc-text-ellipsis">{{ item.searchkey }}</span>
               <i v-memo="[item.id]" @click="e => deleteSearchkeyHistory(e, item.id)">
                 <IconSearchKeyDelete />
               </i>
@@ -129,21 +133,21 @@ export default {
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
-  height: 75px;
+  height: 7.5rem;
 
   &:deep(.el-input) {
-    border-radius: 5px;
+    border-radius: .5rem;
     background-color: rgba(127, 127, 127, 0.1);
 
     .el-input__wrapper {
-      padding: 0 8px;
+      padding: 0 .8rem;
       background-color: transparent;
       box-shadow: none;
 
       .el-input__inner {
-        margin: 4px 0;
-        font-size: 13px;
-        height: 20px;
+        margin: .4rem 0;
+        font-size: 1.3rem;
+        height: 2rem;
         color: var(--rc-text-color);
         border-color: var(--rc-text-color);
 
@@ -173,19 +177,19 @@ export default {
 
     #search-history-box {
       position: relative;
-      margin-top: 5px;
-      margin-left: 20px;
-      width: calc(v-bind(width) - 20px);
-      height: calc(v-bind(height) - 75px - 20px - 40px);
-      font-size: 13px;
+      margin-top: .5rem;
+      margin-left: 2rem;
+      width: calc(v-bind(width) - 2rem);
+      height: calc(v-bind(height) - 7.5rem - 2rem - 4rem);
+      font-size: 1.3rem;
       color: var(--rc-text-color);
 
       div {
         position: absolute;
-        left: calc(50% - 10px);
+        left: calc(50% - 1rem);
         top: 50%;
         transform: translate(-50%, -50%);
-        font-size: 12px;
+        font-size: 1.2rem;
       }
 
       ul {
@@ -193,17 +197,16 @@ export default {
         flex-direction: row;
         justify-content: space-between;
         flex-wrap: wrap;
-        padding-right: 20px;
+        padding-right: 2rem;
 
         li {
           display: flex;
           flex-direction: row;
           justify-content: space-between;
-          padding: 4px 5px;
-          margin-top: 5px;
-          // margin-right: 5px;
-          width: calc((v-bind(width) - 20px - 5px) / 3 - 21px);
-          border-radius: 5px;
+          padding: .4rem .5rem;
+          margin-top: .5rem;
+          width: calc((v-bind(width) - 2rem - .5rem) / 3 - 2.1rem);
+          border-radius: .5rem;
           background-color: rgba(127, 127, 127, 0.08);
 
           &:nth-child(3n) {
@@ -212,11 +215,7 @@ export default {
           }
 
           span {
-            display: inline-block;
-            width: calc((v-bind(width) - 20px - 5px) / 3 - 21px);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-wrap: nowrap;
+            width: calc((v-bind(width) - 2rem - .5rem) / 3 - 2.1rem);
           }
 
           i {
@@ -233,7 +232,7 @@ export default {
             cursor: pointer;
 
             span {
-              width: calc((v-bind(width) - 20px - 5px) / 3 - 21px - 14px);
+              width: calc((v-bind(width) - 2rem - .5rem) / 3 - 2.1rem - 1.4rem);
             }
 
             i {
@@ -246,9 +245,9 @@ export default {
           }
         }
         i.hide {
-          padding: 4px 5px;
+          padding: .4rem .5rem;
           height: 0;
-          width: calc((v-bind(width) - 20px - 5px) / 3 - 21px);
+          width: calc((v-bind(width) - 2rem - .5rem) / 3 - 2.1rem);
         }
       }
     }

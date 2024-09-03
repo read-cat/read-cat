@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
-  ElDivider
+  ElDivider,
+  ElIcon
 } from 'element-plus';
 import { nextTick, onMounted } from 'vue';
 import { useScrollTopStore } from '../../store/scrolltop';
@@ -15,10 +16,13 @@ import { PagePath } from '../../core/window';
 import { useMessage } from '../../hooks/message';
 import { isNull, isUndefined } from '../../core/is';
 import { useDetailStore } from '../../store/detail';
-import Menu from '../../components/menu/index.vue';
-import MenuItem from '../../components/menu/item/index.vue';
+import { Menu, MenuItem } from '../../components';
 import { useBookmarks } from './hooks/bookmarks';
-import { useTextContent } from './hooks/text-content';
+import IconArrowLineUp from '../../assets/svg/icon-arrow-line-up.svg';
+import IconArrowLineDown from '../../assets/svg/icon-arrow-line-down.svg';
+import { useReadAloudStore } from '../../store/read-aloud';
+import { useScrollToggleChapter } from './hooks/scroll-toggle-chapter';
+import { useClipboard } from './hooks/clipboard';
 
 const route = useRoute();
 
@@ -26,11 +30,13 @@ const pid = String(route.query.pid);
 const detailUrl = String(route.query.detailUrl);
 
 const { currentChapter } = storeToRefs(useTextContentStore());
-const { mainElement } = useScrollTopStore();
-const { calcReadProgress } = useWindowStore();
+const { mainElement } = storeToRefs(useScrollTopStore());
+const { scrollToTextContent } = useScrollTopStore();
+const { calcReadProgress, onRefresh } = useWindowStore();
 const { isDark } = storeToRefs(useWindowStore());
 const { setBookmark, contents } = useBookmarks();
 const { options } = useSettingsStore();
+const { copyText } = useClipboard();
 
 const {
   width,
@@ -44,21 +50,30 @@ const {
   bookmarkColorOdd,
   readAloudColor,
 } = storeToRefs(useSettingsStore());
+
+const {
+  pageHeight,
+} = useScrollToggleChapter();
+
 onMounted(() => {
-  nextTick(() => calcReadProgress(mainElement));
+  nextTick(() => {
+    calcReadProgress(mainElement.value);
+  });
 });
 const { isRunningGetTextContent } = storeToRefs(useTextContentStore());
-const { getTextContent } = useTextContentStore();
+const { getTextContent, nextChapter, prevChapter } = useTextContentStore();
 
 useScrollTop(pid, detailUrl);
 
 const message = useMessage();
-const { onRefresh } = useWindowStore();
 const { setCurrentReadIndex } = useDetailStore();
+const { isSelectPlay, playerStatus } = storeToRefs(useReadAloudStore());
+const { stop: readAloudStop } = useReadAloudStore();
 onRefresh(PagePath.READ, () => {
   if (isNull(currentChapter.value)) {
     return;
   }
+  readAloudStop();
   getTextContent(pid, currentChapter.value, true).then(() => {
     if (isNull(currentChapter.value) || isUndefined(currentChapter.value.index)) {
       setCurrentReadIndex(-1);
@@ -67,20 +82,27 @@ onRefresh(PagePath.READ, () => {
     } else {
       setCurrentReadIndex(currentChapter.value.index);
     }
+    scrollToTextContent(void 0, 'instant');
   }).catch(e => {
     message.error(e.message);
   });
 });
 
-const { nextChapter, prevChapter } = useTextContent();
 </script>
 
 <template>
   <div :class="['container', isRunningGetTextContent ? 'loading' : '']" v-loading="isRunningGetTextContent" :style="{
     '--font-family': `'${fontFamily === '' ? Font.default : fontFamily}'`
   }">
+    <div v-if="options.enableScrollToggleChapter && !isRunningGetTextContent" class="scroll-top-to-prev-chapter">
+      <p>向上滚动切换上一章节</p>
+      <ElIcon size="60">
+        <IconArrowLineUp />
+      </ElIcon>
+    </div>
     <div id="text-content" v-show="!isRunningGetTextContent" v-html="contents" :style="{
       width,
+      minHeight: pageHeight,
       fontSize,
       fontWeight,
       '--rc-read-aloud-color': isDark ? '' : readAloudColor,
@@ -88,12 +110,19 @@ const { nextChapter, prevChapter } = useTextContent();
       '--rc-bookmark-even-color': isDark ? '' : bookmarkColorEven,
       '--rc-bookmark-odd-font-color': isDark ? options.enableBookmarkHighlight ? '' : 'none' : options.enableBookmarkHighlight ? bookmarkColorOdd : '',
       '--rc-bookmark-even-font-color': isDark ? options.enableBookmarkHighlight ? '' : 'none' : options.enableBookmarkHighlight ? bookmarkColorEven : '',
-    }"></div>
+    }" :class="[isSelectPlay && playerStatus === 'pause' ? 'play-start' : '']"></div>
+    <div v-if="options.enableScrollToggleChapter && !isRunningGetTextContent" class="scroll-bottom-to-next-chapter">
+      <ElIcon size="60">
+        <IconArrowLineDown />
+      </ElIcon>
+      <p>向下滚动切换下一章节</p>
+    </div>
     <Menu trigger="#main" class-name="read-menu" :disabled="isRunningGetTextContent">
       <MenuItem label="上一章" @click="prevChapter(true)" />
       <MenuItem label="下一章" @click="nextChapter(true)" />
       <ElDivider v-once />
       <MenuItem label="设置书签" @click="setBookmark" />
+      <MenuItem label="复制" @click="copyText" />
     </Menu>
   </div>
 </template>
@@ -116,7 +145,8 @@ const { nextChapter, prevChapter } = useTextContent();
 
 .container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   color: var(--rc-text-color);
 
   :deep(.el-loading-mask) {
@@ -129,6 +159,14 @@ const { nextChapter, prevChapter } = useTextContent();
       font-family: var(--font-family);
     }
 
+    &.play-start {
+      :deep(div[data-index]) {
+        &:hover {
+          color: var(--rc-read-aloud-color);
+          cursor: pointer;
+        }
+      }
+    }
     &>:deep(div[data-index]) {
       margin-bottom: v-bind(sectionSpacing);
       text-indent: 2em;
@@ -137,7 +175,9 @@ const { nextChapter, prevChapter } = useTextContent();
       user-select: text;
       cursor: default;
       transition: color 0.3s ease;
-
+      overflow: hidden;
+      contain: layout;
+      
       .bookmark {
         border-bottom: 1.5px solid var(--rc-bookmark-odd-color);
         color: var(--rc-bookmark-odd-font-color);
@@ -164,8 +204,24 @@ const { nextChapter, prevChapter } = useTextContent();
 
       * {
         max-width: 100%;
+        user-select: text;
       }
     }
+  }
+
+  .scroll-bottom-to-next-chapter,
+  .scroll-top-to-prev-chapter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: v-bind(pageHeight);
+  }
+  .scroll-bottom-to-next-chapter {
+    padding-top: 50px;
+  }
+  .scroll-top-to-prev-chapter {
+    padding-bottom: 50px;
+    justify-content: flex-end;
   }
 }
 </style>

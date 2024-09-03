@@ -35,8 +35,13 @@ export interface CustomAxiosResponse<T = any, D = any> {
 export interface CustomAxios extends AxiosInstance {
   <T = any, R = AxiosResponse<T>, D = any>(config: CustomAxiosRequestConfig<D>): Promise<R>;
   <T = any, R = AxiosResponse<T>, D = any>(url: string, config?: CustomAxiosRequestConfig<D>): Promise<R>;
-  /**文件下载 */
-  download<D = any>(url: string, target: string, config?: CustomDownloadAxiosRequestConfig<D>): Promise<void>;
+  /**
+   * 文件下载
+   * @param url 下载地址
+   * @param target 文件保存全路径
+   * @return sha256
+   */
+  download<D = any>(url: string, target: string, config?: CustomDownloadAxiosRequestConfig<D>): Promise<string>;
   /**连接测试, 返回耗时毫秒数 */
   test<D = any>(url: string, config?: CustomAxiosRequestConfig<D>): Promise<number>;
   request<T = any, R = CustomAxiosResponse<T>, D = any>(config: CustomAxiosRequestConfig<D>): Promise<R>;

@@ -5,17 +5,17 @@ import { debounce } from '../../utils/timer';
 import { useMessage } from '../../../hooks/message';
 import { Settings } from '../../../store/defined/settings';
 import { isNull, isUndefined } from '../../is';
+import fsp from 'fs/promises';
+import { existsSync } from 'fs';
+import path from 'path';
+import { Core } from '../..';
 
 export class SettingsStoreDatabase extends BaseStoreDatabase<SettingsEntity> {
-
   constructor(db: IDBDatabase, storeName: string) {
     super(db, storeName, 'SettingsStoreDatabase');
-    this.read().finally(() => {
-      this.watch();
-    });
   }
 
-  private async read() {
+  public async read() {
     const all = await super.getAll();
     if (isNull(all) || all.length <= 0) {
       return;
@@ -28,10 +28,22 @@ export class SettingsStoreDatabase extends BaseStoreDatabase<SettingsEntity> {
     const settings = useSettingsStore();
     settings.$patch({
       ...use.settings,
+      debug: Core.isDev
     });
     settings.setTheme(use.settings.theme);
+
+    if (!Core.userDataPath) {
+      GLOBAL_LOG.error('window_transparent, userDataPath is undefined');
+      return;
+    }
+    const filename = path.join(Core.userDataPath, 'window_transparent');
+    if (use.settings.options.enableTransparentWindow) {
+      !existsSync(filename) && fsp.writeFile(filename, '');
+    } else {
+      existsSync(filename) && fsp.unlink(filename);
+    }
   }
-  private watch() {
+  public watch() {
     const message = useMessage();
     const debo = debounce((state: Settings) => {
       super.put({

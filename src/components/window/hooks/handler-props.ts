@@ -1,57 +1,51 @@
-import { ref, watch, watchEffect } from 'vue';
+import { computed } from 'vue';
 import { WindowProps } from '../index.vue';
-import { isNumber, isString, isUndefined } from '../../../core/is';
+import { isNumber, isUndefined } from '../../../core/is';
 import { useSettingsStore } from '../../../store/settings';
+import { handlerVueProp } from '../../../core/utils';
+import { useWindowStore } from '../../../store/window';
 
 export const useHandlerProps = (props: WindowProps) => {
-  const _top = ref('');
-  const _width = ref('');
-  const _height = ref('');
-  const _backgroundColor = ref('');
-  const _className = ref('');
-  const _toBody = ref(isUndefined(props.toBody) ? true : props.toBody);
-  const _center = ref(Boolean(props.center));
+  const { options, window } = useSettingsStore();
+  const win = useWindowStore();
 
-  const { options } = useSettingsStore();
-  const handler = (val: any, defaultVal: string) => {
-    if (isNumber(val)) {
-      return `${val}px`;
+  const handlerLeft = (left?: number | string) => {
+    if (isUndefined(left)) {
+      return '';
     }
-    if (isString(val)) {
-      return /\d$/.test(val) ? `${val}px` : val;
+    if (isNumber(left)) {
+      return left >= 0 ? `${left}px` : '';
     }
-    return defaultVal;
+    return handlerVueProp(left, '');
   }
 
-  watch(() => props, newVal => {
-    const { top, width, height, className } = newVal;
-    _width.value = handler(width, '400px');
-    _height.value = handler(height, '500px');
-    _top.value = _center.value ? `calc((100% - ${_height.value}) / 2)` : handler(top, '5px');
-    _className.value = isUndefined(className) ? '' : className;
-  }, {
-    immediate: true,
-    deep: true
-  });
-  watchEffect(() => {
-    if (!options.enableBlur || props.disableBlur) {
-      _backgroundColor.value = 'var(--rc-window-box-bgcolor)';
-      return;
+  const _width = computed(() => handlerVueProp(props.width, '400px'));
+  const _height = computed(() => handlerVueProp(props.height, '500px'));
+  const _top = computed(() => props.centerY ? `calc((100% - ${_height.value}) / 2)` : handlerVueProp(props.top, '5px'));
+  const _left = computed(() => props.centerX ? `calc((100% - ${_width.value}) / 2)` : handlerLeft(props.left));
+  const _className = computed(() => props.className || '');
+  const _toBody = computed(() => !!props.toBody);
+  const _backgroundColor = computed(() => {
+    if (!options.enableBlur || props.disableBlur || (win.transparentWindow && window.opacity < 1)) {
+      return 'var(--rc-window-box-bgcolor)';
     }
     if (props.backgroundColor) {
-      _backgroundColor.value = props.backgroundColor;
-      return;
+      return props.backgroundColor;
     }
-    _backgroundColor.value = 'var(--rc-window-box-blur-bgcolor)';
+    return 'var(--rc-window-box-blur-bgcolor)';
   });
+  const _centerX = computed(() => !!props.centerX);
+  const _centerY = computed(() => !!props.centerY);
 
   return {
     _top,
+    _left,
     _width,
     _height,
     _toBody,
     _backgroundColor,
     _className,
-    _center
+    _centerX,
+    _centerY
   }
 }

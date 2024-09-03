@@ -106,10 +106,10 @@ export const useBookmark = (windowEvent?: WindowEvent) => {
       nextTick(() => {
         //滚动至书签所在位置
         const ele = document.getElementById(data.id);
-        if (isNull(ele)) {
+        if (!ele?.parentElement || !ele?.parentElement?.dataset.index) {
           return;
         }
-        scrollTop(ele.offsetTop - 10);
+        scrollTop(ele.parentElement.offsetTop - 10);
       });
     }).catch(e => {
       message.error(e.message);

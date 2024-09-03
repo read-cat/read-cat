@@ -1,7 +1,7 @@
 import { storeToRefs } from 'pinia';
 import { useScrollTopStore } from '../../../store/scrolltop';
 import { useDetailStore } from '../../../store/detail';
-import { nextTick, onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import { useBookshelfStore } from '../../../store/bookshelf';
 import { useTextContentStore } from '../../../store/text-content';
 
@@ -18,23 +18,21 @@ export const useScrollTop = (pid: string, detailUrl: string) => {
       if (!entity) {
         return;
       }
+      const index = currentChapter.value?.index || entity.readIndex;
       bookshelf.put({
         ...entity,
+        readIndex: index,
         readScrollTop: scrollTop
       }).then(() => {
-        currentReadScrollTop.chapterIndex = entity.readIndex;
+        currentReadScrollTop.chapterIndex = index;
         currentReadScrollTop.scrollTop = scrollTop;
       });
     });
   }
 
   onMounted(() => {
-    nextTick(() => {
-      if (currentReadScrollTop.chapterIndex === currentChapter.value?.index) {
-        scrollTopStore.scrollTop(currentReadScrollTop.scrollTop);
-      }
-      mainElement.value.addEventListener('scrollend', listener);
-    });
+    scrollTopStore.scrollToTextContent(void 0, 'instant');
+    mainElement.value.addEventListener('scrollend', listener);
   });
   onUnmounted(() => {
     mainElement.value.removeEventListener('scrollend', listener);

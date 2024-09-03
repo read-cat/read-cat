@@ -13,6 +13,6 @@ onMounted(() => {
   <div class="container">书城</div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 
 </style>

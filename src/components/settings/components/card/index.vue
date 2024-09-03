@@ -1,15 +1,20 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import IconHelp from '../../../../assets/svg/icon-help.svg';
 import {
   ElDivider,
   ElPopover,
   ElIcon
 } from 'element-plus';
-defineProps<{
+import { isUndefined } from '../../../../core/is';
+const props = defineProps<{
   title?: string,
-  help?: string
+  help?: string,
+  sticky?: number
 }>();
 
+const _position = computed(() => isUndefined(props.sticky) ? '' : 'sticky');
+const _sticky = computed(() => isUndefined(props.sticky) ? '' : `${props.sticky}px`);
 </script>
 <script lang="ts">
 export default {
@@ -19,24 +24,33 @@ export default {
 
 <template>
   <div class="settings-card">
-    <header v-if="title" class="is-prop">
-      <span>{{ title }}</span>
-      <ElPopover v-once v-if="help" placement="bottom-start" popper-class="settings-help" trigger="hover" :width="350"
-        title="提示">
-        <template #reference>
-          <ElIcon>
-            <IconHelp />
-          </ElIcon>
-        </template>
-        <template #default>
-          <div v-html="help" class="help-content"></div>
-        </template>
-      </ElPopover>
+    <header v-if="title" class="is-prop" :style="{
+      backgroundColor: _position ? 'var(--rc-card-bgcolor)' : ''
+    }">
+      <div class="title-bar">
+        <span>{{ title }}</span>
+        <ElPopover v-once v-if="help" placement="bottom-start" popper-class="settings-help" trigger="hover" :width="350"
+          title="提示" :persistent="false">
+          <template #reference>
+            <ElIcon>
+              <IconHelp />
+            </ElIcon>
+          </template>
+          <template #default>
+            <div v-html="help" class="help-content"></div>
+          </template>
+        </ElPopover>
+      </div>
+      <ElDivider v-once />
     </header>
-    <header v-else class="is-slot">
-      <slot name="header" />
+    <header v-else class="is-slot" :style="{
+      backgroundColor: _position ? 'var(--rc-card-bgcolor)' : ''
+    }">
+      <div class="title-bar">
+        <slot name="header" />
+      </div>
+      <ElDivider v-once />
     </header>
-    <ElDivider v-once />
     <main>
       <slot />
     </main>
@@ -61,25 +75,35 @@ export default {
   }
 
   header {
-
+    position: v-bind(_position);
+    top: v-bind(_sticky);
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
     &.is-prop {
-      display: flex;
-      align-items: center;
 
-      span {
-        margin-right: 5px;
+      .title-bar {
+        display: flex;
+        align-items: center;
+        font-weight: bold;
+
+        span {
+          margin-right: 5px;
+        }
       }
-
-      font-weight: bold;
+      
     }
 
     &.is-slot {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      
+      .title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
 
-      :deep(.title) {
-        font-weight: bold;
+        :deep(.title) {
+          font-weight: bold;
+        }
       }
     }
   }

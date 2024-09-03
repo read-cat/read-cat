@@ -2,11 +2,13 @@
 import { ElLink } from 'element-plus';
 import { description } from '../../../../../package.json';
 import { useLog } from './hooks/log';
+import { useUpdateStore } from '../../../../store/update';
 
 const { version, branch, commit, date } = METADATA;
 const { chrome, electron, node, v8 } = process.versions;
 
 const { exportLog } = useLog();
+const { update, getUpdateLog } = useUpdateStore();
 
 </script>
 <script lang="ts">
@@ -29,8 +31,8 @@ export default {
           <td class="version">
             <span>{{ `${version}${branch === 'dev' ? '.' + date : ''}` }}</span>
             <div>
-              <ElLink type="primary" :underline="false">检查更新</ElLink>
-              <ElLink type="primary" :underline="false">更新日志</ElLink>
+              <ElLink type="primary" :underline="false" @click="update(true)">检查更新</ElLink>
+              <ElLink type="primary" :underline="false" @click="getUpdateLog">更新日志</ElLink>
               <ElLink type="primary" :underline="false" @click="exportLog">导出日志</ElLink>
             </div>
           </td>
@@ -147,6 +149,14 @@ export default {
           }
         }
       }
+    }
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .settings-help {
+    main {
+      width: 80%;
     }
   }
 }

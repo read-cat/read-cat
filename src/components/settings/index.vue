@@ -4,8 +4,7 @@ import {
   ElPopover,
   ElDivider
 } from 'element-plus';
-import { ref } from 'vue';
-import IconClose from '../../assets/svg/icon-close.svg';
+import { ref, watch } from 'vue';
 import IconSettingsConfig from '../../assets/svg/icon-settings-config.svg';
 import IconSettingsProxy from '../../assets/svg/icon-settings-proxy.svg';
 import IconSettingsReadStyle from '../../assets/svg/icon-settings-read-style.svg';
@@ -13,6 +12,7 @@ import IconSettingsShortcutKey from '../../assets/svg/icon-settings-shortcut-key
 import IconSettingsPlugins from '../../assets/svg/icon-settings-plugins.svg';
 import IconSettingsAbout from '../../assets/svg/icon-settings-about.svg';
 import IconAttention from '../../assets/svg/icon-attention.svg';
+import IconOpenBook from '../../assets/svg/icon-open-book.svg';
 import SettingsNavItem from './components/nav-item/index.vue';
 import SettingsConfig from './components/config/index.vue';
 import SettingsPlugin from './components/plugin/index.vue';
@@ -20,8 +20,10 @@ import SettingsProxy from './components/proxy/index.vue';
 import SettingsReadStyle from './components/read-style/index.vue';
 import SettingsShortcutKey from './components/shortcut-key/index.vue';
 import SettingsHelp from './components/help/index.vue';
+import SettingsTxtParseRule from './components/txt-parse-rules/index.vue';
 import { WindowEvent } from '../window/index.vue';
 import { useSettingsStore } from '../../store/settings';
+import { CloseButton } from '..';
 
 defineProps<{
   window?: WindowEvent
@@ -33,10 +35,18 @@ enum SettingsLabel {
   PROXY = '代理',
   READ_STYLE = '阅读样式',
   SHORTCUT_KEY = '快捷键',
+  TXT_PARSE_RULE = 'TXT解析规则',
   ABOUT = '关于'
 }
 const navItemSelected = ref('应用');
 
+watch(() => navItemSelected.value, () => {
+  const main = document.querySelector('#settings-main');
+  main && main.scrollTo({
+    top: 0,
+    behavior: 'instant'
+  });
+});
 </script>
 <script lang="ts">
 export default {
@@ -63,11 +73,14 @@ export default {
         <SettingsNavItem v-memo="[navItemSelected]" v-model="navItemSelected" :label="SettingsLabel.SHORTCUT_KEY">
           <ElIcon size="18"><IconSettingsShortcutKey /></ElIcon>
         </SettingsNavItem>
+        <SettingsNavItem v-memo="[navItemSelected]" v-model="navItemSelected" :label="SettingsLabel.TXT_PARSE_RULE">
+          <ElIcon size="18"><IconOpenBook /></ElIcon>
+        </SettingsNavItem>
         <SettingsNavItem v-memo="[navItemSelected]" v-model="navItemSelected" :label="SettingsLabel.ABOUT">
           <ElIcon size="18"><IconSettingsAbout /></ElIcon>
         </SettingsNavItem>
       </ul>
-      <ElPopover v-once placement="bottom-start" trigger="hover" :width="350" title="提示">
+      <ElPopover v-once placement="bottom-start" trigger="hover" :width="350" title="提示" :persistent="false">
         <template #reference>
           <IconAttention />
         </template>
@@ -80,18 +93,17 @@ export default {
       <header>
         <div class="title">
           <h4 v-memo="[navItemSelected]">{{ navItemSelected }}</h4>
-          <button v-once class="rc-close-button" @click="window?.hide()">
-            <IconClose />
-          </button>
+          <CloseButton margin-right="20" @click="window?.hide()" />
         </div>
         <ElDivider v-once />
       </header>
-      <main :class="['rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
+      <main id="settings-main" :class="['rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
         <SettingsConfig v-if="navItemSelected === SettingsLabel.CONFIG" />
         <SettingsPlugin v-else-if="navItemSelected === SettingsLabel.PLUGIN" />
         <SettingsProxy v-else-if="navItemSelected === SettingsLabel.PROXY" />
         <SettingsReadStyle v-else-if="navItemSelected === SettingsLabel.READ_STYLE" />
         <SettingsShortcutKey v-else-if="navItemSelected === SettingsLabel.SHORTCUT_KEY" />
+        <SettingsTxtParseRule v-else-if="navItemSelected === SettingsLabel.TXT_PARSE_RULE" />
         <SettingsHelp v-else-if="navItemSelected === SettingsLabel.ABOUT" />
       </main>
     </section>

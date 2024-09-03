@@ -1,5 +1,6 @@
 import { Settings } from '../../store/defined/settings';
 import { DetailEntity, Chapter } from '../book/book';
+import { TxtParserType, Pattern } from '../book/txt-parser';
 
 
 export interface DatabaseStoreInterface<V> {
@@ -31,7 +32,7 @@ export interface PluginsStoreEntity {
   /**插件ID */
   pid: string;
   key: string;
-  data: Uint8Array;
+  data: number[];
 }
 export interface HistoryStoreEntity {
 
@@ -52,12 +53,20 @@ export type BookshelfStoreEntity = {
   searchIndex: string,
   timestamp: number,
 } & DetailEntity;
-export interface TextContentStoreEntity {
+export type TextContentStoreEntity = {
   id: string,
   pid: string,
   detailUrl: string,
   chapter: Chapter,
   textContent: string[]
+}
+export type TxtParseRuleEntity = {
+  id: string;
+  name: string;
+  value: string;
+  example: string;
+  type: TxtParserType;
+  flags: Pattern[];
 }
 
 export type BookmarkRange = {
@@ -82,6 +91,11 @@ export type SettingsEntity = {
   id: string,
   use: boolean,
   settings: Settings
+}
+
+export interface PluginRequireEntity {
+  id: string,
+  require: Record<string, string>
 }
 
 export interface DatabaseClassEntity {

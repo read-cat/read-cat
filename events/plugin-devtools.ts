@@ -24,6 +24,18 @@ export class PluginDevtoolsEventCode {
   /**插件开发工具 执行getTextContent */
   static PLUGIN_BOOKSOURCE_RUN_GET_TEXT_CONTENT: string
 
+  /**插件开发工具 执行transform */
+  static PLUGIN_TTS_ENGINE_RUN_TRANSFORM: string
+  /**插件开发工具 中止transform */
+  static PLUGIN_TTS_ENGINE_ABORT_TRANSFORM: string
+  /**插件开发工具 transform next回调 */
+  static PLUGIN_TTS_ENGINE_TRANSFORM_NEXT_CALLBACK: string
+  /**插件开发工具 transform end回调 */
+  static PLUGIN_TTS_ENGINE_TRANSFORM_END_CALLBACK: string
+  
+  /**插件开发工具 执行getVoiceList */
+  static PLUGIN_TTS_ENGINE_RUN_GET_VOICE_LIST: string
+
   /**插件开发工具 编译 */
   static PLUGIN_COMPILE: string
 

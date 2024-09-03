@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElButton, ElTree } from 'element-plus';
-import { WindowEvent } from '../window/index.vue';
+import { WindowEvent, Text } from '..';
 import { useBookmark } from './hooks/bookmark';
 import IconDelete from '../../assets/svg/icon-delete.svg';
 
@@ -24,8 +24,8 @@ export default {
 
 <template>
   <div class="container">
-    <div class="bookmark-toolbar">
-      <ElButton type="danger" circle @click="removeBookmarksChecked" :icon="IconDelete" />
+    <div class="bookmark-toolbar" v-if="bookmarkTree.length > 0">
+      <ElButton title="删除" type="danger" circle size="small" @click="removeBookmarksChecked" :icon="IconDelete" />
     </div>
     <ElTree
       ref="bookmarkTreeRef"
@@ -38,6 +38,9 @@ export default {
       @node-click="nodeClick"
       show-checkbox
     >
+    <template #default="{ node }">
+      <Text :title="node.label">{{ node.label.length > 20 ? `${node.label.slice(0, 20)}...` : node.label }}</Text>
+    </template>
     </ElTree>
   </div>
 </template>
@@ -78,14 +81,6 @@ export default {
     .el-tree-node__content {
       height: auto;
       transition: background-color 0.2s ease;
-
-      span {
-        text-wrap: wrap;
-      }
-
-      /* &:hover {
-        background-color: var(--el-tree-node-hover-bg-color) !important;
-      } */
     }
 
     .el-tree-node {

@@ -1,5 +1,4 @@
 export enum PagePath {
-  HOME = '/home',
   BOOKSHELF = '/bookshelf',
   BOOKSTORE = '/bookstore',
   DETAIL = '/detail',

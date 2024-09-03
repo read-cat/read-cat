@@ -15,9 +15,14 @@ export const useListener = () => {
   const message = useMessage();
   const { isSetShortcutKey, globalShortcutKeyRegisterError } = storeToRefs(useWindowStore());
 
+  const disableShortcutKey = [
+    process.platform === 'darwin' ? 'Meta+C' : 'Ctrl+C',
+  ];
+
   const createKeyDownListener = (call: (raw: string, key: string) => void): Listener => {
     const debo = debounce((raw: string, key: string) => call(raw, key), 200);
     return (e: KeyboardEvent | Event) => {
+      e.preventDefault();
       if (!isKeyboardEvent(e)) {
         return;
       }
@@ -30,6 +35,11 @@ export const useListener = () => {
   const handlerApplicationShortcutKey = (prop: keyof ShortcutKey) => createKeyDownListener((raw: string, key: string) => {
     if (raw === 'Backspace') {
       shortcutKey[prop] = '';
+      isSetShortcutKey.value = false;
+      return;
+    }
+    if (disableShortcutKey.includes(key)) {
+      message.error(`不允许将${key}设置为快捷键`);
       isSetShortcutKey.value = false;
       return;
     }
@@ -49,6 +59,11 @@ export const useListener = () => {
     if (raw === 'Backspace') {
       unregister(prop, shortcutKey[prop]);
       shortcutKey[prop] = '';
+      isSetShortcutKey.value = false;
+      return;
+    }
+    if (disableShortcutKey.includes(key)) {
+      message.error(`不允许将${key}设置为快捷键`);
       isSetShortcutKey.value = false;
       return;
     }
@@ -84,6 +99,8 @@ export const useListener = () => {
   const listeners = {
     prevChapterListener: handlerApplicationShortcutKey('prevChapter'),
     nextChapterListener: handlerApplicationShortcutKey('nextChapter'),
+    prevPageListener: handlerApplicationShortcutKey('prevPage'),
+    nextPageListener: handlerApplicationShortcutKey('nextPage'),
     scrollUpListener: handlerApplicationShortcutKey('scrollUp'),
     scrollDownListener: handlerApplicationShortcutKey('scrollDown'),
     openDevToolsListener: handlerApplicationShortcutKey('openDevTools'),
@@ -91,7 +108,14 @@ export const useListener = () => {
     zoomOutWindowListener: handlerApplicationShortcutKey('zoomOutWindow'),
     zoomRestWindowListener: handlerApplicationShortcutKey('zoomRestWindow'),
     fullScreenWindowListener: handlerApplicationShortcutKey('fullScreen'),
+  }
+  const globalShortcutKeyListeners = {
     bossKeyListener: handlerGlobalShortcutKey('globalBossKey'),
+    readAloudToggleListener: handlerGlobalShortcutKey('globalReadAloudToggle'),
+    readAloudPrevChapterListener: handlerGlobalShortcutKey('globalReadAloudPrevChapter'),
+    readAloudNextChapterListener: handlerGlobalShortcutKey('globalReadAloudNextChapter'),
+    readAloudFastForwardListener: handlerGlobalShortcutKey('globalReadAloudFastForward'),
+    readAloudFastRewindListener: handlerGlobalShortcutKey('globalReadAloudFastRewind'),
   }
 
   onUnmounted(() => {
@@ -101,5 +125,6 @@ export const useListener = () => {
 
   return {
     ...listeners,
+    ...globalShortcutKeyListeners,
   }
 }

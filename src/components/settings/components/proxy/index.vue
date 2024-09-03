@@ -4,14 +4,19 @@ import {
   ElInputNumber,
   ElInput,
   ElSelect,
-  ElOption
+  ElOption,
+  ElButton
 } from 'element-plus';
 import SettingsCard from '../card/index.vue';
 import SettingsCardItem from '../card/item/index.vue';
 import { useSettingsStore } from '../../../../store/settings';
 import { isUndefined } from '../../../../core/is';
+import { useTestProxy } from './hooks/test-proxy';
 
 const { options, proxy } = useSettingsStore();
+
+const { test } = useTestProxy();
+
 </script>
 <script lang="ts">
 export default {
@@ -39,6 +44,13 @@ export default {
       </SettingsCardItem>
       <SettingsCardItem title="密码" v-memo="[proxy.password]">
         <ElInput v-model="proxy.password" placeholder="请输入密码(可选)" />
+      </SettingsCardItem>
+      <SettingsCardItem title="" v-memo="[proxy.testUrl]">
+        <ElInput v-model="proxy.testUrl" style="width: 280px;" placeholder="请输入测试链接">
+          <template #append>
+            <ElButton @click="test">测试</ElButton>
+          </template>
+        </ElInput>
       </SettingsCardItem>
       <SettingsCardItem title="开启" v-memo="[options.enableProxy]">
         <ElSwitch :validate-event="false" v-model="options.enableProxy" />

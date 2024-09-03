@@ -3,6 +3,7 @@ import { isNull, isUndefined } from '../../is';
 import { BookshelfStoreEntity } from '../database';
 import { BaseStoreDatabase } from './base-store';
 import { useMessage } from '../../../hooks/message';
+import { BookParser } from '../../book/book-parser';
 
 export class BookshelfStoreDatabase extends BaseStoreDatabase<BookshelfStoreEntity> {
   constructor(db: IDBDatabase, storeName: string) {
@@ -32,7 +33,7 @@ export class BookshelfStoreDatabase extends BaseStoreDatabase<BookshelfStoreEnti
           baseUrl
         } = entity;
         const props = GLOBAL_PLUGINS.getPluginPropsById(pid);
-        store._books.push({
+        store._books.set(id, {
           id,
           pid,
           detailPageUrl,
@@ -47,8 +48,8 @@ export class BookshelfStoreDatabase extends BaseStoreDatabase<BookshelfStoreEnti
           pluginVersionCode,
           isRunningRefresh: false,
           baseUrl,
-          group: props ? props.GROUP : 'unknown',
-          pluginName: props ? props.NAME: 'unknown'
+          group: pid === BookParser.PID ? '内置' : props?.GROUP || 'unknown',
+          pluginName: pid === BookParser.PID ? '本地书籍' : props?.NAME || 'unknown'
         });
       });
     }).catch((e: any) => {
@@ -72,7 +73,8 @@ export class BookshelfStoreDatabase extends BaseStoreDatabase<BookshelfStoreEnti
           return reso(result);
         }
         requ.onerror = () => {
-          throw requ.error;
+          GLOBAL_LOG.error(this.tag, `getByPidAndDetailPageUrl pid:${pid}, detailPageUrl:${detailPageUrl}`, requ.error);
+          return reje(requ.error);
         }
       } catch (e) {
         GLOBAL_LOG.error(this.tag, `getByPidAndDetailPageUrl pid:${pid}, detailPageUrl:${detailPageUrl}`, e);
@@ -93,19 +95,12 @@ export class BookshelfStoreDatabase extends BaseStoreDatabase<BookshelfStoreEnti
       id: isNull(raw) ? _val.id : raw.id
     });
   }
-  removeByPidAndDetailPageUrl(pid: string, detailPageUrl: string): Promise<void> {
-    return new Promise<void>(async (reso, reje) => {
-      try {
-        const val = await this.getByPidAndDetailPageUrl(pid, detailPageUrl);
-        if (isNull(val)) {
-          return reso();
-        }
-        await this.remove(val.id);
-        return reso();
-      } catch (e) {
-        GLOBAL_LOG.error(this.tag, `removeByPidAndDetailPageUrl pid:${pid}, detailPageUrl:${detailPageUrl}`, e);
-        return reje(e);
-      }
-    });
+  async removeByPidAndDetailPageUrl(pid: string, detailPageUrl: string): Promise<void> {
+    try {
+      await this.useCursorRemove('index_pid_url', [pid, detailPageUrl]);
+    } catch (e) {
+      GLOBAL_LOG.error(this.tag, `removeByPidAndDetailPageUrl pid:${pid}, detailPageUrl:${detailPageUrl}`, e);
+      return Promise.reject(e);
+    }
   }
 }

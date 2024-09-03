@@ -3,7 +3,6 @@ import {
   ElResult,
   ElButton,
   ElCheckTag,
-  ElTooltip,
   ElPagination,
   ElRow,
   ElCol,
@@ -24,7 +23,7 @@ import IconDot from '../../assets/svg/icon-dot.svg';
 import IconBack from '../../assets/svg/icon-goback-back.svg';
 import IconCache from '../../assets/svg/icon-cache.svg';
 import IconBookmarkBtn from '../../assets/svg/icon-bookmark-btn.svg';
-import Window, { WindowEvent } from '../../components/window/index.vue';
+import { Window, WindowEvent, Text } from '../../components';
 import Bookmark from '../../components/bookmark/index.vue';
 import { storeToRefs } from 'pinia';
 import { isNull } from '../../core/is';
@@ -38,6 +37,7 @@ import { PagePath } from '../../core/window';
 import { ref } from 'vue';
 import { useSettingsStore } from '../../store/settings';
 import CoverImage from '../../assets/cover.jpg';
+import { BookParser } from '../../core/book/book-parser';
 
 const route = useRoute();
 const router = useRouter();
@@ -83,9 +83,9 @@ const bookmarkWindow = ref<WindowEvent>();
             @error="e => (<HTMLImageElement>e.target).src = CoverImage">
           <div>
             <div class="col">
-              <p v-memo="[detailResult.bookname]" class="bookname">{{ detailResult.bookname }}</p>
+              <p v-memo="[detailResult.bookname]" class="bookname rc-text-ellipsis">{{ detailResult.bookname }}</p>
               <div class="btn" v-memo="[exist]">
-                <ElCheckTag v-if="exist" type="primary" size="small" :checked="true">
+                <ElCheckTag v-if="false && exist && pid !== BookParser.PID" type="primary" size="small" :checked="true">
                   <IconMore /><span>换源</span>
                 </ElCheckTag>
                 <ElCheckTag v-if="exist" type="warning" size="small" :checked="true" @click="bookmarkWindow?.show()">
@@ -101,17 +101,22 @@ const bookmarkWindow = ref<WindowEvent>();
             <div class="col">
               <p class="author">
                 <IconUser v-once />
-                <ElTooltip v-memo="[detailResult.author]" effect="light" :content="'作者 ' + detailResult.author" placement="bottom" :show-after="1500">
-                  <span>{{ detailResult.author }}</span>
-                </ElTooltip>
+                <Text v-memo="[detailResult.author]" :title="`作者 ${detailResult.author}`" ellipsis max-width="calc(100% - 15px)">{{ detailResult.author }}</Text>
               </p>
               <p class="latest-chapter">
                 <IconDot v-once style="color: var(--rc-latest-chapter-color);" />
-                <ElTooltip v-memo="[detailResult.chapterList, detailResult.latestChapterTitle]" effect="light" :content="`最新章节 ${detailResult?.latestChapterTitle ? detailResult.latestChapterTitle :
-    detailResult?.chapterList[detailResult?.chapterList.length - 1].title}`" placement="bottom" :show-after="1500">
-                  <span>{{ detailResult?.latestChapterTitle ? detailResult.latestChapterTitle :
-    detailResult?.chapterList[detailResult?.chapterList.length - 1].title }}</span>
-                </ElTooltip>
+                <Text
+                  v-memo="[detailResult.chapterList, detailResult.latestChapterTitle]"
+                  :title="`最新章节 ${detailResult?.latestChapterTitle ? detailResult.latestChapterTitle :
+                    detailResult?.chapterList[detailResult?.chapterList.length - 1]?.title}`"
+                  ellipsis
+                  max-width="calc(100% - 15px)"
+                >
+                  {{
+                    detailResult?.latestChapterTitle ? detailResult.latestChapterTitle :
+                    detailResult?.chapterList[detailResult?.chapterList.length - 1]?.title
+                  }}
+                </Text>
               </p>
             </div>
             <span v-once>简介:</span>
@@ -123,26 +128,24 @@ const bookmarkWindow = ref<WindowEvent>();
           <div class="col">
             <p v-once>章节目录</p>
             <ElPagination v-memo="[totalPage, currentPage]" layout="prev, pager, next" :page-count="totalPage" :current-page="currentPage"
-              @current-change="currentPageChange" small hide-on-single-page />
+              @current-change="currentPageChange" size="small" hide-on-single-page />
           </div>
           <div :class="['list', 'rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
             <ElRow v-for="(item, index) in showValue" :key="index">
               <ElCol class="rc-button" :span="8" v-for="i in item" :key="i.url" @click="getChapterContent(i)">
-                <ElIcon v-if="cacheIndexs.includes(i.index)">
+                <ElIcon v-if="cacheIndexs[<string>detailUrl].includes(i.index)"  title="已缓存">
                   <IconCache />
                 </ElIcon>
-                <ElTooltip effect="light" :content="i.title" placement="bottom-end" :show-after="1500">
-                  <span :data-index="i.index" :style="{
-    color: `${currentReadIndex === i.index ? 'var(--rc-theme-color)' : ''}`
-  }">{{ i.title }}</span>
-                </ElTooltip>
+                <Text :title="i.title" ellipsis max-width="100%" :data-index="i.index" :style="{
+                  color: `${currentReadIndex === i.index ? 'var(--rc-theme-color)' : ''}`
+                }">{{ i.title }}</Text>
               </ElCol>
             </ElRow>
           </div>
         </div>
       </div>
     </div>
-    <Window top="10" @event="e => bookmarkWindow = e" class-name="bookmark-window">
+    <Window top="10" centerX @event="e => bookmarkWindow = e" class-name="bookmark-window">
       <ElContainer>
         <ElHeader class="header" v-once>
           <ElText type="info" size="small">书签</ElText>
@@ -222,9 +225,6 @@ const bookmarkWindow = ref<WindowEvent>();
 
           p {
             font-size: 14px;
-            text-overflow: ellipsis;
-            text-wrap: nowrap;
-            overflow: hidden;
             user-select: text;
 
             &:hover {
@@ -273,13 +273,8 @@ const bookmarkWindow = ref<WindowEvent>();
             align-items: center;
 
             span {
-              display: inline-block;
               margin-left: 5px;
               user-select: text;
-              max-width: calc(100% - 15px);
-              overflow: hidden;
-              text-overflow: ellipsis;
-              text-wrap: nowrap;
             }
           }
 
@@ -297,7 +292,6 @@ const bookmarkWindow = ref<WindowEvent>();
             height: 80px;
             font-size: 12px;
             overflow-y: scroll;
-            text-wrap: wrap;
             text-indent: 2em;
           }
         }
@@ -332,7 +326,7 @@ const bookmarkWindow = ref<WindowEvent>();
           :deep(.el-row) {
             margin-bottom: 5px;
             margin-right: 10px;
-
+            contain: layout;
             .el-col {
               display: flex;
               padding: 0 10px;
@@ -342,14 +336,6 @@ const bookmarkWindow = ref<WindowEvent>();
 
               &:active {
                 transform: scale(0.95);
-              }
-
-              span {
-                display: inline-block;
-                max-width: 100%;
-                text-overflow: ellipsis;
-                text-wrap: nowrap;
-                overflow: hidden;
               }
             }
           }

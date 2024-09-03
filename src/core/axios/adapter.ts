@@ -28,7 +28,6 @@ import { createURL, getRequest } from './handler/url';
 import { createAgent } from './handler/agent';
 import { CustomAxiosResponse, CustomInternalAxiosRequestConfig } from './defined/axios';
 
-
 const createTransformRequest = (config: InternalAxiosRequestConfig) => {
   if (isFunction(config.transformRequest)) {
     return config.transformRequest.bind(config);
@@ -50,11 +49,11 @@ const createTransformRequest = (config: InternalAxiosRequestConfig) => {
   }
   return func.bind(config);
 }
-
 export default (config: CustomInternalAxiosRequestConfig) => {
   return new Promise<CustomAxiosResponse>(async (reso, reje) => {
     try {
       delete config.adapter;
+      config.maxRedirects = isUndefined(config.maxRedirects) || config.maxRedirects < 0 ? 10 : config.maxRedirects;
       const url = createURL(config);
       config.url = url.href;
       const request = getRequest(url.protocol, config);
@@ -79,7 +78,10 @@ export default (config: CustomInternalAxiosRequestConfig) => {
         timeout: isUndefined(config.timeout) ? 15000 : config.timeout,
         headers: config.headers,
         rejectUnauthorized: config.rejectUnauthorized,
-        insecureHTTPParser: config.insecureHTTPParser
+        insecureHTTPParser: config.insecureHTTPParser,
+        maxRedirects: config.maxRedirects,
+        followRedirects: !isUndefined(config.maxRedirects) && config.maxRedirects > 0,
+        maxBodyLength: config.maxBodyLength,
       }, res => {
         if (method === 'HEAD' || res.statusCode === 204) {
           delete res.headers['content-encoding'];
@@ -100,7 +102,8 @@ export default (config: CustomInternalAxiosRequestConfig) => {
               total: length,
               bytes: chunk.byteLength,
               progress: currentSize / length,
-              download: true
+              download: true,
+              lengthComputable: true
             });
           }
         });
@@ -109,6 +112,8 @@ export default (config: CustomInternalAxiosRequestConfig) => {
             const { maxBodyLength, maxContentLength } = config;
             const contentLength = Number(res.headers['content-length']);
             if (
+              !isUndefined(config.maxRedirects) &&
+              config.maxRedirects > 0 &&
               !isUndefined(maxBodyLength) &&
               maxBodyLength > 0 &&
               body.byteLength > maxBodyLength
@@ -130,7 +135,8 @@ export default (config: CustomInternalAxiosRequestConfig) => {
                 total: length,
                 bytes: 0,
                 upload: true,
-                progress: 1
+                progress: 1,
+                lengthComputable: true
               });
             }
           } catch (e) {
@@ -175,8 +181,6 @@ export default (config: CustomInternalAxiosRequestConfig) => {
             if (isDownload) {
               config.onData && config.onData(void 0);
               data = 'downloaded';
-            } else if (method === 'HEAD') {
-              data = '';
             }
             return reso({
               data,
@@ -235,7 +239,8 @@ export default (config: CustomInternalAxiosRequestConfig) => {
             total: length,
             bytes: chunk.byteLength,
             upload: true,
-            progress: progress >= 0.98 ? 0.98 : progress
+            progress: progress >= 0.98 ? 0.98 : progress,
+            lengthComputable: true
           });
         });
       }

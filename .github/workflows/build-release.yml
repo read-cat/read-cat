@@ -12,8 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        # os: [ windows-latest, macos-latest, ubuntu-latest ]
-        os: [ windows-latest ]
+        os: [ windows-latest, macos-latest, ubuntu-latest ]
       
     permissions:
       contents: write
@@ -30,8 +29,26 @@ jobs:
       - name: Install Dependencies
         run: npm install
         
+      - name: Create Metadata
+        run: npm run make --tag="${{ github.ref }}"
+
       - name: Build electron apps for windows platform
-        run: npm run build:win32
+        if: matrix.os == 'windows-latest'
+        run: |
+          npm run build:win32:x64
+          npm run build:win32:windows7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build electron apps for darwin platform
+        if: matrix.os == 'macos-latest'
+        run: npm run build:darwin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build electron apps for linux platform
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run build:linux
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
