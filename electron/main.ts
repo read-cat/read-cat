@@ -69,6 +69,12 @@ function createWindow(width?: number, height?: number) {
   });
   
   win.webContents.on('will-navigate', (e, url) => {
+    if (
+      VITE_DEV_SERVER_URL && url.startsWith(VITE_DEV_SERVER_URL)
+      || !VITE_DEV_SERVER_URL && url.startsWith(path.join(process.env.DIST, 'index.html'))
+    ) {
+      return;
+    }
     e.preventDefault();
     shell.openExternal(url);
   });
