@@ -165,28 +165,12 @@ export class Plugins {
   }
 
   private getProps(pluginClass: PluginInterface): PluginBaseProps {
-    const {
-      ID,
-      TYPE,
-      NAME,
-      GROUP,
-      VERSION,
-      VERSION_CODE,
-      PLUGIN_FILE_URL,
-      BASE_URL,
-      REQUIRE
-    } = pluginClass;
-    return {
-      ID,
-      TYPE,
-      NAME,
-      GROUP,
-      VERSION,
-      VERSION_CODE,
-      PLUGIN_FILE_URL,
-      BASE_URL,
-      REQUIRE
+    const props: PluginBaseProps = <any>{};
+    for (const key in pluginClass) {
+      if (!Object.hasOwn(pluginClass, key)) continue;
+      Reflect.set(props, key, (<Record<string, any>>pluginClass)[key]);
     }
+    return props;
   }
 
   public getPluginPropsById(id: string): PluginBaseProps | undefined {
