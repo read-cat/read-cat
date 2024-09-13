@@ -54,12 +54,19 @@ const { totalPage, currentPage, currentPageChange, showValue } = usePagination(s
 const { onRefresh } = useWindowStore();
 onRefresh(PagePath.BOOKSHELF, refresh);
 
-const goDetailPage = (item: Book) => {
+/**
+ * @param to
+ * normal: 正常跳转
+ * already: 跳转至上次已读章节页
+ * latest: 跳转至最新章节页
+ */
+const goDetailPage = (item: Book, to: 'normal' | 'already' | 'latest' = 'normal') => {
   router.push({
     path: PagePath.DETAIL,
     query: {
       pid: item.pid,
-      detailUrl: item.detailPageUrl
+      detailUrl: item.detailPageUrl,
+      to
     }
   });
 }
@@ -91,6 +98,11 @@ const {
 
 const { rules: txtParseRules } = storeToRefs(useTxtParseRuleStore());
 
+/** 导航至上次阅读章节或最新章节页*/
+const goReadPage = (e: MouseEvent, to: 'already' | 'latest', book: Book) => {
+  e.stopPropagation();
+  goDetailPage(book, to);
+}
 </script>
 
 <template>
@@ -155,13 +167,13 @@ const { rules: txtParseRules } = storeToRefs(useTxtParseRuleStore());
                 </p>
               </div>
               <div>
-                <p v-if="item.readChapterTitle">
+                <div class="chapter-title already" v-if="item.readChapterTitle" @click="e => goReadPage(e, 'already', item)">
                   <ElIcon v-once title="已读" style="color: var(--rc-theme-color);">
                     <IconDot />
                   </ElIcon>
                   <Text v-memo="[item.readChapterTitle]" :title="`已读 ${item.readChapterTitle}`" ellipsis max-width="160">{{ item.readChapterTitle }}</Text>
-                </p>
-                <p>
+                </div>
+                <div class="chapter-title latest" @click="e => goReadPage(e, 'latest', item)">
                   <div>
                     <template v-if="item.latestChapterTitle">
                       <ElIcon v-once title="最新章节" size="12" style="color: var(--rc-latest-chapter-color);">
@@ -172,7 +184,7 @@ const { rules: txtParseRules } = storeToRefs(useTxtParseRuleStore());
                   </div>
                   <ElCheckbox v-memo="[item.id]" :key="`checkbox-${item.id}`" :value="item.id"
                     @click="(e: MouseEvent) => e.stopPropagation()" />
-                </p>
+                </div>
               </div>
             </div>
           </ElCard>
@@ -644,16 +656,27 @@ const { rules: txtParseRules } = storeToRefs(useTxtParseRuleStore());
       width: 180px;
       color: var(--rc-text-color);
 
-      p {
+      p,
+      .chapter-title {
         display: flex;
         flex-direction: row;
         align-items: center;
         margin-bottom: 2px;
         font-size: 12px;
         height: 20px;
-
         &:last-child {
           margin-bottom: 0;
+        }
+        
+      }
+
+      .chapter-title {
+        transition: color .2s ease;
+        &.already:hover {
+          color: var(--rc-theme-color);
+        }
+        &.latest:hover {
+          color: var(--rc-latest-chapter-color);
         }
       }
 
@@ -671,7 +694,7 @@ const { rules: txtParseRules } = storeToRefs(useTxtParseRuleStore());
       &>div:last-child {
         margin-bottom: 5px;
 
-        p {
+        .chapter-title {
           height: 15px;
 
           &:last-child {
