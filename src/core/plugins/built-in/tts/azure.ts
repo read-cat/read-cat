@@ -156,7 +156,7 @@ export class AzureTTSEngine implements TextToSpeechEngine {
     protected async createSSML(text: string, opts: TTSOptions): Promise<string> {
         const voice = opts.voice
         if (!voice) {
-            throw new Error('未选择说话人')
+            throw new Error('未选择发音人')
         }
         const rate = !isUndefined(opts.rate) ? `${Math.floor(opts.rate * 100)}%` : '0%';
         const volume = !isUndefined(opts.volume) ? `${Math.floor(opts.volume * 100)}%` : '0%';
@@ -169,7 +169,7 @@ export class AzureTTSEngine implements TextToSpeechEngine {
             }
         }
         if (!locale) {
-            throw new Error(`未找到说话人： ${voice}`)
+            throw new Error(`未找到发音人： ${voice}`)
         }
         return (
             `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${locale}">` +
