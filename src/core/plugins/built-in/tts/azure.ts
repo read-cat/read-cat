@@ -144,6 +144,9 @@ export class AzureTTSEngine implements TextToSpeechEngine {
             for (let j = 0; j < chunks.length; j++) {
                 const t = chunks[j].join('');
                 const body = await toBuffer(t);
+                if (body.byteLength === 0) {
+                    continue
+                }
                 next({
                     blob: new Blob([body], { type: 'audio/mp3' }),
                     index: j
