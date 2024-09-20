@@ -12,6 +12,13 @@ type VoiceListItem = {
 
 const VoiceListStoreKey = 'voice-list'
 
+// Azure 的 TTS 有些特殊字符会导致接口调用失败
+// 调用的时候就统一替换
+// 替换后的字符两边加上空格便于区分
+const replacingMap = {
+    '&': ' and 号 ',
+}
+
 export class AzureTTSEngine implements TextToSpeechEngine {
     public static readonly ID = '7GXzGCrruIOlO1D1';
     public static readonly TYPE = 2;
@@ -107,6 +114,10 @@ export class AzureTTSEngine implements TextToSpeechEngine {
             if (!/([\u4e00-\u9fa5]|[a-z0-9])+/igm.test(text)) {
                 return new ArrayBuffer(0)
             }
+            // 特殊字符可能造成请求失败
+            Object.entries(replacingMap).forEach(([k, v]) => {
+                text = text.replaceAll(k, v)
+            })
             const ssml = await this.createSSML(text, options)
             const res = await fetch(this.transformEndpoint, {
                 signal,
@@ -118,7 +129,11 @@ export class AzureTTSEngine implements TextToSpeechEngine {
                 },
                 body: ssml
             }).catch(e => Promise.reject(new Error('连接服务失败', { cause: e })))
-            return await res.blob();
+            if (!res.ok) {
+                console.log('text:', text)
+                throw new Error(`Azure 错误码：${res.status}`);
+            }
+            return await res.arrayBuffer();
         }
         for (let i = _start; i < texts.length; i++) {
             if (signal.aborted) {
