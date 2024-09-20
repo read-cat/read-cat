@@ -24,7 +24,7 @@ export class AzureTTSEngine implements TextToSpeechEngine {
     public static readonly TYPE = 2;
     public static readonly GROUP = '(内置)TTS';
     public static readonly NAME = 'Azure TTS Engine';
-    public static readonly VERSION = '1.0.0';
+    public static readonly VERSION = '1.1.0';
     public static readonly VERSION_CODE = 0;
     public static readonly PLUGIN_FILE_URL = '';
     public static readonly REQUIRE: Record<string, RequireItem> = {
@@ -82,9 +82,8 @@ export class AzureTTSEngine implements TextToSpeechEngine {
             throw new Error(`Invalid status: ${res.status}`)
         }
         const body = await res.json() as VoiceListItem[]
-        await this.store.setStoreValue(VoiceListStoreKey, body)
-        return body
-            .map(item => ({ name: `${item.LocalName} (${item.Gender}, ${item.Locale})`, value: item.ShortName }))
+        const vl = body
+            .map(item => ({ name: `${item.LocalName} (${item.Gender}, ${item.Locale})`, value: item.ShortName, locale: item.Locale }))
             .sort((a, b) => {
                 const sa = a.value.slice(3, 5) === 'CN'
                 const sb = b.value.slice(3, 5) === 'CN'
@@ -96,6 +95,8 @@ export class AzureTTSEngine implements TextToSpeechEngine {
                 }
                 return a.value < b.value ? -1 : 1
             })
+        await this.store.setStoreValue(VoiceListStoreKey, vl)
+        return vl
     }
 
     get transformEndpoint(): string {
@@ -130,7 +131,6 @@ export class AzureTTSEngine implements TextToSpeechEngine {
                 body: ssml
             }).catch(e => Promise.reject(new Error('连接服务失败', { cause: e })))
             if (!res.ok) {
-                console.log('text:', text)
                 throw new Error(`Azure 错误码：${res.status}`);
             }
             return await res.arrayBuffer();
@@ -144,9 +144,6 @@ export class AzureTTSEngine implements TextToSpeechEngine {
             for (let j = 0; j < chunks.length; j++) {
                 const t = chunks[j].join('');
                 const body = await toBuffer(t);
-                if (body.byteLength === 0) {
-                    continue
-                }
                 next({
                     blob: new Blob([body], { type: 'audio/mp3' }),
                     index: j
@@ -157,17 +154,17 @@ export class AzureTTSEngine implements TextToSpeechEngine {
     }
 
     protected async createSSML(text: string, opts: TTSOptions): Promise<string> {
-        const voice = opts.voice
-        if (!voice) {
-            throw new Error('未选择发音人')
+        const voiceList = await this.store.getStoreValue(VoiceListStoreKey) as (Voice & { locale: string })[]
+        if (voiceList.length === 0) {
+            throw new Error('未找到发音人')
         }
+        const voice = opts.voice || voiceList[0].value
         const rate = !isUndefined(opts.rate) ? `${Math.floor(opts.rate * 100)}%` : '0%';
         const volume = !isUndefined(opts.volume) ? `${Math.floor(opts.volume * 100)}%` : '0%';
-        const voiceList = await this.store.getStoreValue(VoiceListStoreKey) as VoiceListItem[]
         let locale = ''
         for (const vi of voiceList) {
-            if (vi.ShortName === voice) {
-                locale = vi.Locale
+            if (vi.value === voice) {
+                locale = vi.locale
                 break
             }
         }
