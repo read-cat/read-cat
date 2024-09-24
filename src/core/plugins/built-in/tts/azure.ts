@@ -10,6 +10,7 @@ type VoiceListItem = {
     Locale: string
     ShortName: string
 }
+type AzureVoice = Voice & { locale: string }
 
 const VoiceListStoreKey = 'voice-list'
 
@@ -68,7 +69,7 @@ export class AzureTTSEngine implements TextToSpeechEngine {
         return `https://${this.region}.tts.speech.microsoft.com/cognitiveservices/voices/list`
     }
 
-    async getVoiceList(): Promise<Voice[]> {
+    async getVoiceList(): Promise<AzureVoice[]> {
         const res = await fetch(this.voiceListEndpoint, {
             headers: this.commonHeaders,
         }).catch((e) => Promise.reject(new Error('连接服务失败', { cause: e })))
@@ -144,7 +145,10 @@ export class AzureTTSEngine implements TextToSpeechEngine {
     }
 
     protected async createSSML(text: string, opts: TTSOptions): Promise<string> {
-        const voiceList = await this.store.getStoreValue(VoiceListStoreKey) as (Voice & { locale: string })[]
+        let voiceList = await this.store.getStoreValue(VoiceListStoreKey) as (AzureVoice[] | null)
+        if (!voiceList) {
+            voiceList = await this.getVoiceList()
+        }
         if (voiceList.length === 0) {
             throw new Error('未找到发音人')
         }
