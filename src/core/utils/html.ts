@@ -17,7 +17,6 @@ export const sanitizeHTML = (() => {
     });
     if (removeTags) {
       divContainer.innerHTML = str;
-      divContainer.children
       str = divContainer.innerText;
       divContainer.innerHTML = '';
     }
