@@ -1,5 +1,6 @@
 import { isUndefined } from "../../../is"
 import { chunkArray } from "../../../utils"
+import { escapeXML } from "../../../utils/html"
 import { PluginConstructorParams, RequireItem } from "../../defined/plugins"
 import { EndCallback, NextCallback, TextToSpeechEngine, TTSOptions, Voice } from "../../defined/ttsengine"
 
@@ -12,19 +13,12 @@ type VoiceListItem = {
 
 const VoiceListStoreKey = 'voice-list'
 
-// Azure 的 TTS 有些特殊字符会导致接口调用失败
-// 调用的时候就统一替换
-// 替换后的字符两边加上空格便于区分
-const replacingMap = {
-    '&': ' and 号 ',
-}
-
 export class AzureTTSEngine implements TextToSpeechEngine {
     public static readonly ID = '7GXzGCrruIOlO1D1';
     public static readonly TYPE = 2;
     public static readonly GROUP = '(内置)TTS';
     public static readonly NAME = 'Azure TTS Engine';
-    public static readonly VERSION = '1.1.0';
+    public static readonly VERSION = '1.1.1';
     public static readonly VERSION_CODE = 0;
     public static readonly PLUGIN_FILE_URL = '';
     public static readonly REQUIRE: Record<string, RequireItem> = {
@@ -115,10 +109,6 @@ export class AzureTTSEngine implements TextToSpeechEngine {
             if (!/([\u4e00-\u9fa5]|[a-z0-9])+/igm.test(text)) {
                 return new ArrayBuffer(0)
             }
-            // 特殊字符可能造成请求失败
-            Object.entries(replacingMap).forEach(([k, v]) => {
-                text = text.replaceAll(k, v)
-            })
             const ssml = await this.createSSML(text, options)
             const res = await fetch(this.transformEndpoint, {
                 signal,
@@ -171,6 +161,8 @@ export class AzureTTSEngine implements TextToSpeechEngine {
         if (!locale) {
             throw new Error(`未找到发音人： ${voice}`)
         }
+        // payload 是 XML，特殊字符需要转义才能确保正确性
+        text = escapeXML(text)
         return (
             `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${locale}">` +
             `<voice name="${voice}">` +
