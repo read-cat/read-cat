@@ -25,6 +25,9 @@ export const useReadAloud = () => {
   });
   const readAloudPlaybackRates = [0.5, 0.7, 1, 1.2, 1.5, 1.7, 2, 3, 4, 8, 16];
   const readAloudPlaybackRate = ref(1);
+  /**
+   * 第一个元素为引擎插件ID，第二个元素为该引擎发音人
+   */
   const readAloudVoices = ref<[string, Voice[]]>(['', []]);
   const readAloudVoicesWindow = ref<WindowEvent>();
   const isPin = ref(false);
@@ -102,9 +105,11 @@ export const useReadAloud = () => {
       if (readAloud.use === readAloudVoices.value[0] && readAloudVoices.value[1].length > 0) {
         return;
       }
-      refreshReadAloudVoices(true).finally(() => {
-        const voice = readAloudVoices.value[1][0];
-        voice && (currentVoice.value = voice);
+      refreshReadAloudVoices(true).catch((e) => {
+        readAloudVoices.value[1] = [];
+        message.error(e.message);
+      }).finally(() => {
+        currentVoice.value = readAloudVoices.value[1][0];
       });
     } else {
       setTimeout(cancelSelectPlay, 300);
@@ -134,6 +139,7 @@ export const useReadAloud = () => {
       }
     } catch (e: any) {
       !ignoreError && message.error(e.message);
+      return Promise.reject(e);
     } finally {
       isRefreshReadAloudVoices.value = false;
     }
