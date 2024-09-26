@@ -7,6 +7,7 @@ import {
   ElButton,
   ElSlider,
   ElAutocomplete,
+  ElMessageBox,
 } from 'element-plus';
 import SettingsCard from '../card/index.vue';
 import SettingsCardItem from '../card/item/index.vue';
@@ -51,6 +52,25 @@ const debugChange = (val: string | number | boolean) => {
   const is = isBoolean(val) ? val : !!val;
   Core.isDev = is;
   Core.logger.setDebug(is);
+}
+const debugBeforeChange = async () => {
+  try {
+    if (Core.isDev) {
+      return true;
+    }
+    await ElMessageBox.confirm(`
+      <p>非开发人员请勿开启调试模式，开启前请确保<strong>插件安全</strong></p>
+      <p>是否开启调试模式？</p>
+    `, {
+      cancelButtonText: '取消',
+      confirmButtonText: '开启',
+      type: 'warning',
+      dangerouslyUseHTMLString: true
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 const { querySearch } = useGithubDownloadProxy();
@@ -155,7 +175,7 @@ export default {
     </SettingsCard>
     <SettingsCard title="高级">
       <SettingsCardItem title="调试模式">
-        <ElSwitch :validate-event="false" v-model="debug" @change="debugChange" />
+        <ElSwitch :validate-event="false" v-model="debug" @change="debugChange" :before-change="debugBeforeChange"/>
       </SettingsCardItem>
     </SettingsCard>
   </div>
