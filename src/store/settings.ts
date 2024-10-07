@@ -94,6 +94,9 @@ export const useSettingsStore = defineStore('Settings', {
         use: EdgeTTSEngine.ID
       },
       debug: Core.isDev,
+      bookStore: {
+        use: ''
+      }
     }
   },
   getters: {

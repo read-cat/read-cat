@@ -5,6 +5,7 @@ import { isBoolean, isFunction, isUndefined } from '../../is';
 import { Logger } from '../../logger';
 import { Plugins } from '../../plugins';
 import { BookSource } from '../../plugins/defined/booksource';
+import { BookStore } from '../../plugins/defined/bookstore';
 import { SearchFilter } from '../../plugins/defined/plugins';
 import { TextToSpeechEngine } from '../../plugins/defined/ttsengine';
 import { errorHandler } from '../../utils';
@@ -111,6 +112,26 @@ export const runGetVoiceList = (event: PluginDevtools, code: string, jscode: str
     enable: true,
     minify: true
   }).then(p => (<TextToSpeechEngine>p).getVoiceList()).then(res => {
+    event.send(code, void 0, res);
+  }).catch(e => {
+    event.send(code, errorHandler(e, true));
+  });
+}
+
+export const runBookStore = (event: PluginDevtools, code: string, key: string, jscode: string) => {
+  GLOBAL_LOG.debug('PluginDevtools', '书城 执行', key,  'jscode:', jscode);
+  event.plugin.importJSCode(jscode, {
+    force: true,
+    debug: true,
+    enable: true,
+    minify: true
+  }).then(p => {
+    const func = (<BookStore>p).getConfigItem(key);
+    if (!func) {
+      return Promise.reject(`无法获取key为"${key}"的函数`);
+    }
+    return func();
+  }).then(res => {
     event.send(code, void 0, res);
   }).catch(e => {
     event.send(code, errorHandler(e, true));

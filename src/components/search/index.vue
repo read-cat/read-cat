@@ -19,12 +19,8 @@ import { useTextContentStore } from '../../store/text-content';
 const win = useWindowStore();
 const { currentPath, searchBoxHeaderText, transparentWindow } = storeToRefs(win);
 
-const searchKey = ref('');
-const searchProgress = ref(0);
-const { searchStyle } = useHeaderStyle(searchKey, searchProgress);
-
-const { isRunningSearch } = storeToRefs(useSearchStore());
-
+const { isRunningSearch, searchBoxSearchKey, searchBoxSearchProgress } = storeToRefs(useSearchStore());
+const { searchStyle } = useHeaderStyle(searchBoxSearchKey, searchBoxSearchProgress);
 const winEvent = ref<WindowEvent>();
 const showSearchBox = () => {
   if (win.disableShowSearchBox.get(win.currentPath)) {
@@ -88,7 +84,7 @@ export default {
       :background-color="backgroundImage ? '' : 'var(--rc-search-box-bgcolor)'"
       @event="e => winEvent = e"
     >
-      <SearchBox v-if="currentPath !== PagePath.READ" v-model:search-key="searchKey" v-model:search-progress="searchProgress" :window-event="winEvent" :window-size="winSize" />
+      <SearchBox v-if="currentPath !== PagePath.READ" :window-event="winEvent" :window-size="winSize" />
       <ChapterBox :window-event="winEvent" v-else />
     </Window>
   </div>

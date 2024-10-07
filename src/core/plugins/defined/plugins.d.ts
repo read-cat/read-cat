@@ -84,6 +84,8 @@ export interface PluginBaseProps {
   readonly REQUIRE?: Record<string, RequireItem | string>;
   /**书源搜索结果过滤器 */
   readonly SEARCH_FILTER?: SearchFilter;
+  /**插件是否弃用，为true表示弃用 */
+  readonly DEPRECATED?: boolean;
 }
 export interface PluginInterface extends PluginBaseProps {
   new(params: PluginConstructorParams): BookSource | BookStore | TextToSpeechEngine;

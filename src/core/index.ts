@@ -70,7 +70,7 @@ export class Core {
   public static setValue(obj: any, key: any, value: any) {
     Object.defineProperty(obj, key, {
       get() {
-        if (isPluginContext()) {
+        if (!Core.isDev && isPluginContext()) {
           throw newError(`Permission denied to access property or function [${String(key)}]`);
         }
         return value;

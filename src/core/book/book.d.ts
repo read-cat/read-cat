@@ -23,3 +23,9 @@ export type DetailEntity = {
   intro?: string,
   chapterList: Chapter[]
 }
+export type BookStoreItem = {
+  bookname: string,
+  author?: string,
+  coverImageUrl?: string,
+  intro?: string
+}

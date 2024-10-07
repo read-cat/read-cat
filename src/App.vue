@@ -19,7 +19,7 @@ import { useUpdateStore } from './store/update';
 const win = useWindowStore();
 const { transparentWindow } = storeToRefs(win);
 const router = useRouter();
-router.afterEach((to, _, fail) => {
+router.afterEach((to, from, fail) => {
   if (fail) {
     return;
   }
@@ -31,6 +31,12 @@ router.afterEach((to, _, fail) => {
   win.currentPath = v;
   const title = document.head.querySelector('title');
   title && (title.innerText = (to.meta.title ? `${to.meta.title} | ` : '') + 'ReadCat');
+  /**
+   * 解决在详情页点击已读章节标题跳转至已读章节阅读页后点击回退按钮无法正常回退的问题
+   */
+  if (to.path === PagePath.DETAIL && from.path === PagePath.READ) {
+    to.query.to = 'normal';
+  }
 });
 
 const { setScrollTop: _setScrollTop } = useScrollTopStore();

@@ -30,6 +30,7 @@ import { usePluginDevtools } from './hooks/plugin-devtools';
 import { useDefaultSearch } from '../../../../hooks/default-search';
 import { useDefaultPagination } from '../../../../hooks/default-pagination';
 import { isNewerVersionPlugin } from '../../../../core/is';
+import { useClipboard } from '../../../../views/read/hooks/clipboard';
 
 const { pluginDevtools, readAloud } = useSettingsStore();
 const {
@@ -67,6 +68,8 @@ const {
   openPluginDevtoolsKit,
   start
 } = usePluginDevtools();
+
+const clipboard = useClipboard();
 </script>
 <script lang="ts">
 export default {
@@ -112,7 +115,7 @@ export default {
           <ElTableColumn type="selection" width="30" :selectable="checkSelectable" />
           <ElTableColumn label="ID" width="65">
             <template #default="{ row }">
-              <Text :title="row.id" ellipsis max-width="100%">{{ row.id }}</Text>
+              <Text :title="row.id" ellipsis hover cursor="pointer" max-width="100%" @click="clipboard.writeText(row.id, '已复制插件ID')">{{ row.id }}</Text>
             </template>
           </ElTableColumn>
           <ElTableColumn label="类型" width="65">
@@ -135,7 +138,7 @@ export default {
           <ElTableColumn label="状态" width="70">
             <template #default="{ row }">
               <ElCheckTag class="settings-card-item-plugin-state-check-tag" :checked="row.enable" type="primary"
-                @click="toggleState(row)">{{ row.enable ? '已启用' : '已禁用' }}</ElCheckTag>
+                @click="toggleState(row)">{{ row.deprecated ? '已弃用' : row.enable ? '已启用' : '已禁用' }}</ElCheckTag>
             </template>
           </ElTableColumn>
           <ElTableColumn label="版本号">
@@ -153,7 +156,7 @@ export default {
               </ElButton>
               <template v-if="!row.builtIn">
                 <ElButton link size="small" type="danger" @click="deletePlugin(row)">删除</ElButton>
-                <ElButton link size="small" type="success" @click="updatePlugin(row)">更新</ElButton>
+                <ElButton link size="small" type="success" @click="updatePlugin(row.id)">更新</ElButton>
               </template>
             </template>
           </ElTableColumn>
@@ -179,7 +182,7 @@ export default {
             <SettingsCardItem v-if="isNewerVersionPlugin(pluginSettingForm[key])" :title="pluginSettingForm[key].label" :help="pluginSettingForm[key].description" class="plugin-setting-item">
               <ElSwitch v-if="pluginSettingForm[key].type=='boolean'" v-model="pluginSettingForm[key].value"/>
               <ElInput v-else-if="pluginSettingForm[key].type=='string'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder ?? `请输入 ${pluginSettingForm[key].label}`"/>
-              <ElInputNumber v-else-if="pluginSettingForm[key].type=='number'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder ?? `请输入 ${pluginSettingForm[key].label}`" :min="1" :max="100" :step="1"/>
+              <ElInputNumber v-else-if="pluginSettingForm[key].type=='number'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder ?? `请输入 ${pluginSettingForm[key].label}`" :min="0" :max="100" :step="1"/>
               <ElSelect v-else-if="pluginSettingForm[key].type=='list'" v-model="pluginSettingForm[key].value">
                 <ElOption v-for="(option, _index) in pluginSettingForm[key].data" :label="option.name" :value="option.id"/>
               </ElSelect>
