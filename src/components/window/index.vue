@@ -92,7 +92,14 @@ export default {
         'app-no-drag',
         _className,
         !disableBlur && options.enableBlur ? 'app-blur' : ''
-      ]">
+      ]" :style="{
+        top: _top,
+        left: _left,
+        width: _width,
+        height: _height,
+        backgroundColor: _backgroundColor,
+        zIndex
+      }">
         <template v-if="destroyOnClose">
           <slot v-if="delayShow" />
         </template>
@@ -107,14 +114,8 @@ export default {
 <style scoped lang="scss">
 .window {
   position: absolute;
-  top: v-bind(_top);
-  left: v-bind(_left);
-  width: v-bind(_width);
-  height: v-bind(_height);
   border-radius: 10px;
-  background-color: v-bind(_backgroundColor);
   box-shadow: var(--rc-window-box-shadow);
-  z-index: v-bind(zIndex);
   overflow: hidden;
   --animate-duration: 0.5s;
   --animate-delay: 0.3s;

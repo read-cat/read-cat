@@ -1,12 +1,12 @@
 import { ref } from 'vue';
-import { isUndefined, isNewerVersionPlugin } from '../../../../../core/is';
+import { isUndefined, isNewerVersionPlugin, isNumber, isString } from '../../../../../core/is';
 import { useMessage } from '../../../../../hooks/message';
 import { ElMessageBox } from 'element-plus';
 import { PluginType } from '../../../../../core/plugins';
 import { WindowEvent } from '../../../../window/index.vue';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../../../../../store/settings';
-import { chunkArray, cloneByJSON } from '../../../../../core/utils';
+import { chunkArray, cloneByJSON, newError } from '../../../../../core/utils';
 import { readFile } from 'fs/promises';
 import { usePluginsStore } from '../../../../../store/plugins';
 import { showOpenFileDialog } from '../../../../../core/utils/file';
@@ -27,6 +27,7 @@ export type Plugin = {
   builtIn: boolean
   // require?: Record<string, string>
   require?: Record<string, RequireItem | string>
+  deprecated?: boolean
 }
 
 export const usePlugin = () => {
@@ -47,7 +48,7 @@ export const usePlugin = () => {
           typeLabel = '';
           break;
       }
-      return {
+      return new Proxy({
         enable,
         builtIn,
         id: pluginClass.ID,
@@ -56,9 +57,24 @@ export const usePlugin = () => {
         name: pluginClass.NAME,
         version: pluginClass.VERSION,
         require: pluginClass.REQUIRE,
+        deprecated: pluginClass.DEPRECATED,
         updating: false,
-        searchIndex: `${pluginClass.ID} ${typeLabel} ${pluginClass.GROUP} ${pluginClass.NAME} ${enable ? '启用' : '禁用'}`
-      }
+        searchIndex: `${pluginClass.ID} ${typeLabel} ${pluginClass.GROUP} ${pluginClass.NAME} ${pluginClass.DEPRECATED ? '已弃用' : (enable ? '已启用' : '已禁用')}`
+      }, {
+        set(target, key, newValue) {
+          if (key === 'updating') {
+            GLOBAL_PLUGINS.setUpdating(target.id, newValue);
+          }
+          Reflect.set(target, key, newValue);
+          return true;
+        },
+        get(target, key) {
+          if (key === 'updating') {
+            return GLOBAL_PLUGINS.getUpdating(target.id);
+          }
+          return Reflect.get(target, key);
+        },
+      });
     });
   }
   const message = useMessage();
@@ -74,6 +90,10 @@ export const usePlugin = () => {
   }
 
   const toggleState = (val: Plugin) => {
+    if (val.deprecated) {
+      message.warning('该插件已弃用');
+      return;
+    }
     let exec: (id: string) => Promise<void>;
     if (val.enable) {
       exec = GLOBAL_PLUGINS.disable.bind(GLOBAL_PLUGINS);
@@ -101,6 +121,10 @@ export const usePlugin = () => {
       message.error(`无法获取插件, 插件ID:${id}`);
       return;
     }
+    if (p.updating) {
+      message.warning(`插件正在更新中，无法删除`);
+      return;
+    }
     ElMessageBox.confirm(`<p>是否删除插件 ${name}</p><p>插件ID:${id}</p>`, '提示', {
       dangerouslyUseHTMLString: true,
       type: 'info',
@@ -114,18 +138,17 @@ export const usePlugin = () => {
       });
     }).catch(() => { });
   }
-  const updatePlugin = async (val: Plugin) => {
-    const { id } = val;
+
+  const update = async (id: string) => {
     const p = plugins.value.find(p => p.id === id);
+    const props = GLOBAL_PLUGINS.getPluginPropsById(id);
+    if (isUndefined(p) || !props) {
+      throw newError(`无法获取插件, 插件ID:${id}`);
+    }
+    if (!props.PLUGIN_FILE_URL.trim() || p.updating) {
+      return;
+    }
     try {
-      const props = GLOBAL_PLUGINS.getPluginPropsById(id);
-      if (isUndefined(p) || !props) {
-        message.error(`无法获取插件, 插件ID:${id}`);
-        return;
-      }
-      if (!props.PLUGIN_FILE_URL.trim() || p.updating) {
-        return;
-      }
       p.updating = true;
       await sleep(1000);
       const { data } = await axios.get<string>(props.PLUGIN_FILE_URL, {
@@ -140,17 +163,39 @@ export const usePlugin = () => {
         enable: true,
         minify: true
       });
-    } catch (e: any) {
-      message.error(e.message);
     } finally {
       p && (p.updating = false);
       refresh();
     }
   }
+  const updatePlugin = (id: string) => {
+    update(id).catch(e => message.error(e.message));
+  }
 
-  const updateChecked = () => {
-    // console.log(checked.value);
+  const updateChecked = async () => {
+    if (checked.value.length <= 0) {
+      message.warning('未选择插件');
+      return;
+    }
+    const pluginIdList = plugins.value.filter(({ id }) => checked.value.includes(id)).map(({ id }) => id);
+    let error = 0;
+    for (const arr of chunkArray(pluginIdList, threadsNumber.value)) {
+      const ps = [];
+      for (const id of arr) ps.push(update(id).catch(e => {
+        e.id = id;
+        return Promise.reject(e);
+      }));
 
+      for (const result of await Promise.allSettled(ps)) {
+        if (result.status === 'rejected') {
+          error++;
+          GLOBAL_LOG.error('Plugin update id:', result.reason.id, result.reason);
+        }
+      }
+    }
+    if (error > 0) {
+      message.info(`${error} 个插件更新失败`);
+    }
   }
   const deleteChecked = async () => {
     if (checked.value.length <= 0) {
@@ -165,9 +210,15 @@ export const usePlugin = () => {
       });
 
       let error = 0;
+      let skip = 0;
       for (const items of chunkArray(checked.value, threadsNumber.value)) {
         const ps = [];
         for (const item of items) {
+          const plugin = plugins.value.find(p => p.id === item);
+          if (!plugin || plugin.updating) {
+            skip++;
+            continue;
+          }
           ps.push(GLOBAL_PLUGINS.delete(item).catch(e => {
             e.id = item;
             return Promise.reject(e);
@@ -180,10 +231,10 @@ export const usePlugin = () => {
           }
         }
       }
-      if (error === 0) {
+      if (error + skip === 0) {
         message.success(`已删除 ${checked.value.length} 个插件`);
       } else {
-        message.info(`已删除 ${checked.value.length - error} 个插件, ${error} 个插件删除失败`);
+        message.info(`已删除 ${checked.value.length - error - skip} 个插件, ${error} 个插件删除失败, 跳过 ${skip} 个插件`);
       }
     } catch (e) { } finally {
       refresh();
@@ -302,7 +353,13 @@ export const usePlugin = () => {
       // 设置配置值，如果为空使用默认值
       // 如果是新版插件
       if (isNewerVersionPlugin(pluginSettingForm.value[key])) {
-        pluginSettingForm.value[key].value = item[key] || pluginSettingForm.value[key].default;
+        if (isNumber(item[key])) {
+          pluginSettingForm.value[key].value = isNaN(item[key]) ? pluginSettingForm.value[key].default : item[key];
+        } else if (isString(item[key])) {
+          pluginSettingForm.value[key].value = item[key];
+        } else {
+          pluginSettingForm.value[key].value = item[key] || pluginSettingForm.value[key].default;
+        }
       }
       // 为兼容旧版插件
       else {

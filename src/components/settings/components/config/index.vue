@@ -7,6 +7,7 @@ import {
   ElButton,
   ElSlider,
   ElAutocomplete,
+  ElMessageBox,
 } from 'element-plus';
 import SettingsCard from '../card/index.vue';
 import SettingsCardItem from '../card/item/index.vue';
@@ -20,6 +21,11 @@ import IconDelete from '../../../../assets/svg/icon-delete.svg';
 import { useWindowTransparent } from './hooks/window-transparent';
 import { Core } from '../../../../core';
 import { useGithubDownloadProxy } from './hooks/github-download-proxy';
+import { existsSync } from 'fs';
+import fs from 'fs/promises';
+import { join } from 'path';
+import { newError } from '../../../../core/utils';
+import { EventCode } from '../../../../../events';
 
 const { platform } = process;
 const { options, setTheme, window: windowConfig, readAloud, update } = useSettingsStore();
@@ -47,10 +53,47 @@ const {
   transparentWindowHelp
 } = useWindowTransparent();
 
-const debugChange = (val: string | number | boolean) => {
+const debugChange = async (val: string | number | boolean) => {
   const is = isBoolean(val) ? val : !!val;
   Core.isDev = is;
   Core.logger.setDebug(is);
+  try {
+    if (!Core.userDataPath) {
+      throw newError('userDataPath is undefined');
+    }
+    const path = join(Core.userDataPath, 'debug_mode');
+    const exist = existsSync(path);
+    if (is) {
+      !exist && await fs.writeFile(path, '');
+      setTimeout(() => GLOBAL_IPC.send(EventCode.ASYNC_REBOOT_APPLICATION), 1000);
+      return;
+    }
+    if (exist) {
+      await fs.unlink(path);
+    }
+  } catch (e) {
+    GLOBAL_LOG.error('write debug file', e);
+  }
+}
+const debugBeforeChange = async () => {
+  try {
+    if (Core.isDev) {
+      return true;
+    }
+    await ElMessageBox.confirm(`
+      <p>非开发人员请勿开启调试模式，开启前请确保<strong>插件安全</strong></p>
+      <p>开启后将重新启动程序</p>
+      <p>是否开启调试模式？</p>
+    `, {
+      cancelButtonText: '取消',
+      confirmButtonText: '开启',
+      type: 'warning',
+      dangerouslyUseHTMLString: true
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 const { querySearch } = useGithubDownloadProxy();
@@ -155,7 +198,7 @@ export default {
     </SettingsCard>
     <SettingsCard title="高级">
       <SettingsCardItem title="调试模式">
-        <ElSwitch :validate-event="false" v-model="debug" @change="debugChange" />
+        <ElSwitch :validate-event="false" v-model="debug" @change="debugChange" :before-change="debugBeforeChange"/>
       </SettingsCardItem>
     </SettingsCard>
   </div>

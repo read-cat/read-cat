@@ -35,7 +35,7 @@ const createTransformRequest = (config: InternalAxiosRequestConfig) => {
     return config.transformRequest[0].bind(config);
   }
   const func: AxiosRequestTransformer = function (data: any, headers: AxiosRequestHeaders) {
-    const contentType = headers['Content-Type']?.toString().trim().toLowerCase() || ContentType.APPLICATION_FORM_URLENCODED;
+    const contentType = headers['Content-Type']?.toString().trim().toLowerCase();
     if (contentType === ContentType.APPLICATION_FORM_URLENCODED) {
       return toURLEncoded(this, data);
     }
@@ -45,7 +45,8 @@ const createTransformRequest = (config: InternalAxiosRequestConfig) => {
     if (contentType === ContentType.MULTIPART_FORM_DATA) {
       return toMultipartFormData(this, data);
     }
-    throw newAxiosError(`Unsupported content type: ${contentType}`, AxiosError.ERR_NOT_SUPPORT, this);
+    // throw newAxiosError(`Unsupported content type: ${contentType}`, AxiosError.ERR_NOT_SUPPORT, this);
+    return data;
   }
   return func.bind(config);
 }

@@ -35,6 +35,7 @@
 <p>QQ群号：<strong>903473975</strong></p>
 <p>QQ群号：<strong>959115174</strong></p>
 <p>QQ群号：<strong>974942893</strong></p>
+<p>QQ群号：<strong>817944882</strong></p>
 
 ## 上手指南
 ReadCat不携带插件，若您首次使用ReadCat且未导入书源插件，将无法获取任何在线书本内容
@@ -44,42 +45,59 @@ ReadCat不携带插件，若您首次使用ReadCat且未导入书源插件，将
 - 插件
     - [x] 朗读
     - [x] 书源
-    - [ ] 书城
+    - [x] 书城
 - [搜索](#搜索)
 - [书架](#书架)
     - [x] 在线书本
     - [x] 本地书本(txt)
 - [书城](#书城)
 - [书签](#书签)
+- [朗读](#朗读)
 - [深色模式](#深色模式)
 
 #### 搜索
 <div>
-  <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/search.png" alt="Search" />
+  <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/refs/heads/main/public/image/search.png" alt="Search" />
 </div>
+
 
 
 #### 书架
 <div>
-  <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/bookshelf.png" alt="Bookshelf" />
+  <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/refs/heads/main/public/image/bookshelf.png" alt="Bookshelf" />
 </div>
 
+
 #### 书城
-未开发
+<div>
+  <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/refs/heads/main/public/image/bookstore.png" alt="BookStore" />
+</div>
 
 #### 书签
 <div>
-  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/read-bookmark.png" alt="Bookmark" />
-  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/bookmark-content.png" alt="BookmarkContent" />
-  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/bookmark-list.png" alt="BookmarkList" />
+  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/refs/heads/main/public/image/read-bookmark.png" alt="Bookmark" />
+  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/refs/heads/main/public/image/bookmark-content.png" alt="BookmarkContent" />
+  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/refs/heads/main/public/image/bookmark-list.png" alt="BookmarkList" />
 </div>
+
+
+
+#### 朗读
+
+<div>
+  <img width="50%" height="50%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/refs/heads/main/public/image/read-aloud.gif" alt="ReadAloud" />
+</div>
+
+
+
 
 #### 深色模式
 <div>
-  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/settings-dark.png" alt="SettingsDark" />
-  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/bookshelf-dark.png" alt="BookmarkDark" />
-  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/main/public/image/read-dark.png" alt="ReadDark" />
+  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/refs/heads/main/public/image/settings-dark.png" alt="SettingsDark" />
+  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/refs/heads/main/public/image/bookshelf-dark.png" alt="BookmarkDark" />
+  <img width="45%" height="45%" src="https://raw.githubusercontent.com/read-cat/read-cat.github.io/refs/heads/main/public/image/read-dark.png" alt="ReadDark" />
 </div>
+
 
 
 ## 版权说明

@@ -29,6 +29,9 @@ const windowTransparentPath = path.join(app.getPath('userData'), 'window_transpa
 const isTransparent = existsSync(windowTransparentPath);
 const isOverwriteTitleBar = process.platform === 'linux' || lowElectronVersion;
 
+const debugModePath = path.join(app.getPath('userData'), 'debug_mode');
+const isDebugMode = existsSync(debugModePath);
+
 function createWindow(width?: number, height?: number) {
   win = new BrowserWindow({
     title: 'ReadCat',
@@ -59,6 +62,7 @@ function createWindow(width?: number, height?: number) {
     win?.webContents.openDevTools();
   } else {
     win.loadFile(path.join(process.env.DIST, 'index.html'));
+    isDebugMode && win?.webContents.openDevTools();
   }
   Menu.setApplicationMenu(null);
   win.webContents.setWindowOpenHandler(details => {
@@ -69,6 +73,12 @@ function createWindow(width?: number, height?: number) {
   });
   
   win.webContents.on('will-navigate', (e, url) => {
+    if (
+      VITE_DEV_SERVER_URL && url.startsWith(VITE_DEV_SERVER_URL)
+      || !VITE_DEV_SERVER_URL && url.startsWith(path.join(process.env.DIST, 'index.html'))
+    ) {
+      return;
+    }
     e.preventDefault();
     shell.openExternal(url);
   });
@@ -111,7 +121,7 @@ function createWindow(width?: number, height?: number) {
     win.isMaximized() ? win.unmaximize() : win.maximize();
   });
   ipcMain.on(EventCode.SYNC_IS_DEV, e => {
-    e.returnValue = !!VITE_DEV_SERVER_URL;
+    e.returnValue = isDebugMode ? true : !!VITE_DEV_SERVER_URL;
   });
   ipcMain.on(EventCode.SYNC_GET_USER_DATA_PATH, e => {
     e.returnValue = app.getPath('userData');

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {
   ElPagination,
-  ElResult
+  ElEmpty
 } from 'element-plus';
 import { useRouter } from 'vue-router';
 import CoverImage from '../../assets/cover.jpg';
@@ -61,8 +61,10 @@ const getDetail = (pid: string, detailUrl: string) => {
       <li v-once class="hide" />
       <li v-once class="hide" />
     </ul>
+
     <div class="no-result" v-else v-show="!isRunningSearch">
-      <ElResult icon="success" title="没有搜索结果"></ElResult>
+      <!-- <ElResult icon="success" title="没有搜索结果"></ElResult> -->
+       <ElEmpty description="没有搜索结果" />
     </div>
   </div>
 </template>

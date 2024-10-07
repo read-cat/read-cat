@@ -38,6 +38,7 @@ import { ref } from 'vue';
 import { useSettingsStore } from '../../store/settings';
 import CoverImage from '../../assets/cover.jpg';
 import { BookParser } from '../../core/book/book-parser';
+import { useMessage } from '../../hooks/message';
 
 const route = useRoute();
 const router = useRouter();
@@ -46,11 +47,7 @@ const { pid, detailUrl } = route.query;
 const detailStore = useDetailStore();
 const { isRunningGetDetailPage, detailResult, error, cacheIndexs } = storeToRefs(detailStore);
 const { exist, putAndRemoveBookshelf, setExist } = useBookshelf(String(pid), String(detailUrl), detailResult);
-
-const { exec } = useDetail(String(pid), String(detailUrl), setExist);
-exec();
-const { onRefresh } = useWindowStore();
-onRefresh(PagePath.DETAIL, () => exec(true));
+const { getChapterContent } = useTextContent(detailResult, String(detailUrl), exist);
 const {
   totalPage,
   currentPage,
@@ -59,8 +56,44 @@ const {
   currentReadIndex
 } = useChapterPagination(detailResult);
 
+const { exec, onReady } = useDetail(String(pid), String(detailUrl), setExist);
+onReady(() => {
+  const { to } = route.query;
+  if (!to || to === 'normal') {
+    return;
+  }
+  const message = useMessage();
+  if (!detailResult.value) {
+    message.error('无法获取详情页');
+    return;
+  }
+  let index = -1;
+  if (to === 'already') {
+    index = currentReadIndex.value;
+  } else if (to === 'latest') {
+    index = detailResult.value.chapterList.length - 1;
+  }
+  const chapter = detailResult.value.chapterList[index];
+  if (!chapter) {
+    message.error(`无法获取章节信息`);
+    GLOBAL_LOG.error(
+      'detail: to onReady',
+      `bookname=${detailResult.value.bookname},`,
+      `pid=${detailResult.value.pid},`,
+      `to=${to},`,
+      `chapterIndex=${index},`,
+      `chapterList length=${detailResult.value.chapterList.length}`
+    );
+    return;
+  }
+  getChapterContent(chapter);
+});
+exec();
+
+const { onRefresh } = useWindowStore();
+onRefresh(PagePath.DETAIL, () => exec(true));
+
 const { isRunningGetTextContent } = storeToRefs(useTextContentStore());
-const { getChapterContent } = useTextContent(detailResult, String(detailUrl), exist);
 
 const bookmarkWindow = ref<WindowEvent>();
 </script>
@@ -101,7 +134,7 @@ const bookmarkWindow = ref<WindowEvent>();
             <div class="col">
               <p class="author">
                 <IconUser v-once />
-                <Text v-memo="[detailResult.author]" :title="`作者 ${detailResult.author}`" ellipsis max-width="calc(100% - 15px)">{{ detailResult.author }}</Text>
+                <Text v-memo="[detailResult.author]" :title="`作者 ${detailResult?.author}`" ellipsis max-width="calc(100% - 15px)">{{ detailResult?.author }}</Text>
               </p>
               <p class="latest-chapter">
                 <IconDot v-once style="color: var(--rc-latest-chapter-color);" />

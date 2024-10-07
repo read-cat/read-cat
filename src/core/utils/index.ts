@@ -57,6 +57,9 @@ export const getColorRGB = (hexColor: string): [number, number, number] => {
 export const colorIsLight = (r: number, g: number, b: number) => {
   return (r * 0.299 + g * 0.578 + b * 0.114 >= 192);
 }
+export const colorIsLight_a = (rgb: [number, number, number]) => {
+  return colorIsLight(rgb[0], rgb[1], rgb[2]);
+}
 
 /**
  * 数组分割
