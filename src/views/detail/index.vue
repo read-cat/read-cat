@@ -39,7 +39,6 @@ import { useSettingsStore } from '../../store/settings';
 import CoverImage from '../../assets/cover.jpg';
 import { BookParser } from '../../core/book/book-parser';
 import { useMessage } from '../../hooks/message';
-import { Chapter } from '../../core/book/book';
 
 const route = useRoute();
 const router = useRouter();
@@ -60,7 +59,7 @@ const {
 const { exec, onReady } = useDetail(String(pid), String(detailUrl), setExist);
 onReady(() => {
   const { to } = route.query;
-  if (to === 'normal') {
+  if (!to || to === 'normal') {
     return;
   }
   const message = useMessage();
@@ -68,14 +67,23 @@ onReady(() => {
     message.error('无法获取详情页');
     return;
   }
-  let chapter: Chapter | null = null;
+  let index = -1;
   if (to === 'already') {
-    chapter = detailResult.value.chapterList[currentReadIndex.value];
+    index = currentReadIndex.value;
   } else if (to === 'latest') {
-    chapter = detailResult.value.chapterList[detailResult.value.chapterList.length - 1];
+    index = detailResult.value.chapterList.length - 1;
   }
+  const chapter = detailResult.value.chapterList[index];
   if (!chapter) {
-    message.error('无法获取章节信息');
+    message.error(`无法获取章节信息`);
+    GLOBAL_LOG.error(
+      'detail: to onReady',
+      `bookname=${detailResult.value.bookname},`,
+      `pid=${detailResult.value.pid},`,
+      `to=${to},`,
+      `chapterIndex=${index},`,
+      `chapterList length=${detailResult.value.chapterList.length}`
+    );
     return;
   }
   getChapterContent(chapter);

@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'fs';
-import { chunkArray, errorHandler, newError } from '../utils';
+import { chunkArray, errorHandler, md5, newError } from '../utils';
 import { isArray, isDate, isFunction, isNewerVersionPlugin, isNull, isNumber, isString, isUndefined } from '../is';
 import { load } from 'cheerio';
 import { usePluginsStore } from '../../store/plugins';
@@ -36,6 +36,7 @@ import NodeCrypto from 'crypto';
 import { uuid, sanitizeHTML, escapeHTML, escapeXML } from '../utils/html';
 import { BaiduTTSEngine } from './built-in/tts/baidu';
 import { WebSocket } from 'ws';
+import { Core } from '..';
 
 const WebSocketClient: WebSocket = require('ws').WebSocket;
 
@@ -57,9 +58,11 @@ export namespace PluginType {
     return map.get(val);
   }
 }
+export type PluginEventType = 'imported' | 'created' | 'deleted' | 'enabled' | 'disabled';
 export class Plugins {
   private pluginsPool: Map<PluginId, {
     enable: boolean,
+    updating: boolean,
     // props: PluginBaseProps,
     pluginClass: PluginInterface,
     instance: BookSource | BookStore | TextToSpeechEngine | null,
@@ -71,6 +74,7 @@ export class Plugins {
   private storeCreateFunction: CreatePluginStore;
   private consoleImplement: Console;
   private VM: typeof VM = require('vm2').VM;
+  private listeners: Map<PluginEventType, Record<string, (pid: string) => void>> = new Map();
 
   constructor(options?: PluginsOptions) {
     const defaultOptions = {
@@ -91,8 +95,26 @@ export class Plugins {
     this.consoleImplement = console;
     this.importBuiltIn();
   }
+  public on(type: PluginEventType, listener: (pid: string) => void) {
+    const key = md5(listener.toString());
+    this.listeners.set(type, {
+      ...(this.listeners.get(type) || {}),
+      [key]: listener
+    });
+  }
+  private callListener(type: PluginEventType, pid: string) {
+    const funcs = this.listeners.get(type);
+    if (!funcs) {
+      return;
+    }
+    for (const key in funcs) {
+      if (Object.hasOwn(funcs, key)) {
+        funcs[key](pid);
+      }
+    }
+  }
 
-  public getPluginStore(id: string) {
+  public getPluginStore(id: PluginId) {
     let s = this.pluginsStore.get(id);
     if (s) {
       return s;
@@ -101,7 +123,7 @@ export class Plugins {
     this.pluginsStore.set(id, s);
     return s;
   }
-  public async disable(id: string): Promise<void> {
+  public async disable(id: PluginId): Promise<void> {
     try {
       const plugin = await GLOBAL_DB.store.pluginsJSCode.getById(id);
       const p = this.pluginsPool.get(id);
@@ -111,6 +133,7 @@ export class Plugins {
       if (isNull(plugin)) {
         p.enable = false;
         p.instance = null;
+        this.callListener('disabled', id);
         return;
       }
       await GLOBAL_DB.store.pluginsJSCode.put({
@@ -119,15 +142,17 @@ export class Plugins {
       });
       this.pluginsPool.set(id, {
         enable: false,
+        updating: false,
         pluginClass: p.pluginClass,
         instance: null,
         builtIn: false
       });
+      this.callListener('disabled', id);
     } catch (e) {
       return errorHandler(e);
     }
   }
-  public async enable(id: string): Promise<void> {
+  public async enable(id: PluginId): Promise<void> {
     try {
       const plugin = await GLOBAL_DB.store.pluginsJSCode.getById(id);
       const p = this.pluginsPool.get(id);
@@ -137,6 +162,7 @@ export class Plugins {
       if (isNull(plugin)) {
         p.enable = true;
         p.instance = this.createPluginClassInstance(p.pluginClass);
+        this.callListener('enabled', id);
         return;
       }
       await GLOBAL_DB.store.pluginsJSCode.put({
@@ -148,11 +174,35 @@ export class Plugins {
         minify: true,
         enable: true
       });
+      this.callListener('enabled', id);
     } catch (e) {
       return errorHandler(e);
     }
   }
-  public getPluginInstanceById<R = BookSource | BookStore | TextToSpeechEngine>(id: string): R | null | undefined {
+
+  public isEnable(id: PluginId) {
+    const p = this.pluginsPool.get(id);
+    if (isUndefined(p)) {
+      throw newError(`Cannot find plugin, id:${id}`);
+    }
+    return p.enable;
+  }
+
+  public setUpdating(id: PluginId, value: boolean) {
+    const p = this.pluginsPool.get(id);
+    if (!p) {
+      return;
+    }
+    p.updating = value;
+  }
+  public getUpdating(id: PluginId) {
+    const p = this.pluginsPool.get(id);
+    if (!p) {
+      return false;
+    }
+    return p.updating;
+  }
+  public getPluginInstanceById<R = BookSource | BookStore | TextToSpeechEngine>(id: PluginId): R | null | undefined {
     const val = this.pluginsPool.get(id);
     return val && (<R>val.instance);
   }
@@ -173,7 +223,7 @@ export class Plugins {
     return props;
   }
 
-  public getPluginPropsById(id: string): PluginBaseProps | undefined {
+  public getPluginPropsById(id: PluginId): PluginBaseProps | undefined {
     const val = this.pluginsPool.get(id);
     if (!val) {
       return void 0;
@@ -181,7 +231,7 @@ export class Plugins {
     return this.getProps(val.pluginClass);
   }
 
-  public getPluginById<R>(id: string): {
+  public getPluginById<R>(id: PluginId): {
     props: PluginBaseProps,
     instance: R | null
   } | undefined {
@@ -242,7 +292,7 @@ export class Plugins {
     });
   }
 
-  public async delete(id: string) {
+  public async delete(id: PluginId) {
     const p = this.pluginsPool.get(id);
     if (p && p.builtIn) {
       throw newError('无法删除内置插件');
@@ -251,6 +301,7 @@ export class Plugins {
     usePluginsStore().removeRequire(id);
     GLOBAL_DB.store.pluginsStore.removeByPid(id);
     this.pluginsPool.delete(id);
+    this.callListener('deleted', id);
   }
 
   public async importPool(): Promise<void> {
@@ -298,65 +349,67 @@ export class Plugins {
   }
 
   private createPluginClassInstance(cls: PluginInterface) {
-    const store = this.getPluginStore(cls.ID);
-    const settings = useSettingsStore();
-    const require = usePluginsStore().getRequire(cls.ID);
-    if (cls.REQUIRE && require && Object.keys(require).length > 0) {
-      for (const key of Object.keys(require)) {
-        if (Object.hasOwn(cls.REQUIRE, key)) {
-          // cls.REQUIRE[key] = require[key]; 
-          
-          // 如新是新版插件
-          if (isNewerVersionPlugin(cls.REQUIRE[key])) {
-            cls.REQUIRE[key].value = require[key];
-          }
-          // 兼容旧插件
-          else {
-            cls.REQUIRE[key] = require[key];
+    try {
+      const settings = useSettingsStore();
+      const require = usePluginsStore().getRequire(cls.ID);
+      if (cls.REQUIRE) {
+        for (const key in cls.REQUIRE) {
+          if (require && Object.hasOwn(require, key)) {
+            // 如新是新版插件
+            if (isNewerVersionPlugin(cls.REQUIRE[key])) {
+              cls.REQUIRE[key].value = require[key];
+            }
+            // 兼容旧插件
+            else {
+              cls.REQUIRE[key] = require[key];
+            }
+          } else {
+            // 若是新版插件且require仓库没有该key的值则设置为default
+            if (isNewerVersionPlugin(cls.REQUIRE[key])) {
+              cls.REQUIRE[key].value = cls.REQUIRE[key].default;
+            }
           }
         }
       }
+      return new cls({
+        request: {
+          async get(url: string, config?: PluginRequestConfig) {
+            let proxy: RequestProxy | undefined = void 0;
+            if (config?.proxy) {
+              if (settings.options.enableProxy) {
+                proxy = settings.proxy;
+              } else {
+                throw newError('Proxy not enabled');
+              }
+            }
+            return requestGet(url, {
+              ...config,
+              proxy
+            });
+          },
+          async post(url: string, config?: PluginRequestConfig) {
+            let proxy: RequestProxy | undefined = void 0;
+            if (config?.proxy) {
+              if (settings.options.enableProxy) {
+                proxy = settings.proxy;
+              } else {
+                throw newError('Proxy not enabled');
+              }
+            }
+            return requestPost(url, {
+              ...config,
+              proxy
+            });
+          },
+        },
+        store: this.getPluginStore(cls.ID),
+        cheerio: load,
+        nanoid: () => nanoid(),
+        uuid
+      });
+    } finally {
+      this.callListener('created', cls.ID);
     }
-    return new cls({
-      request: {
-        async get(url: string, config?: PluginRequestConfig) {
-          let proxy: RequestProxy | undefined = void 0;
-          if (config?.proxy) {
-            if (settings.options.enableProxy) {
-              proxy = settings.proxy;
-            } else {
-              throw newError('Proxy not enabled');
-            }
-          }
-          return requestGet(url, {
-            ...config,
-            proxy
-          });
-        },
-        async post(url: string, config?: PluginRequestConfig) {
-          let proxy: RequestProxy | undefined = void 0;
-          if (config?.proxy) {
-            if (settings.options.enableProxy) {
-              proxy = settings.proxy;
-            } else {
-              throw newError('Proxy not enabled');
-            }
-          }
-          return requestPost(url, {
-            ...config,
-            proxy
-          });
-        },
-      },
-      store: {
-        setStoreValue: store.setStoreValue.bind(store),
-        getStoreValue: store.getStoreValue.bind(store),
-        removeStoreValue: store.removeStoreValue.bind(store),
-      },
-      cheerio: load,
-      nanoid: () => nanoid(),
-      uuid
-    });
   }
 
   private importBuiltIn() {
@@ -365,6 +418,7 @@ export class Plugins {
       const instance = this.createPluginClassInstance(Engine);
       this.pluginsPool.set(Engine.ID, {
         enable: true,
+        updating: false,
         pluginClass: Engine,
         instance,
         builtIn: true
@@ -372,7 +426,7 @@ export class Plugins {
     }
   }
 
-  private async import(pluginFilePath: string | null, jscode: string | null, options?: PluginImportOptions): Promise<BookSource | BookStore> {
+  private async import(pluginFilePath: string | null, jscode: string | null, options?: PluginImportOptions): Promise<BookSource | BookStore | TextToSpeechEngine> {
     try {
       if (!isNull(pluginFilePath)) {
         if (!existsSync(pluginFilePath)) {
@@ -390,6 +444,7 @@ export class Plugins {
       const {
         ID,
         TYPE,
+        DEPRECATED
       } = PluginClass;
       const instance = this.createPluginClassInstance(PluginClass);
 
@@ -402,6 +457,17 @@ export class Plugins {
           return res.map(v => sanitizeHTML(v)).filter(v => v !== '');
         }
       }
+      if (TYPE === PluginType.BOOK_STORE) {
+        (<any>PluginClass.prototype).getConfigItem = (key: string) => {
+          if (isUndefined(key) || !isString(key)) {
+            throw newError('Invalid parameters');
+          }
+          if (!Object.hasOwn((<BookStore>instance).config, key)) {
+            return void 0;
+          }
+          return (<BookStore>instance).config[key].bind(instance);
+        }
+      }
       if (!options?.debug) {
         await GLOBAL_DB.store.pluginsJSCode.put({
           id: ID,
@@ -410,11 +476,13 @@ export class Plugins {
         });
       }
       this.pluginsPool.set(ID, {
-        enable: !!options?.enable,
+        enable: DEPRECATED ? false : !!options?.enable,
+        updating: false,
         pluginClass: PluginClass,
-        instance: options?.enable ? instance : null,
+        instance: DEPRECATED || !options?.enable ? null : instance,
         builtIn: false
       });
+      this.callListener('imported', ID);
       return instance;
     } catch (e) {
       GLOBAL_LOG.error('Plugins import', e);
@@ -560,13 +628,27 @@ export class Plugins {
 
 
 
-  private runPluginScript(script: string) {
+  private runPluginScript(script: string, isDev = false) {
+    const _console = this.consoleImplement;
     const sandbox = {
       plugin: {
         exports: null as PluginInterface | null,
         type: PluginType
       },
-      console: this.consoleImplement,
+      console: {
+        log: function (...data: any[]) {
+          _console.log(`[plugin debug id="${(<any>this).exports.ID}", name="${(<any>this).exports.NAME}"]`, ...data);
+        },
+        info: function (...data: any[]) {
+          _console.info(`[plugin debug id="${(<any>this).exports.ID}", name="${(<any>this).exports.NAME}"]`, ...data);
+        },
+        warn: function (...data: any[]) {
+          _console.warn(`[plugin debug id="${(<any>this).exports.ID}", name="${(<any>this).exports.NAME}"]`, ...data);
+        },
+        error: function (...data: any[]) {
+          _console.error(`[plugin debug id="${(<any>this).exports.ID}", name="${(<any>this).exports.NAME}"]`, ...data);
+        },
+      },
       String,
       Number,
       Boolean,
@@ -608,12 +690,16 @@ export class Plugins {
       setTimeout,
       setInterval
     };
-
-    new this.VM({
-      timeout: 1 * 1000,
-      allowAsync: true,
-      sandbox
-    }).run(script);
+    (<any>sandbox.console).__proto__ = sandbox.plugin;
+    if (isDev) {
+      (new Function('sandbox', `with(sandbox){${script}}`))(sandbox);
+    } else {
+      new this.VM({
+        timeout: 1 * 1000,
+        allowAsync: true,
+        sandbox
+      }).run(script);
+    }
     return function () {
       return sandbox.plugin.exports;
     }
@@ -621,7 +707,13 @@ export class Plugins {
   private pluginExports(jscode: string) {
     return new Promise<PluginInterface>((reso, reje) => {
       try {
-        const exports = this.runPluginScript(jscode)();
+        let exports = null;
+        if (Core.isDev) {
+          GLOBAL_LOG.warn('Run the plugin script in the development environment.');
+          exports = this.runPluginScript(jscode, true)();
+        } else {
+          exports = this.runPluginScript(jscode)();
+        }
         if (!exports) {
           throw newError('Cannot find plugin');
         }

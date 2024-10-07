@@ -25,7 +25,8 @@ export const useSearchStore = defineStore('Search', {
       searchResult: [] as SearchResult[],
       currentPage: 0,
       scrolltop: 0,
-
+      searchBoxSearchKey: '',
+      searchBoxSearchProgress: 0,
     }
   },
   getters: {
@@ -76,6 +77,7 @@ export const useSearchStore = defineStore('Search', {
           enable: true,
           group
         });
+        GLOBAL_LOG.debug('search', `key: ${searchkey}`, `author: ${author}`, `group: ${group}`);
         const threads = chunkArray(plugins, threadsNumber.value);
         for (const bookSources of threads) {
           const p = [];

@@ -130,6 +130,10 @@ export type ProxyConfig = {
   /**代理测试链接 */
   testUrl: string
 }
+export type BookStoreConfig = {
+  /**正在使用的书城插件ID */
+  use: string
+}
 export type Settings = {
   /**设置配置ID */
   id: string
@@ -160,5 +164,7 @@ export type Settings = {
   /**朗读配置 */
   readAloud: ReadAloudConfig,
   /**调试模式 */
-  debug: boolean
+  debug: boolean,
+  /**书城配置 */
+  bookStore: BookStoreConfig
 }

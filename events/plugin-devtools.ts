@@ -36,6 +36,9 @@ export class PluginDevtoolsEventCode {
   /**插件开发工具 执行getVoiceList */
   static PLUGIN_TTS_ENGINE_RUN_GET_VOICE_LIST: string
 
+  /**插件开发工具 书城 */
+  static PLUGIN_BOOKSTORE_RUN: string
+
   /**插件开发工具 编译 */
   static PLUGIN_COMPILE: string
 

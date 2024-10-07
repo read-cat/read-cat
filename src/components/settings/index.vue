@@ -98,13 +98,15 @@ export default {
         <ElDivider v-once />
       </header>
       <main id="settings-main" :class="['rc-scrollbar', options.enableTransition ? 'rc-scrollbar-behavior' : '']">
-        <SettingsConfig v-if="navItemSelected === SettingsLabel.CONFIG" />
-        <SettingsPlugin v-else-if="navItemSelected === SettingsLabel.PLUGIN" />
-        <SettingsProxy v-else-if="navItemSelected === SettingsLabel.PROXY" />
-        <SettingsReadStyle v-else-if="navItemSelected === SettingsLabel.READ_STYLE" />
-        <SettingsShortcutKey v-else-if="navItemSelected === SettingsLabel.SHORTCUT_KEY" />
-        <SettingsTxtParseRule v-else-if="navItemSelected === SettingsLabel.TXT_PARSE_RULE" />
-        <SettingsHelp v-else-if="navItemSelected === SettingsLabel.ABOUT" />
+        <KeepAlive>
+          <SettingsConfig v-if="navItemSelected === SettingsLabel.CONFIG" />
+          <SettingsPlugin v-else-if="navItemSelected === SettingsLabel.PLUGIN" />
+          <SettingsProxy v-else-if="navItemSelected === SettingsLabel.PROXY" />
+          <SettingsReadStyle v-else-if="navItemSelected === SettingsLabel.READ_STYLE" />
+          <SettingsShortcutKey v-else-if="navItemSelected === SettingsLabel.SHORTCUT_KEY" />
+          <SettingsTxtParseRule v-else-if="navItemSelected === SettingsLabel.TXT_PARSE_RULE" />
+          <SettingsHelp v-else-if="navItemSelected === SettingsLabel.ABOUT" />
+        </KeepAlive>
       </main>
     </section>
   </div>

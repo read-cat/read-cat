@@ -26,21 +26,13 @@ const props = defineProps<{
   windowSize: WindowSize
 }>();
 
-const searchKey = defineModel('searchKey', {
-  required: true,
-  default: ''
-});
-const searchProgress = defineModel('searchProgress', {
-  required: true,
-  default: 0
-});
 
 const { width, height } = props.windowSize;
 const router = useRouter();
 const message = useMessage();
 const { options } = useSettingsStore();
 const { addSearchKey, removeSearchKey, hasSearchKey, search: searchExecute } = useSearchStore();
-const { searchkey: storeSearchkey } = storeToRefs(useSearchStore());
+const { searchkey: storeSearchkey, searchBoxSearchKey, searchBoxSearchProgress } = storeToRefs(useSearchStore());
 const search = (e: MouseEvent | KeyboardEvent, val: string) => {
   if (e instanceof KeyboardEvent && e.code !== 'Enter') {
     return;
@@ -61,7 +53,7 @@ const search = (e: MouseEvent | KeyboardEvent, val: string) => {
     message.warning('书名少于2字');
     return;
   }
-  searchKey.value = key;
+  searchBoxSearchKey.value = key;
   if (!hasSearchKey('value', key)) {
     addSearchKey({
       id: nanoid(),
@@ -70,7 +62,7 @@ const search = (e: MouseEvent | KeyboardEvent, val: string) => {
     });
   }
   props.windowEvent?.hide();
-  searchExecute(bookname, author, '', p => searchProgress.value = p);
+  searchExecute(bookname, author, '', p => searchBoxSearchProgress.value = p);
   router.push(PagePath.SEARCH);
 }
 
@@ -96,9 +88,9 @@ export default {
   <ElContainer id="search-box-container">
     <ElHeader id="search-box-header">
       <ElText v-once type="info" size="small">搜索</ElText>
-      <ElInput ref="searchInputRef" v-memo="[searchKey]" v-model="searchKey" clearable placeholder="请输入书名、作者" @keyup="(e: KeyboardEvent) => search(e, searchKey)">
+      <ElInput ref="searchInputRef" v-memo="[searchBoxSearchKey]" v-model="searchBoxSearchKey" clearable placeholder="请输入书名、作者" @keyup="(e: KeyboardEvent) => search(e, searchBoxSearchKey)">
         <template #append>
-          <ElButton :icon="IconSearch" @click="e => search(e, searchKey)" />
+          <ElButton :icon="IconSearch" @click="e => search(e, searchBoxSearchKey)" />
         </template>
       </ElInput>
       <ElText v-once type="info" size="small">精准搜索: 书名&作者</ElText>
