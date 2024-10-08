@@ -38,6 +38,7 @@ import { BaiduTTSEngine } from './built-in/tts/baidu';
 import { WebSocket } from 'ws';
 import { AzureTTSEngine } from './built-in/tts/azure';
 import { Core } from '..';
+import { SherpaOnnxTTSEngine } from "./built-in/tts/sherpa-onnx";
 
 const WebSocketClient: WebSocket = require('ws').WebSocket;
 
@@ -414,7 +415,7 @@ export class Plugins {
   }
 
   private importBuiltIn() {
-    const engines = [EdgeTTSEngine, AliyunTTSEngine, BaiduTTSEngine, AzureTTSEngine];
+    const engines = [EdgeTTSEngine, AliyunTTSEngine, BaiduTTSEngine, AzureTTSEngine, SherpaOnnxTTSEngine];
     for (const Engine of engines) {
       const instance = this.createPluginClassInstance(Engine);
       this.pluginsPool.set(Engine.ID, {

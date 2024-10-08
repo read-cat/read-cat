@@ -40,6 +40,7 @@
     "mime-types": "^2.1.35",
     "nanoid": "^5.0.7",
     "pinia": "^2.2.4",
+    "sherpa-onnx-node": "^1.10.27",
     "socks-proxy-agent": "^8.0.4",
     "uglify-js": "^3.19.3",
     "urlencode": "^2.0.0",
@@ -47,6 +48,14 @@
     "vue": "^3.5.11",
     "vue-router": "^4.4.5",
     "ws": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "sherpa-onnx-darwin-arm64": "^1.10.27",
+    "sherpa-onnx-darwin-x64": "^1.10.27",
+    "sherpa-onnx-linux-x64": "^1.10.27",
+    "sherpa-onnx-linux-arm64": "^1.10.27",
+    "sherpa-onnx-win-x64": "^1.10.27",
+    "sherpa-onnx-win-ia32": "^1.10.27"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.35",
