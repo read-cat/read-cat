@@ -18,7 +18,7 @@ const getVoices = (e: MessageEvent<[Type.Speakers, SherpaOnnx.OfflineTtsConfig]>
     const tts = init(e.data[1])
     const voices: Voice[] = []
     for (let i = 0; i < tts.numSpeakers; i++) {
-        voices.push({ name: `音色 ${i+1}`, value: i.toString() })
+        voices.push({name: `音色 ${i + 1}`, value: i.toString()})
     }
     postMessage(voices)
 }

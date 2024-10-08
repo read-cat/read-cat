@@ -207,10 +207,7 @@ export class SherpaOnnxTTSEngine implements TextToSpeechEngine {
             for (let j = 0; j < chunks.length; j++) {
                 const t = chunks[j].join('');
                 const blob = await toBlob(t);
-                next({
-                    blob,
-                    index: j
-                }, i);
+                next({blob, index: j}, i);
             }
         }
         end();
