@@ -61,6 +61,20 @@ export class SherpaOnnxTTSEngine implements TextToSpeechEngine {
             description: '存在模型文件夹中，一般命名为 dict，没有则不填。',
             placeholder: 'dict',
         },
+        Fsts: {
+            label: 'Fst 文件',
+            type: 'string',
+            default: '',
+            description: '存在模型文件夹中，一般后缀为 .fst，多个文件以半角逗号分割，没有则不填。',
+            placeholder: 'date.fst,number.fst',
+        },
+        Fars: {
+            label: 'Far 文件',
+            type: 'string',
+            default: '',
+            description: '存在模型文件夹中，一般后缀为 .far，多个文件以半角逗号分割，没有则不填。',
+            placeholder: 'rule.far',
+        },
         NumThreads: {
             label: '线程数',
             type: 'number',
@@ -90,33 +104,48 @@ export class SherpaOnnxTTSEngine implements TextToSpeechEngine {
         return folder
     }
 
-    private getUndefinableField(field: RequireItem, type: 'folder' | 'file'): string | undefined {
+    private getUndefinableField(field: RequireItem, type: 'folder' | 'file' | 'multifile'): string | undefined {
         if (!field.value) {
             return undefined
         }
-        const item = path.join(this.folder, field.value)
-        if (!fs.existsSync(item)) {
-            throw new Error(`${field.label}不存在`)
-        }
-        const stats = fs.statSync(item)
-        switch (type) {
-            case 'file':
+        if (type === 'multifile') {
+            const files = (<string>field.value)
+                .split(',').map(s => s.trim())
+                .filter(Boolean).map(s => path.join(this.folder, s))
+            for (const file of files) {
+                if (!fs.existsSync(file)) {
+                    throw new Error(`${file} 不存在`)
+                }
+                const stats = fs.statSync(file)
                 if (!stats.isFile()) {
-                    throw new Error(`${field.label}不存在`)
+                    throw new Error(`${field.label} 不存在`)
                 }
-                break
-            case 'folder':
-                if (!stats.isDirectory()) {
-                    throw new Error(`${field.label}不存在`)
-                }
-                break
-            default:
-                throw new Error('未知类型')
+            }
+            return files.join(',')
+        } else if (type === 'file') {
+            const item = path.join(this.folder, field.value)
+            if (!fs.existsSync(item)) {
+                throw new Error(`${field.label} 不存在`)
+            }
+            const stats = fs.statSync(item)
+            if (!stats.isFile()) {
+                throw new Error(`${field.label} 不存在`)
+            }
+            return item
+        } else {
+            const item = path.join(this.folder, field.value)
+            if (!fs.existsSync(item)) {
+                throw new Error(`${field.label} 不存在`)
+            }
+            const stats = fs.statSync(item)
+            if (!stats.isDirectory()) {
+                throw new Error(`${field.label} 不存在`)
+            }
+            return item
         }
-        return item
     }
 
-    private getRequiredField(field: RequireItem, type: 'folder' | 'file'): string {
+    private getRequiredField(field: RequireItem, type: 'folder' | 'file' | 'multifile'): string {
         const item = this.getUndefinableField(field, type)
         if (!item) {
             throw new Error(`${field.label}不存在`)
@@ -138,7 +167,9 @@ export class SherpaOnnxTTSEngine implements TextToSpeechEngine {
                 numThreads: SherpaOnnxTTSEngine.REQUIRE.NumThreads.value,
                 provider: SherpaOnnxTTSEngine.REQUIRE.Provider.value,
             },
-            maxNumSentences: 1
+            maxNumSentences: 1,
+            ruleFsts: this.getUndefinableField(SherpaOnnxTTSEngine.REQUIRE.Fsts, 'multifile'),
+            ruleFars: this.getUndefinableField(SherpaOnnxTTSEngine.REQUIRE.Fars, 'multifile'),
         }
     }
 

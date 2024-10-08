@@ -13,6 +13,8 @@ declare module 'sherpa-onnx-node' {
             provider: 'cpu' | 'cuda'
         },
         maxNumSentences: number,
+        ruleFsts?: string,
+        ruleFars?: string
     }
 
     type GenConfig = {
