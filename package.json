@@ -49,14 +49,6 @@
     "vue-router": "^4.4.5",
     "ws": "^8.18.0"
   },
-  "optionalDependencies": {
-    "sherpa-onnx-darwin-arm64": "^1.10.27",
-    "sherpa-onnx-darwin-x64": "^1.10.27",
-    "sherpa-onnx-linux-x64": "^1.10.27",
-    "sherpa-onnx-linux-arm64": "^1.10.27",
-    "sherpa-onnx-win-x64": "^1.10.27",
-    "sherpa-onnx-win-ia32": "^1.10.27"
-  },
   "devDependencies": {
     "@types/cheerio": "^0.22.35",
     "@types/dom-view-transitions": "^1.0.5",
