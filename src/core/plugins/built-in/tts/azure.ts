@@ -7,10 +7,9 @@ import { EndCallback, NextCallback, TextToSpeechEngine, TTSOptions, Voice } from
 type VoiceListItem = {
     LocalName: string
     Gender: string
-    Locale: string
+    LocaleName: string
     ShortName: string
 }
-type AzureVoice = Voice & { locale: string }
 
 const VoiceListStoreKey = 'voice-list'
 
@@ -27,15 +26,15 @@ export class AzureTTSEngine implements TextToSpeechEngine {
             label: '位置/区域',
             type: 'string',
             default: 'eastasia',
-            description: '位置/区域',
-            placeholder: '位置/区域',
+            description: '前往 https://portal.azure.com/ 获取。',
+            placeholder: 'eastasia',
         },
         SubscriptionKey: {
             label: '密钥',
             type: 'password',
             default: '',
-            description: '密钥',
-            placeholder: '密钥',
+            description: '前往 https://portal.azure.com/ 获取。',
+            placeholder: '3453......',
         },
     };
 
@@ -69,7 +68,7 @@ export class AzureTTSEngine implements TextToSpeechEngine {
         return `https://${this.region}.tts.speech.microsoft.com/cognitiveservices/voices/list`
     }
 
-    async getVoiceList(): Promise<AzureVoice[]> {
+    async getVoiceList(): Promise<Voice[]> {
         const res = await fetch(this.voiceListEndpoint, {
             headers: this.commonHeaders,
         }).catch((e) => Promise.reject(new Error('连接服务失败', { cause: e })))
@@ -78,17 +77,22 @@ export class AzureTTSEngine implements TextToSpeechEngine {
         }
         const body = await res.json() as VoiceListItem[]
         const vl = body
-            .map(item => ({ name: `${item.LocalName} (${item.Gender}, ${item.Locale})`, value: item.ShortName, locale: item.Locale }))
-            .sort((a, b) => {
-                const sa = a.value.slice(3, 5) === 'CN'
-                const sb = b.value.slice(3, 5) === 'CN'
-                if (sa && !sb) {
-                    return -1
+            .map(item => ({ name: `${item.LocalName} / ${item.Gender} / ${item.LocaleName}`, value: item.ShortName }))
+            .sort((...items) => {
+                const ws = [0, 0]
+                for (let i = 0; i < 2; i++) {
+                    const item = items[i]
+                    if (item.value.includes('Multilingual')) {
+                        ws[i] += 1 << 0
+                    }
+                    if (item.value.includes('zh')) {
+                        ws[i] += 1 << 1
+                    }
+                    if (item.value.includes('CN')) {
+                        ws[i] += 1 << 2
+                    }
                 }
-                if (!sa && sb) {
-                    return 1
-                }
-                return a.value < b.value ? -1 : 1
+                return ws[1] - ws[0]
             })
         await this.store.setStoreValue(VoiceListStoreKey, vl)
         return vl
@@ -120,7 +124,13 @@ export class AzureTTSEngine implements TextToSpeechEngine {
                     'X-Microsoft-OutputFormat': 'audio-48khz-192kbitrate-mono-mp3',
                 },
                 body: ssml
-            }).catch(e => Promise.reject(new Error('连接服务失败', { cause: e })))
+            }).catch(e => {
+                if (signal.aborted) {
+                    // 返回一个无意义的响应
+                    return new Response(new ArrayBuffer(0), { status: 200 })
+                }
+                throw new Error('连接服务失败', { cause: e })
+            })
             if (!res.ok) {
                 throw new Error(`Azure 错误码：${res.status}`);
             }
@@ -145,7 +155,7 @@ export class AzureTTSEngine implements TextToSpeechEngine {
     }
 
     protected async createSSML(text: string, opts: TTSOptions): Promise<string> {
-        let voiceList = await this.store.getStoreValue(VoiceListStoreKey) as (AzureVoice[] | null)
+        let voiceList = await this.store.getStoreValue(VoiceListStoreKey) as (Voice[] | null)
         if (!voiceList) {
             voiceList = await this.getVoiceList()
         }
@@ -153,22 +163,17 @@ export class AzureTTSEngine implements TextToSpeechEngine {
             throw new Error('未找到发音人')
         }
         const voice = opts.voice || voiceList[0].value
-        const rate = !isUndefined(opts.rate) ? `${Math.floor(opts.rate * 100)}%` : '0%';
-        const volume = !isUndefined(opts.volume) ? `${Math.floor(opts.volume * 100)}%` : '0%';
-        let locale = ''
-        for (const vi of voiceList) {
-            if (vi.value === voice) {
-                locale = vi.locale
-                break
-            }
-        }
-        if (!locale) {
-            throw new Error(`未找到发音人： ${voice}`)
-        }
+
+        // https://learn.microsoft.com/zh-cn/azure/ai-services/speech-service/speech-synthesis-markup-voice#adjust-prosody
+        // range: 0.5 ~ 2 / -50% ~ 100%, default: 1 / 0%
+        const rate = !isUndefined(opts.rate) ? `${Math.round(opts.rate*100)}%` : '1';
+        // range: 0.0 ~ 100.0, default: 100
+        const volume = !isUndefined(opts.volume) ? `${opts.volume * 100}` : '100';
+
         // payload 是 XML，特殊字符需要转义才能确保正确性
         text = escapeXML(text)
         return (
-            `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${locale}">` +
+            `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">` +
             `<voice name="${voice}">` +
             `<prosody rate="${rate}" volume="${volume}">` +
             text +
