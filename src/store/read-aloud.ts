@@ -180,6 +180,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
           GLOBAL_LOG.warn('readAloud transform content', textContent.value?.contents[index], index, 'blob size:', chunk.blob.size);
           chunk.blob = new Blob([MuteMP3], { type: 'audio/mp3' });
         }
+        GLOBAL_LOG.debug('readAloud cache, index:', index, 'size:', chunk.blob.size);
         if (first) {
           this.audios = [];
           const chunks: AudioChunk[] = [];
@@ -284,7 +285,7 @@ export const useReadAloudStore = defineStore('ReadAloud', {
         if (!engine) {
           throw newError(`朗读引擎不存在或未启用, 插件ID:${id}`);
         }
-        return await engine.getVoiceList();
+        return (await engine.getVoiceList()) || [];
       } catch (e) {
         GLOBAL_LOG.error('readAloud getVoices', e);
         return errorHandler(e);
