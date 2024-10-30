@@ -1,10 +1,9 @@
 import { isNull, isString, isUndefined } from '../../../is';
-import { WebSocket } from 'ws';
-import { PluginConstructorParams } from '../../defined/plugins';
+import { PluginConstructorParams, RequireItem } from '../../defined/plugins';
 import { EndCallback, NextCallback, TTSOptions, Voice } from '../../defined/ttsengine';
 import { chunkArray } from '../../../utils';
 import { escapeXML } from '../../../utils/html';
-const WebSocketClient: typeof WebSocket = require('ws').WebSocket;
+import { WebSocketClient } from '../../../websocket';
 
 /**
  * 功能实现参考自 https://github.com/rany2/edge-tts/
@@ -17,18 +16,28 @@ export class EdgeTTSEngine {
   public static readonly VERSION = '1.0.0';
   public static readonly VERSION_CODE = 0;
   public static readonly PLUGIN_FILE_URL = '';
-  public static readonly REQUIRE = {};
+  public static readonly REQUIRE: Record<string, RequireItem> = {
+    proxy: {
+      label: '代理',
+      type: 'boolean',
+      default: false,
+      description: '朗读报错时可尝试开启该选项，同时开启设置/代理'
+    }
+  };
 
   private static readonly TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4';
   private static readonly WEBSOCKET_MAX_SIZE = 2 ** 16;;
 
   private uuid;
   private request;
-  private wss: WebSocket | null = null;
+  private wss: WebSocketClient | null = null;
   constructor(options: PluginConstructorParams) {
     const { request, uuid } = options;
     this.uuid = uuid;
     this.request = request;
+  }
+  get proxy() {
+    return EdgeTTSEngine.REQUIRE.proxy;
   }
   connect() {
     return new Promise<void>((reso, reje) => {
@@ -40,6 +49,7 @@ export class EdgeTTSEngine {
           'Origin': 'chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold',
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0'
         },
+        proxy: this.proxy.value
       });
       this.wss?.once('open', () => {
         this.wss?.send(
@@ -158,7 +168,9 @@ export class EdgeTTSEngine {
     end();
   }
   async getVoiceList(): Promise<Voice[]> {
-    const { body } = await this.request.get(`https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/voices/list?trustedclienttoken=${EdgeTTSEngine.TOKEN}`).catch(() => ({ body: '[]' }));
+    const { body } = await this.request.get(`https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/voices/list?trustedclienttoken=${EdgeTTSEngine.TOKEN}`, {
+      proxy: this.proxy.value
+    }).catch(() => ({ body: '[]' }));
     const voices: Voice[] = JSON.parse(body).map((v: any) => {
       return {
         name: v.FriendlyName,
