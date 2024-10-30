@@ -30,6 +30,7 @@ export const get = async <T = any>(url: string, config?: RequestConfig): Promise
     responseType: config?.responseType || 'text',
     maxRedirects: config?.maxRedirects,
     signal: config?.signal,
+    timeout: config?.timeout,
     paramsSerializer: (params) => {
       return Object.keys(params)
         .map(key => `${key}=${encodeUrl(params[key], config?.urlencode)}`)
@@ -52,6 +53,7 @@ export const post = async <T = any>(url: string, config?: RequestConfig): Promis
     responseType: config?.responseType || 'text',
     maxRedirects: config?.maxRedirects,
     signal: config?.signal,
+    timeout: config?.timeout,
     paramsSerializer: (params) => {
       return Object.keys(params)
         .map(key => `${key}=${encodeUrl(params[key], config?.urlencode)}`)
