@@ -35,11 +35,9 @@ import type { VM } from 'vm2';
 import NodeCrypto from 'crypto';
 import { uuid, sanitizeHTML, escapeHTML, escapeXML } from '../utils/html';
 import { BaiduTTSEngine } from './built-in/tts/baidu';
-import { WebSocket } from 'ws';
 import { AzureTTSEngine } from './built-in/tts/azure';
 import { Core } from '..';
-
-const WebSocketClient: WebSocket = require('ws').WebSocket;
+import { WebSocketClient } from '../websocket';
 
 export enum PluginType {
   BOOK_SOURCE,
