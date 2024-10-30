@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  ElResult,
   ElButton,
   ElCheckbox,
   ElPagination,
@@ -11,6 +10,7 @@ import {
   ElSelect,
   ElOption,
   ElButtonGroup,
+  ElEmpty
 } from 'element-plus';
 import { onMounted } from 'vue';
 import { useScrollTopStore } from '../../store/scrolltop';
@@ -53,6 +53,16 @@ const { totalPage, currentPage, currentPageChange, showValue } = usePagination(s
 
 const { onRefresh } = useWindowStore();
 onRefresh(PagePath.BOOKSHELF, refresh);
+
+router.afterEach((to, from, fail) => {
+  if (fail) return;
+  /**
+   * 解决在详情页点击已读章节标题跳转至已读章节阅读页后点击回退按钮无法正常回退的问题
+   */
+  if (to.path === PagePath.DETAIL && from.path === PagePath.READ) {
+    to.query.to = 'normal';
+  }
+});
 
 /**
  * @param to
@@ -108,13 +118,17 @@ const goReadPage = (e: MouseEvent, to: 'already' | 'latest', book: Book) => {
 <template>
   <FileDrag class="container" tip="导入书籍" @change="fileDragChange" :disable="importBooksWindow?.isShow()">
     <div class="bookshelf-container">
-      <div class="no-result" v-if="refreshValues.length <= 0">
-        <ElResult icon="info" title="暂无书本">
+      <div class="no-result" v-if="refreshValues.length < 1">
+        <ElEmpty description="暂无书本">
+          <ElButton type="primary" size="small" :icon="IconBack" @click="router.back()">返回</ElButton>
+          <ElButton type="warning" size="small" :icon="IconImport" @click="openBookFile">导入</ElButton>
+        </ElEmpty>
+        <!-- <ElResult icon="info" title="暂无书本">
           <template #extra>
             <ElButton type="primary" size="small" :icon="IconBack" @click="router.back()">返回</ElButton>
             <ElButton type="warning" size="small" :icon="IconImport" @click="openBookFile">导入</ElButton>
           </template>
-        </ElResult>
+        </ElResult> -->
       </div>
       <div class="result" v-else>
         <div :class="['toolbar', options.enableBlur ? 'app-blur' : '']">
