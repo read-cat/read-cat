@@ -34,8 +34,8 @@ const {
   isEmpty
 } = useData();
 
-const scrollTop = () => {
-  const main = document.querySelector('#bookstore-list main');
+const scrollTop = (type: 'nav' | 'list' = 'list') => {
+  const main = document.querySelector(`#bookstore-${type} main`);
   if (!main) {
     return;
   }
@@ -45,10 +45,10 @@ const scrollTop = () => {
 const navItemClick = (key: string) => {
   selected.value = key;
   bookstore.refreshData(selected.value);
-  scrollTop();
+  scrollTop('list');
 }
 onCurrentPageChange(() => {
-  scrollTop();
+  scrollTop('list');
 });
 const { search } = useSearch();
 const listItemClick = (item: BookStoreItem) => {
@@ -60,6 +60,7 @@ const sourceChange = () => {
   selected.value = '';
   bookstore.refreshNavItem();
   bookstore.refreshData(selected.value);
+  scrollTop('nav');
 }
 
 win.onRefresh(PagePath.BOOKSTORE, () => {
@@ -72,7 +73,7 @@ win.onRefresh(PagePath.BOOKSTORE, () => {
 
 <template>
   <div class="container">
-    <nav>
+    <nav id="bookstore-nav">
       <main class="rc-scrollbar">
         <ul>
           <li :class="[
