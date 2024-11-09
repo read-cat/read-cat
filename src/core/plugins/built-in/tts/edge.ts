@@ -4,6 +4,8 @@ import { EndCallback, NextCallback, TTSOptions, Voice } from '../../defined/ttse
 import { chunkArray } from '../../../utils';
 import { escapeXML } from '../../../utils/html';
 import { WebSocketClient } from '../../../websocket';
+import { createHash } from 'crypto';
+import { getFileTime } from '../../../utils/date';
 
 /**
  * 功能实现参考自 https://github.com/rany2/edge-tts/
@@ -22,6 +24,11 @@ export class EdgeTTSEngine {
       type: 'boolean',
       default: false,
       description: '朗读报错时可尝试开启该选项，同时开启设置/代理'
+    },
+    edgeVersion: {
+      label: 'Edge版本号',
+      type: 'string',
+      default: '130.0.0.0'
     }
   };
 
@@ -37,19 +44,35 @@ export class EdgeTTSEngine {
     this.request = request;
   }
   get proxy() {
-    return EdgeTTSEngine.REQUIRE.proxy;
+    return EdgeTTSEngine.REQUIRE.proxy.value;
+  }
+  get edgeVersion() {
+    return EdgeTTSEngine.REQUIRE.edgeVersion.value;
+  }
+
+  private getSecMsGec() {
+    let ticks = getFileTime();
+    ticks -= ticks % 3_000_000_000;
+    return createHash('sha256').update(`${ticks}${EdgeTTSEngine.TOKEN}`).digest('hex').toUpperCase();
   }
   connect() {
     return new Promise<void>((reso, reje) => {
       if (this.wss && this.wss.readyState === 1) {
         return reso();
       }
-      this.wss = new WebSocketClient(`wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=${EdgeTTSEngine.TOKEN}&ConnectionId=${this.uuid()}`, {
+      const query: Record<string, string> = {
+        TrustedClientToken: EdgeTTSEngine.TOKEN,
+        ConnectionId: this.uuid(),
+        'Sec-MS-GEC': this.getSecMsGec(),
+        'Sec-MS-GEC-Version': `1-${this.edgeVersion}`
+      };
+      const queryStr = Object.keys(query).map(key => `${key}=${query[key]}`).join('&');
+      this.wss = new WebSocketClient(`wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?${queryStr}`, {
         headers: {
           'Origin': 'chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0'
+          'User-Agent': `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${this.edgeVersion} Safari/537.36 Edg/${this.edgeVersion}`
         },
-        proxy: this.proxy.value
+        proxy: this.proxy
       });
       this.wss?.once('open', () => {
         this.wss?.send(
