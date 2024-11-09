@@ -14,6 +14,10 @@ import FormDataType from 'form-data';
 
 const NodeFormData: typeof FormDataType = require('form-data');
 
+export type Sandbox = {
+  process: NodeJS.Process
+}
+
 export class Core {
   static logger: Logger;
   static ipc: IpcRenderer;
@@ -22,6 +26,7 @@ export class Core {
   static userDataPath: string | undefined;
   static isDev: boolean;
   static updater: Updater;
+  static sandbox: Sandbox;
 
   static async init(): Promise<Error[] | undefined> {
     try {
@@ -32,6 +37,25 @@ export class Core {
         }
         return load(requests, parent, isMain);
       }
+      Core.sandbox = new Proxy({
+        process
+      }, {
+        get(target, p) {
+          if (isPluginContext()) {
+            throw newError(`Permission denied to access property sandbox.${p.toString()}`);
+          }
+          return Reflect.get(target, p);
+        },
+        set() {
+          return false;
+        },
+      });
+      Core.setValue(window, 'setEnv', (key: string, value: string) => {
+        Core.sandbox.process.env[key] = value;
+      });
+      Core.setValue(window, 'getEnv', (key: string) => {
+        return Core.sandbox.process.env[key];
+      });
       Core.setValue(window, 'process', {
         platform: process.platform,
         cwd: process.cwd,

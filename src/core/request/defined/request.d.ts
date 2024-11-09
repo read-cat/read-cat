@@ -21,7 +21,8 @@ export type RequestConfig = {
   charset?: Charset,
   responseType?: ResponseType
   maxRedirects?: number,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  timeout?: number
 }
 
 export type Response<T> = {

@@ -41,3 +41,11 @@ export function format(date: any, format: string): string {
   }
   return format;
 }
+
+export function toFileTime(date: Date) {
+  return date.getTime() * 10000 + 116444736e9;
+}
+
+export function getFileTime() {
+  return toFileTime(new Date);
+}

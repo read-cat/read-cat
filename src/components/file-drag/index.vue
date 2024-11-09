@@ -11,12 +11,14 @@ const props = withDefaults(defineProps<{
   zIndex?: number
   toBody?: boolean
   disable?: boolean
+  sticky?: boolean
 }>(), {
   width: '100vw',
   height: '100vh',
   zIndex: 990,
   toBody: true,
-  disable: false
+  disable: false,
+  sticky: false
 });
 
 const emits = defineEmits<{
@@ -52,11 +54,14 @@ export default {
   <div class="file-drag" @dragenter="dragenter">
     <slot />
     <Teleport to="body" :disabled="!toBody">
-      <div class="file-drag-container" v-memo="[isDrag]" v-show="isDrag" @drop="drop" @dragover="dragover" @dragleave="dragleave">
+      <div class="file-drag-container" :style="{
+        alignItems: sticky ? 'flex-start' : 'center'
+      }" v-memo="[isDrag]" v-show="isDrag" @drop="drop" @dragover="dragover" @dragleave="dragleave">
         <Transition :enter-active-class="options.enableTransition ? 'animate__animated animate__fadeIn' : void 0">
           <div v-show="isDrag" :class="[
             'tip',
             options.enableBlur ? 'app-blur' : '',
+            sticky? 'sticky' : ''
           ]" :style="{
             backgroundColor: options.enableBlur ? 'var(--rc-window-box-blur-bgcolor)' : 'var(--rc-window-box-bgcolor)',
           }">
@@ -102,6 +107,12 @@ export default {
     &>h4 {
       margin-top: 10px;
     }
+  }
+
+  .sticky {
+    position: sticky;
+    top: calc(50% - 2rem);
+    margin-top: 2rem;
   }
 }
 </style>

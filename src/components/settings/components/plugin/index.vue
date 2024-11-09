@@ -109,7 +109,7 @@ export default {
             placeholder="请输入搜索关键字" :prefix-icon="IconSearch" />
         </div>
       </template>
-      <FileDrag tip="导入插件" :z-index="1000" :to-body="false" width="100%" height="100%" @change="importPluginsFileDragChange">
+      <FileDrag tip="导入插件" sticky :z-index="1000" :to-body="false" width="100%" height="100%" @change="importPluginsFileDragChange">
         <ElTable v-memo="[showValue]" :data="showValue" @selection-change="handleSelectionChange"
           empty-text="暂无插件">
           <ElTableColumn type="selection" width="30" :selectable="checkSelectable" />
@@ -182,7 +182,7 @@ export default {
             <SettingsCardItem v-if="isNewerVersionPlugin(pluginSettingForm[key])" :title="pluginSettingForm[key].label" :help="pluginSettingForm[key].description" class="plugin-setting-item">
               <ElSwitch v-if="pluginSettingForm[key].type=='boolean'" v-model="pluginSettingForm[key].value"/>
               <ElInput v-else-if="pluginSettingForm[key].type=='string'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder ?? `请输入 ${pluginSettingForm[key].label}`"/>
-              <ElInputNumber v-else-if="pluginSettingForm[key].type=='number'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder ?? `请输入 ${pluginSettingForm[key].label}`" :min="0" :max="100" :step="1"/>
+              <ElInputNumber v-else-if="pluginSettingForm[key].type=='number'" v-model="pluginSettingForm[key].value" :placeholder="pluginSettingForm[key].placeholder ?? `请输入 ${pluginSettingForm[key].label}`" :step="1"/>
               <ElSelect v-else-if="pluginSettingForm[key].type=='list'" v-model="pluginSettingForm[key].value">
                 <ElOption v-for="(option, _index) in pluginSettingForm[key].data" :label="option.name" :value="option.id"/>
               </ElSelect>
