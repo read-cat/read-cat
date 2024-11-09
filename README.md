@@ -33,9 +33,10 @@
 <p>若想提前体验ReadCat，请<a href="https://read-cat.github.io/insiders">下载内测版本</a></p>
 <p>欢迎您加入内测交流群，您有任何问题、建议等等，可在该群交流</p>
 <p>QQ群号：<strong>903473975</strong></p>
-<p>QQ群号：<strong>959115174</strong></p>
-<p>QQ群号：<strong>974942893</strong></p>
-<p>QQ群号：<strong>817944882</strong></p>
+<p>QQ群号1：<strong>959115174</strong></p>
+<p>QQ群号2：<strong>974942893</strong></p>
+<p>QQ群号3：<strong>817944882</strong></p>
+<p>QQ群号4：<strong>192080442</strong></p>
 
 ## 上手指南
 ReadCat不携带插件，若您首次使用ReadCat且未导入书源插件，将无法获取任何在线书本内容
