@@ -60,7 +60,7 @@ export default {
     <SettingsCard title="配置">
       <SettingsCardItem title="最大行数">
         <ElInputNumber v-model="txtParse.maxLines" @change="cur => txtParse.maxLines = Math.floor(isUndefined(cur) ? 300 : cur)"
-          size="small" :value-on-clear="300" :min="100" :max="500" :step="1" />
+          size="small" :value-on-clear="300" :min="100" :max="10000" :step="1" />
       </SettingsCardItem>
     </SettingsCard>
     <SettingsCard :sticky="0">

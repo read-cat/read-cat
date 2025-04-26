@@ -50,7 +50,7 @@ self.onmessage = e => {
         if (contents.length > maxLines) {
           const chunks = chunkArray(contents, maxLines);
           for (let j = 0; j < chunks.length; j++) {
-            let title: string = (j === 0 && chapterTitleList[i].trim()) ? chapterTitleList[i].trim() : `第${arr.length + 1}章`;
+            let title: string = chapterTitleList[i].trim() ? `${chapterTitleList[i].trim()}-${j+1}` : `第${arr.length + 1}章`;
             arr.push({
               title,
               contents: chunks[j]
